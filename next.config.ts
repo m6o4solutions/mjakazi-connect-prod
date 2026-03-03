@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
 		remotePatterns: [
 			{
 				protocol: "https",
-				hostname: "**.m6o4solutions.com",
+				hostname: "**.mjakaziconnect.co.ke",
 			},
 			{
 				protocol: "http",
@@ -28,7 +28,10 @@ const nextConfig: NextConfig = {
 		};
 
 		// suppress the "Critical dependency" warning from Payload
-		webpackConfig.ignoreWarnings = [...(webpackConfig.ignoreWarnings || []), { module: /node_modules\/payload/ }];
+		webpackConfig.ignoreWarnings = [
+			...(webpackConfig.ignoreWarnings || []),
+			{ module: /node_modules\/payload/ },
+		];
 
 		return webpackConfig;
 	},

@@ -45,29 +45,38 @@ export default buildConfig({
 				},
 			],
 			// append a suffix to the browser title for all admin pages.
-			titleSuffix: " | M6O4 Solutions",
+			titleSuffix: " | Mjakazi Connect",
 		},
 		// set the users collection slug for authentication management.
 		user: Users.slug,
 	},
 	// register all custom collections.
 	collections: collections,
+
 	// configure mongodb adapter using the conditionally selected database uri.
 	db: mongooseAdapter({ url: databaseURI }),
+
 	// set the default rich text editor to lexical.
 	editor: lexical,
+
 	// configure resend as the email delivery provider.
 	email: resend,
+
 	// register all global content types.
 	globals: globals,
+
 	// load all defined payload plugins.
 	plugins: [...plugins],
+
 	// set the payload secret for security, asserting its presence.
 	secret: process.env.PAYLOAD_SECRET!,
+
 	// register sharp for image processing and optimization.
 	sharp,
+
 	// define the output path for payload's typescript types generation.
 	typescript: { outputFile: path.resolve(dirname, "payload-types.ts") },
+
 	jobs: {
 		access: {
 			run: ({ req }: { req: PayloadRequest }): boolean => {

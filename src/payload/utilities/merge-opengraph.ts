@@ -5,14 +5,14 @@ import type { Metadata } from "next";
 const defaultOpenGraph: Metadata["openGraph"] = {
 	type: "website",
 	description:
-		"M6O4 delivers trusted, modern technology solutions that help businesses grow with confidence.",
+		"Kenya's premier high-trust digital bureau for domestic help. Find and hire verified wajakazi through our secure, document-backed platform. NDPA-compliant vetting including National ID and Certificate of Good Conduct checks.",
 	images: [
 		{
 			url: `${getServerSideURL()}/abstract-image-1.jpg`,
 		},
 	],
-	siteName: "M6O4 Solutions",
-	title: "M6O4 Solutions",
+	siteName: "Mjakazi Connect",
+	title: "Mjakazi Connect",
 };
 
 // merges provided open graph data with defaults to ensure required fields exist

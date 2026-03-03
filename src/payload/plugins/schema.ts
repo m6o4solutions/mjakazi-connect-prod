@@ -32,7 +32,7 @@ import { Plugin } from "payload";
 // dynamically constructs seo titles for pages and posts
 // adds brand consistency by appending the company name to each document title
 const generateTitle: GenerateTitle<Post | Page> = ({ doc }) => {
-	return doc?.title ? `${doc.title} | M6O4 Solutions` : "M6O4 Solutions";
+	return doc?.title ? `${doc.title} | Mjakazi Connect` : "Mjakazi Connect";
 };
 
 // dynamically constructs canonical urls for pages and posts
