@@ -1,89 +1,184 @@
-# Payload Template
+# Mjakazi Connect v2
 
-This template comes configured with the bare minimum to get started on anything you need.
+High-trust digital platform connecting families (Mwajiri) with verified domestic
+professionals (Wajakazi).
 
-## Quick start
+This version is a clean architectural rebuild focused on deterministic state machines,
+strict domain boundaries, and audit-safe workflows.
 
-This template can be deployed directly from our Cloud hosting and it will setup MongoDB
-and cloud S3 object storage for media.
+---
 
-## Quick Start - local setup
+## Vision
 
-To spin up this template locally, follow these steps:
+Mjakazi Connect is a structured, moderated hiring platform designed to:
 
-### Clone
+- Enable Wajakazi to register and verify their credentials.
+- Allow families to subscribe and access verified contact information.
+- Enforce strict verification and subscription state rules.
+- Maintain auditability and regulatory compliance (NDPA-aligned).
 
-After you click the `Deploy` button above, you'll want to have standalone copy of this
-repo on your machine. If you've already cloned this repo, skip to
-[Development](#development).
+This system is built around explicit state machines and event-driven domain transitions.
 
-### Development
+---
 
-1. First [clone the repo](#clone) if you have not done so already
-2. `cd my-project && cp .env.example .env` to copy the example environment variables.
-   You'll need to add the `MONGODB_URI` from your Cloud project to your `.env` if you want
-   to use S3 storage and the MongoDB database that was created for you.
+## Core Architecture Principles
 
-3. `pnpm install && pnpm dev` to install dependencies and start the dev server
-4. open `http://localhost:3000` to open the app in your browser
+1. Deterministic state machines for:
+   - Verification
+   - Subscription
+   - Payment
 
-That's it! Changes made in `./src` will be reflected in your app. Follow the on-screen
-instructions to login and create your first admin user. Then check out
-[Production](#production) once you're ready to build and serve your app, and
-[Deployment](#deployment) when you're ready to go live.
+2. Strict API boundaries:
+   - Frontend never mutates domain state directly.
+   - Payment confirmation only via callback validation.
+   - Role enforcement via Clerk.
 
-#### Docker (Optional)
+3. No duplicated state flags.
+4. All transitions are auditable.
+5. Fail-closed security model.
 
-If you prefer to use Docker for local development instead of a local MongoDB instance, the
-provided docker-compose.yml file can be used.
+---
 
-To do so, follow these steps:
+## Tech Stack
 
-- Modify the `MONGODB_URI` in your `.env` file to `mongodb://127.0.0.1/<dbname>`
-- Modify the `docker-compose.yml` file's `MONGODB_URI` to match the above `<dbname>`
-- Run `docker-compose up` to start the database, optionally pass `-d` to run in the
-  background.
+- **Next.js (App Router)**
+- **TypeScript**
+- **Payload CMS**
+- **MongoDB**
+- **Clerk (Authentication)**
+- **M-Pesa (STK Push integration - later phase)**
 
-## How it works
+---
 
-The Payload config is tailored specifically to the needs of most websites. It is
-pre-configured in the following ways:
+## Domain Overview
 
-### Collections
+### Roles
 
-See the [Collections](https://payloadcms.com/docs/configuration/collections) docs for
-details on how to extend this functionality.
+- `mjakazi` – Domestic professional
+- `mwajiri` – Employer / Family
+- `admin` – Platform moderator
+- `sa` – Super Admin
 
-- #### Users (Authentication)
+---
 
-  Users are auth-enabled collections that have access to the admin panel.
+## Core State Machines
 
-  For additional help, see the official
-  [Auth Example](https://github.com/payloadcms/payload/tree/main/examples/auth) or the
-  [Authentication](https://payloadcms.com/docs/authentication/overview#authentication-overview)
-  docs.
+### 1. Verification (Wajakazi)
 
-- #### Media
+States:
 
-  This is the uploads enabled collection. It features pre-configured sizes, focal point
-  and manual resizing to help you manage your pictures.
+- draft
+- pending_payment
+- pending_review
+- verified
+- rejected
+- verification_expired
+- blacklisted
+- deactivated
 
-### Docker
+Only verified profiles are visible in the public directory.
 
-Alternatively, you can use [Docker](https://www.docker.com) to spin up this template
-locally. To do so, follow these steps:
+---
 
-1. Follow [steps 1 and 2 from above](#development), the docker-compose file will
-   automatically use the `.env` file in your project root
-1. Next run `docker-compose up`
-1. Follow [steps 4 and 5 from above](#development) to login and create your first admin
-   user
+### 2. Subscription (Mwajiri)
 
-That's it! The Docker instance will help you get up and running quickly while also
-standardizing the development environment across your teams.
+States:
 
-## Questions
+- none
+- pending_payment
+- active
+- expired
+- suspended
+- blacklisted
 
-If you have any issues or questions, reach out to us on
-[Discord](https://discord.com/invite/payload) or start a
-[GitHub discussion](https://github.com/payloadcms/payload/discussions).
+Only active subscriptions can reveal contact details.
+
+---
+
+### 3. Payment
+
+States:
+
+- initiated
+- stk_sent
+- callback_received
+- confirmed
+- failed
+- expired
+- cancelled
+
+Only `confirmed` payments may activate verification or subscription.
+
+---
+
+## Collections Overview
+
+- users
+- wajakazi_profiles
+- mwajiri_profiles
+- subscriptions
+- payments
+- contact_unlocks
+- audit_logs
+- reviews (planned)
+
+Each concept has a single authoritative source of truth.
+
+---
+
+## Implementation Phases
+
+1. Identity (Clerk + webhook sync)
+2. Wajakazi Verification (draft → review → approved)
+3. Payment Engine (isolated)
+4. Payment → Verification integration
+5. Subscription system
+6. Contact Vault
+7. Directory exposure rules
+8. Expiry automation
+9. Reviews (optional expansion)
+
+Phases must be completed in order.
+
+---
+
+## Security Model
+
+- Role-based access enforced server-side.
+- No frontend-trusted state transitions.
+- No direct Payload writes from client.
+- Payment validation server-side only.
+- Audit logs on every domain mutation.
+
+---
+
+## Development Guidelines
+
+- One feature per commit.
+- One state machine transition per endpoint.
+- No implicit transitions.
+- No boolean duplication of enum states.
+- No cross-domain mutation in a single operation.
+
+All prompts for AI-assisted coding must follow the internal Prompt Template System.
+
+---
+
+## Current Status
+
+Phase: Repository Initialization  
+Focus: Identity Spine (Clerk + Profile Creation)
+
+Next Milestone: Wajakazi self-registration creates a draft profile in the database.
+
+---
+
+## License
+
+Proprietary – All rights reserved.
+
+---
+
+## Maintainer
+
+M6O4 Solutions

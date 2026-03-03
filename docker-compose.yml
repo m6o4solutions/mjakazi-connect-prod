@@ -1,6 +1,6 @@
 services:
   payload-template:
-    image: ghcr.io/m6o4solutions/payload-template-project:latest
+    image: ghcr.io/m6o4solutions/mjakazi-connect-prod:latest
     container_name: payload-template
     restart: unless-stopped
     networks:
@@ -9,7 +9,8 @@ services:
       - stack.env
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.payload-template.rule=Host(`payload-template.m6o4solutions.com`)"
+      - "traefik.http.routers.payload-template.rule=Host(`mjakaziconnect.co.ke`) ||
+        Host(`www.mjakaziconnect.co.ke`)"
       - "traefik.http.routers.payload-template.entrypoints=websecure"
       - "traefik.http.routers.payload-template.tls.certresolver=letsencrypt"
       - "traefik.http.services.payload-template.loadbalancer.server.port=3000"

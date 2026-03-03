@@ -1,5 +1,4 @@
 import { Media } from "@/components/media";
-import { RichText } from "@/components/rich-text";
 import { cn } from "@/lib/utils";
 import type { MediaBlock as MediaBlockProps } from "@/payload-types";
 import type { StaticImageData } from "next/image";
@@ -19,18 +18,7 @@ type Props = MediaBlockProps & {
  * it handles both payload cms media relationships and static next.js images.
  */
 const MediaBlock = (props: Props) => {
-	const {
-		captionClassName,
-		className,
-		enableGutter = true,
-		imgClassName,
-		media,
-		staticImage,
-		disableInnerContainer,
-	} = props;
-
-	let caption;
-	if (media && typeof media === "object") caption = media.caption;
+	const { className, enableGutter = true, imgClassName, media, staticImage } = props;
 
 	return (
 		<div
@@ -48,19 +36,6 @@ const MediaBlock = (props: Props) => {
 					resource={media}
 					src={staticImage}
 				/>
-			)}
-			{caption && (
-				<div
-					className={cn(
-						"mt-6",
-						{
-							container: !disableInnerContainer,
-						},
-						captionClassName,
-					)}
-				>
-					<RichText data={caption} enableGutter={false} />
-				</div>
 			)}
 		</div>
 	);
