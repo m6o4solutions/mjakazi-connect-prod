@@ -1,11 +1,13 @@
 # [1.3.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.2.0...v1.3.0) (2026-03-03)
 
-
 ### Features
 
-* add content editor block to page schema and renderer ([c94de96](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/c94de96596b29ffdcdb271898a6141e43b2b1bff))
-* add registration block to page schema and renderer ([dfe411e](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/dfe411e28b7098516bd1f6557b1eff0c7cf9af95))
-* add vertical margin to content editor container ([c040d43](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/c040d433b018e46c54c765c4fa1f88d7718256a6))
+- add content editor block to page schema and renderer
+  ([c94de96](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/c94de96596b29ffdcdb271898a6141e43b2b1bff))
+- add registration block to page schema and renderer
+  ([dfe411e](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/dfe411e28b7098516bd1f6557b1eff0c7cf9af95))
+- add vertical margin to content editor container
+  ([c040d43](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/c040d433b018e46c54c765c4fa1f88d7718256a6))
 
 # [1.2.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.1.0...v1.2.0) (2026-03-03)
 
