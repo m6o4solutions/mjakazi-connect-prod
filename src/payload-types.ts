@@ -154,7 +154,7 @@ export interface UserAuthOperations {
 export interface Page {
   id: string;
   title: string;
-  layout: Archive[];
+  layout: (HeroPrimary | HeroSecondary | PostsArchive)[];
   meta?: {
     title?: string | null;
     /**
@@ -172,50 +172,50 @@ export interface Page {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "Archive".
+ * via the `definition` "HeroPrimary".
  */
-export interface Archive {
-  introContent?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
+export interface HeroPrimary {
+  heroOverline?: string | null;
+  heroHeadline: string;
+  heroDescription: string;
+  ctaMjakazi: {
+    link: {
+      type?: ('reference' | 'custom') | null;
+      newTab?: boolean | null;
+      reference?:
+        | ({
+            relationTo: 'pages';
+            value: string | Page;
+          } | null)
+        | ({
+            relationTo: 'posts';
+            value: string | Post;
+          } | null);
+      url?: string | null;
+      label: string;
     };
-    [k: string]: unknown;
-  } | null;
-  populateBy?: ('collection' | 'selection') | null;
-  relationTo?: 'posts' | null;
-  categories?: (string | Category)[] | null;
-  limit?: number | null;
-  selectedDocs?:
-    | {
-        relationTo: 'posts';
-        value: string | Post;
-      }[]
-    | null;
+  };
+  ctaRegistration: {
+    link: {
+      type?: ('reference' | 'custom') | null;
+      newTab?: boolean | null;
+      reference?:
+        | ({
+            relationTo: 'pages';
+            value: string | Page;
+          } | null)
+        | ({
+            relationTo: 'posts';
+            value: string | Post;
+          } | null);
+      url?: string | null;
+      label: string;
+    };
+  };
+  backgroundVariant: 'subtle' | 'white';
   id?: string | null;
   blockName?: string | null;
-  blockType: 'archive';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "categories".
- */
-export interface Category {
-  id: string;
-  title: string;
-  description?: string | null;
-  slug?: string | null;
-  slugLock?: boolean | null;
-  updatedAt: string;
-  createdAt: string;
+  blockType: 'heroPrimary';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -343,6 +343,19 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: string;
+  title: string;
+  description?: string | null;
+  slug?: string | null;
+  slugLock?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
@@ -369,6 +382,40 @@ export interface User {
     | null;
   password?: string | null;
   collection: 'users';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HeroSecondary".
+ */
+export interface HeroSecondary {
+  heroHeadline: string;
+  heroDescription: string;
+  backgroundVariant: 'subtle' | 'white';
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'heroSecondary';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PostsArchive".
+ */
+export interface PostsArchive {
+  headline?: string | null;
+  headlineDescription?: string | null;
+  populateBy?: ('collection' | 'selection') | null;
+  relationTo?: 'posts' | null;
+  categories?: (string | Category)[] | null;
+  limit?: number | null;
+  selectedDocs?:
+    | {
+        relationTo: 'posts';
+        value: string | Post;
+      }[]
+    | null;
+  backgroundVariant: 'subtle' | 'white';
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'postsArchive';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -807,7 +854,9 @@ export interface PagesSelect<T extends boolean = true> {
   layout?:
     | T
     | {
-        archive?: T | ArchiveSelect<T>;
+        heroPrimary?: T | HeroPrimarySelect<T>;
+        heroSecondary?: T | HeroSecondarySelect<T>;
+        postsArchive?: T | PostsArchiveSelect<T>;
       };
   meta?:
     | T
@@ -825,15 +874,66 @@ export interface PagesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "Archive_select".
+ * via the `definition` "HeroPrimary_select".
  */
-export interface ArchiveSelect<T extends boolean = true> {
-  introContent?: T;
+export interface HeroPrimarySelect<T extends boolean = true> {
+  heroOverline?: T;
+  heroHeadline?: T;
+  heroDescription?: T;
+  ctaMjakazi?:
+    | T
+    | {
+        link?:
+          | T
+          | {
+              type?: T;
+              newTab?: T;
+              reference?: T;
+              url?: T;
+              label?: T;
+            };
+      };
+  ctaRegistration?:
+    | T
+    | {
+        link?:
+          | T
+          | {
+              type?: T;
+              newTab?: T;
+              reference?: T;
+              url?: T;
+              label?: T;
+            };
+      };
+  backgroundVariant?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HeroSecondary_select".
+ */
+export interface HeroSecondarySelect<T extends boolean = true> {
+  heroHeadline?: T;
+  heroDescription?: T;
+  backgroundVariant?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PostsArchive_select".
+ */
+export interface PostsArchiveSelect<T extends boolean = true> {
+  headline?: T;
+  headlineDescription?: T;
   populateBy?: T;
   relationTo?: T;
   categories?: T;
   limit?: T;
   selectedDocs?: T;
+  backgroundVariant?: T;
   id?: T;
   blockName?: T;
 }

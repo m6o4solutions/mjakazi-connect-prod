@@ -1,4 +1,4 @@
-# Mjakazi Connect v2
+# Mjakazi Connect
 
 High-trust digital platform connecting families (Mwajiri) with verified domestic
 professionals (Wajakazi).
