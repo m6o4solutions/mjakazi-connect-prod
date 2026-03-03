@@ -3,6 +3,7 @@ import {
 	isAuthenticatedOrPublished,
 } from "@/payload/access/access-control";
 import { Archive } from "@/payload/blocks/archive/schema";
+import { HeroPrimary } from "@/payload/blocks/hero-primary/schema";
 import {
 	revalidateDelete,
 	revalidatePage,
@@ -74,7 +75,7 @@ const Pages: CollectionConfig<"pages"> = {
 							admin: {
 								initCollapsed: true,
 							},
-							blocks: [Archive],
+							blocks: [HeroPrimary, Archive],
 						},
 					],
 				},
