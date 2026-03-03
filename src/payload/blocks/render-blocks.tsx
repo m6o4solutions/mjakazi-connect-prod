@@ -4,6 +4,7 @@ import { FormBlock } from "@/payload/blocks/forms/component";
 import { HeroPrimaryBlock } from "@/payload/blocks/hero-primary/component";
 import { HeroSecondaryBlock } from "@/payload/blocks/hero-secondary/component";
 import { PostsArchiveBlock } from "@/payload/blocks/posts-archive/component";
+import { RegistrationBlock } from "@/payload/blocks/registration/component";
 import { ComponentType, Fragment } from "react";
 
 /* defines which payload block types map to which react components.
@@ -14,6 +15,7 @@ const blockComponents = {
 	heroPrimary: HeroPrimaryBlock,
 	heroSecondary: HeroSecondaryBlock,
 	postsArchive: PostsArchiveBlock,
+	registration: RegistrationBlock,
 } as const;
 
 type BlockKey = keyof typeof blockComponents;

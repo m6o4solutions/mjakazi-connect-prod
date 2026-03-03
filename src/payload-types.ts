@@ -154,7 +154,7 @@ export interface UserAuthOperations {
 export interface Page {
   id: string;
   title: string;
-  layout: (HeroPrimary | HeroSecondary | PostsArchive | ContentEditor)[];
+  layout: (HeroPrimary | HeroSecondary | PostsArchive | ContentEditor | Registration)[];
   meta?: {
     title?: string | null;
     /**
@@ -443,6 +443,30 @@ export interface ContentEditor {
   id?: string | null;
   blockName?: string | null;
   blockType: 'contentEditor';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "Registration".
+ */
+export interface Registration {
+  mjakaziCard: {
+    image: string | Media;
+    title: string;
+    description: string;
+    buttonLink: string;
+    buttonText: string;
+  };
+  mwaajiriCard: {
+    image: string | Media;
+    title: string;
+    description: string;
+    buttonLink: string;
+    buttonText: string;
+  };
+  backgroundVariant: 'subtle' | 'white';
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'registration';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -885,6 +909,7 @@ export interface PagesSelect<T extends boolean = true> {
         heroSecondary?: T | HeroSecondarySelect<T>;
         postsArchive?: T | PostsArchiveSelect<T>;
         contentEditor?: T | ContentEditorSelect<T>;
+        registration?: T | RegistrationSelect<T>;
       };
   meta?:
     | T
@@ -973,6 +998,33 @@ export interface ContentEditorSelect<T extends boolean = true> {
   headline?: T;
   headlineDescription?: T;
   editor?: T;
+  backgroundVariant?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "Registration_select".
+ */
+export interface RegistrationSelect<T extends boolean = true> {
+  mjakaziCard?:
+    | T
+    | {
+        image?: T;
+        title?: T;
+        description?: T;
+        buttonLink?: T;
+        buttonText?: T;
+      };
+  mwaajiriCard?:
+    | T
+    | {
+        image?: T;
+        title?: T;
+        description?: T;
+        buttonLink?: T;
+        buttonText?: T;
+      };
   backgroundVariant?: T;
   id?: T;
   blockName?: T;
