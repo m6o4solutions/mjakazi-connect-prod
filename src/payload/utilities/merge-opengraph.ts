@@ -8,7 +8,7 @@ const defaultOpenGraph: Metadata["openGraph"] = {
 		"Kenya's premier high-trust digital bureau for domestic help. Find and hire verified wajakazi through our secure, document-backed platform. NDPA-compliant vetting including National ID and Certificate of Good Conduct checks.",
 	images: [
 		{
-			url: `${getServerSideURL()}/abstract-image-1.jpg`,
+			url: `${getServerSideURL()}/mjakazi-connect.png`,
 		},
 	],
 	siteName: "Mjakazi Connect",
