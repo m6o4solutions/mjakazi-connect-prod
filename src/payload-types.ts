@@ -154,7 +154,7 @@ export interface UserAuthOperations {
 export interface Page {
   id: string;
   title: string;
-  layout: (HeroPrimary | HeroSecondary | Archive)[];
+  layout: (HeroPrimary | HeroSecondary | PostsArchive)[];
   meta?: {
     title?: string | null;
     /**
@@ -397,24 +397,11 @@ export interface HeroSecondary {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "Archive".
+ * via the `definition` "PostsArchive".
  */
-export interface Archive {
-  introContent?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
+export interface PostsArchive {
+  headline?: string | null;
+  headlineDescription?: string | null;
   populateBy?: ('collection' | 'selection') | null;
   relationTo?: 'posts' | null;
   categories?: (string | Category)[] | null;
@@ -425,9 +412,10 @@ export interface Archive {
         value: string | Post;
       }[]
     | null;
+  backgroundVariant: 'subtle' | 'white';
   id?: string | null;
   blockName?: string | null;
-  blockType: 'archive';
+  blockType: 'postsArchive';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -868,7 +856,7 @@ export interface PagesSelect<T extends boolean = true> {
     | {
         heroPrimary?: T | HeroPrimarySelect<T>;
         heroSecondary?: T | HeroSecondarySelect<T>;
-        archive?: T | ArchiveSelect<T>;
+        postsArchive?: T | PostsArchiveSelect<T>;
       };
   meta?:
     | T
@@ -935,15 +923,17 @@ export interface HeroSecondarySelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "Archive_select".
+ * via the `definition` "PostsArchive_select".
  */
-export interface ArchiveSelect<T extends boolean = true> {
-  introContent?: T;
+export interface PostsArchiveSelect<T extends boolean = true> {
+  headline?: T;
+  headlineDescription?: T;
   populateBy?: T;
   relationTo?: T;
   categories?: T;
   limit?: T;
   selectedDocs?: T;
+  backgroundVariant?: T;
   id?: T;
   blockName?: T;
 }
