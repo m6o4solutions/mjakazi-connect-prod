@@ -17,7 +17,7 @@ const ContentEditorBlock = ({
 
 	return (
 		<section className={cn("", backgroundClass)}>
-			<Container>
+			<Container className="my-5">
 				{/* render optional header section if headline or description exists */}
 				{(headline || headlineDescription) && (
 					<div className="mb-12 flex flex-col items-end justify-between md:flex-row">
