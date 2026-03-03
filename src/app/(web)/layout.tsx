@@ -6,43 +6,58 @@ import { Header } from "@/payload/blocks/globals/header/component";
 import { getServerSideURL } from "@/payload/utilities/get-url";
 import { mergeOpenGraph } from "@/payload/utilities/merge-opengraph";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
 import { ReactNode } from "react";
 
-// import global styles for the application
+// load foundational styles for the web application
 import "@/styles/globals.css";
 
-// load the inter font with the 'latin' subset for typography consistency
-const inter = Inter({ subsets: ["latin"] });
+// configure brand-specific typography with css variables for tailwind integration
+const grotesk = Space_Grotesk({
+	subsets: ["latin"],
+	variable: "--font-sans",
+	display: "swap",
+});
+const jakarta = Plus_Jakarta_Sans({
+	subsets: ["latin"],
+	variable: "--font-display",
+	display: "swap",
+});
 
-// the primary layout component for the entire application, wrapping all pages.
+// define the primary shell for the web frontend, managing site-wide providers and layout structure
 const RootLayout = async (props: { children: ReactNode }) => {
 	const { children } = props;
 
 	return (
-		// set html language attribute and suppress hydration warnings for next-themes compatibility
+		// enable hydration warning suppression to accommodate theme switching logic
 		<html lang="en" suppressHydrationWarning>
-			{/* apply base styles, flex column layout for full viewport height, and the inter font class */}
-			<body className={cn("flex h-screen flex-col", inter.className)}>
-				{/* track user behavior early in the lifecycle to catch session starts */}
+			{/* initialize global visual styles and typography variables */}
+			<body
+				className={cn(
+					"bg-bg-subtle text-text-default flex min-h-screen flex-col font-sans antialiased",
+					grotesk.variable,
+					jakarta.variable,
+				)}
+			>
+				{/* initialize analytics tracking at the entry point */}
 				<ClarityTracker />
 
-				{/* theme provider manages dark/light mode state using the 'class' attribute on the html element */}
+				{/* provide theme context and manage appearance transitions */}
 				<ThemeProvider
 					attribute="class"
-					defaultTheme="system"
-					enableSystem // allows the browser/os setting to determine the initial theme
-					disableTransitionOnChange // prevents a visual flash when the theme switches
+					defaultTheme="light"
+					enableSystem
+					disableTransitionOnChange
 				>
-					{/* header component, fetched as a global from Payload CMS */}
+					{/* render global site navigation */}
 					<header>
 						<Header />
 					</header>
 
-					{/* main content area, rendered with the current page */}
+					{/* injectable region for page-specific content */}
 					<main>{children}</main>
 
-					{/* footer component, pinned to the bottom using 'mt-auto' within the flex container */}
+					{/* render global site footer with layout-aware positioning */}
 					<footer className="mt-auto">
 						<Footer />
 					</footer>
@@ -52,15 +67,15 @@ const RootLayout = async (props: { children: ReactNode }) => {
 	);
 };
 
-// next.js metadata object for site-wide seo and social sharing configuration.
+// construct global seo and social metadata using environment-aware utilities
 const metadata: Metadata = {
-	// sets the base url for all relative urls in the metadata (e.g., og images)
+	// establish authority for relative resource resolution
 	metadataBase: new URL(getServerSideURL()),
-	// merges site-wide open graph defaults (like site name and description)
+	// aggregate common open graph properties from centralized configuration
 	openGraph: mergeOpenGraph(),
 	twitter: {
-		card: "summary_large_image", // ensures a large image display on twitter cards
-		creator: "@m6o4solutions", // explicitly sets the twitter account creator
+		card: "summary_large_image",
+		creator: "@m6o4solutions",
 	},
 	icons: {
 		icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
