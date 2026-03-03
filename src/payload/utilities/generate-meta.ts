@@ -32,8 +32,8 @@ const generateMeta = async (args: {
 
 	// append site name to meta title if available
 	const title = doc?.meta?.title
-		? doc.meta.title + " | M6O4 Solutions"
-		: "M6O4 Solutions";
+		? doc.meta.title + " | Mjakazi Connect"
+		: "Mjakazi Connect";
 
 	// compose and return metadata object
 	return {

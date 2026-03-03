@@ -17,12 +17,12 @@ const NotFound = () => {
 				<h2 className="text-primary mb-4 text-2xl font-semibold">page not found</h2>
 				{/* descriptive message giving the user context. */}
 				<p className="text-foreground mb-8">
-					oops! the page you are looking for either does not exist or has been moved.
+					Sorry! The page you are looking for either does not exist or has been moved.
 				</p>
 
 				{/* cta button to redirect the user back to the main homepage. */}
 				<Button className="rounded-lg font-semibold uppercase" variant="default" asChild>
-					<Link href="/">go to homepage</Link>
+					<Link href="/">Go to Homepage</Link>
 				</Button>
 			</div>
 		</Container>
