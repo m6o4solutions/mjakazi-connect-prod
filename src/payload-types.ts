@@ -154,7 +154,7 @@ export interface UserAuthOperations {
 export interface Page {
   id: string;
   title: string;
-  layout: (HeroPrimary | Archive)[];
+  layout: (HeroPrimary | HeroSecondary | Archive)[];
   meta?: {
     title?: string | null;
     /**
@@ -382,6 +382,18 @@ export interface User {
     | null;
   password?: string | null;
   collection: 'users';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HeroSecondary".
+ */
+export interface HeroSecondary {
+  heroHeadline: string;
+  heroDescription: string;
+  backgroundVariant: 'subtle' | 'white';
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'heroSecondary';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -855,6 +867,7 @@ export interface PagesSelect<T extends boolean = true> {
     | T
     | {
         heroPrimary?: T | HeroPrimarySelect<T>;
+        heroSecondary?: T | HeroSecondarySelect<T>;
         archive?: T | ArchiveSelect<T>;
       };
   meta?:
@@ -905,6 +918,17 @@ export interface HeroPrimarySelect<T extends boolean = true> {
               label?: T;
             };
       };
+  backgroundVariant?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HeroSecondary_select".
+ */
+export interface HeroSecondarySelect<T extends boolean = true> {
+  heroHeadline?: T;
+  heroDescription?: T;
   backgroundVariant?: T;
   id?: T;
   blockName?: T;
