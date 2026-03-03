@@ -4,7 +4,6 @@ import type {
 	MediaBlock as MediaBlockProps,
 } from "@/payload-types";
 import { BannerBlock } from "@/payload/blocks/banner/component";
-import { CodeBlock, CodeBlockProps } from "@/payload/blocks/code/component";
 import { MediaBlock } from "@/payload/blocks/media/component";
 import {
 	DefaultNodeTypes,
@@ -22,7 +21,7 @@ import { HTMLAttributes } from "react";
 // defines the custom structure of block nodes expected within the lexical data.
 type NodeTypes =
 	| DefaultNodeTypes
-	| SerializedBlockNode<MediaBlockProps | BannerBlockProps | CodeBlockProps>;
+	| SerializedBlockNode<MediaBlockProps | BannerBlockProps>;
 
 // custom function to translate internal document link data (from payload)
 // into a usable frontend url path (e.g., converting a 'post' relationship slug to '/posts/[slug]').
@@ -62,8 +61,6 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
 				disableInnerContainer={true}
 			/>
 		),
-		// renders a code block with layout classes for centering.
-		code: ({ node }) => <CodeBlock className="col-start-2" {...node.fields} />,
 	},
 });
 

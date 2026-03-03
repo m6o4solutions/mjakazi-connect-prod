@@ -3,7 +3,6 @@ import {
 	isAuthenticatedOrPublished,
 } from "@/payload/access/access-control";
 import { Banner } from "@/payload/blocks/banner/schema";
-import { Code } from "@/payload/blocks/code/schema";
 import { Media } from "@/payload/blocks/media/schema";
 import { populateAuthors } from "@/payload/collections/posts/hooks/populate-authors";
 import {
@@ -90,7 +89,7 @@ const Posts: CollectionConfig<"posts"> = {
 									return [
 										...rootFeatures,
 										HeadingFeature({ enabledHeadingSizes: ["h1", "h2", "h3", "h4"] }),
-										BlocksFeature({ blocks: [Banner, Code, Media] }),
+										BlocksFeature({ blocks: [Banner, Media] }),
 										FixedToolbarFeature(),
 										InlineToolbarFeature(),
 										HorizontalRuleFeature(),
