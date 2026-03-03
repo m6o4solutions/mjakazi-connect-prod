@@ -154,7 +154,7 @@ export interface UserAuthOperations {
 export interface Page {
   id: string;
   title: string;
-  layout: (HeroPrimary | HeroSecondary | PostsArchive)[];
+  layout: (HeroPrimary | HeroSecondary | PostsArchive | ContentEditor)[];
   meta?: {
     title?: string | null;
     /**
@@ -416,6 +416,33 @@ export interface PostsArchive {
   id?: string | null;
   blockName?: string | null;
   blockType: 'postsArchive';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ContentEditor".
+ */
+export interface ContentEditor {
+  headline?: string | null;
+  headlineDescription?: string | null;
+  editor?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  backgroundVariant: 'subtle' | 'white';
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'contentEditor';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -857,6 +884,7 @@ export interface PagesSelect<T extends boolean = true> {
         heroPrimary?: T | HeroPrimarySelect<T>;
         heroSecondary?: T | HeroSecondarySelect<T>;
         postsArchive?: T | PostsArchiveSelect<T>;
+        contentEditor?: T | ContentEditorSelect<T>;
       };
   meta?:
     | T
@@ -933,6 +961,18 @@ export interface PostsArchiveSelect<T extends boolean = true> {
   categories?: T;
   limit?: T;
   selectedDocs?: T;
+  backgroundVariant?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ContentEditor_select".
+ */
+export interface ContentEditorSelect<T extends boolean = true> {
+  headline?: T;
+  headlineDescription?: T;
+  editor?: T;
   backgroundVariant?: T;
   id?: T;
   blockName?: T;
