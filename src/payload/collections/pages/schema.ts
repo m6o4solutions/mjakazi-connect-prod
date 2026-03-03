@@ -2,9 +2,11 @@ import {
 	isAuthenticated,
 	isAuthenticatedOrPublished,
 } from "@/payload/access/access-control";
+import { ContentEditor } from "@/payload/blocks/content-editor/schema";
 import { HeroPrimary } from "@/payload/blocks/hero-primary/schema";
 import { HeroSecondary } from "@/payload/blocks/hero-secondary/schema";
 import { PostsArchive } from "@/payload/blocks/posts-archive/schema";
+import { Registration } from "@/payload/blocks/registration/schema";
 import {
 	revalidateDelete,
 	revalidatePage,
@@ -76,7 +78,13 @@ const Pages: CollectionConfig<"pages"> = {
 							admin: {
 								initCollapsed: true,
 							},
-							blocks: [HeroPrimary, HeroSecondary, PostsArchive],
+							blocks: [
+								HeroPrimary,
+								HeroSecondary,
+								PostsArchive,
+								ContentEditor,
+								Registration,
+							],
 						},
 					],
 				},

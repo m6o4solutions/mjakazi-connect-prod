@@ -29,6 +29,7 @@ const ImageMedia = ({
 	size: sizeFromProps,
 	src: srcFromProps,
 	loading: loadingFromProps,
+	unoptimized,
 }: MediaProps) => {
 	// initializes variables, allowing them to be overridden by payload data if present.
 	let width: number | undefined;
@@ -80,6 +81,7 @@ const ImageMedia = ({
 				loading={loading}
 				sizes={sizes}
 				src={src}
+				unoptimized={unoptimized}
 				// width/height are only passed if 'fill' is false.
 				width={!fill ? width : undefined}
 			/>

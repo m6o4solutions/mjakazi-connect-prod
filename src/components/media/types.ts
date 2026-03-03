@@ -35,6 +35,8 @@ export interface Props {
 	size?: string;
 	// source data for locally imported static images (next.js image specific).
 	src?: StaticImageData;
+	// boolean flag to disable image optimization (next.js image specific).
+	unoptimized?: boolean;
 	// classes applied specifically to the <video> element.
 	videoClassName?: string;
 }
