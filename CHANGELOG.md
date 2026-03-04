@@ -1,3 +1,11 @@
+# [1.4.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.3.0...v1.4.0) (2026-03-04)
+
+
+### Features
+
+* implement post-auth and role-based sign-up ([34b1a85](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/34b1a8582c303d82451a663074a20a37ab519cc5))
+* integrate clerk and restructure layout ([ad684ae](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/ad684aeb77a313c5594cfc05f0518772f98359eb))
+
 # [1.3.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.2.0...v1.3.0) (2026-03-03)
 
 ### Features
