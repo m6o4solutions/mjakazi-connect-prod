@@ -40,6 +40,7 @@ const Registration: Block = {
 							type: "text",
 							label: "Button Link",
 							required: true,
+							defaultValue: "/sign-up?role=mjakazi",
 							admin: {
 								width: "50%",
 							},
@@ -90,6 +91,7 @@ const Registration: Block = {
 							type: "text",
 							label: "Button Link",
 							required: true,
+							defaultValue: "/sign-up?role=mwaajiri",
 							admin: {
 								width: "50%",
 							},
