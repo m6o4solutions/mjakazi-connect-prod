@@ -22,7 +22,14 @@ const RootLayout = async (props: { children: ReactNode }) => {
 	return (
 		<html lang="en" suppressHydrationWarning>
 			<body className={cn("", grotesk.variable, jakarta.variable)}>
-				<ClerkProvider>{children}</ClerkProvider>
+				<ClerkProvider
+					signInUrl="/sign-in"
+					signUpUrl="/sign-up"
+					signInFallbackRedirectUrl="/post-auth"
+					signUpFallbackRedirectUrl="/post-auth"
+				>
+					{children}
+				</ClerkProvider>
 			</body>
 		</html>
 	);

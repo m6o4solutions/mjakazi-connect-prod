@@ -36,7 +36,9 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ steps.image.outputs.name }}
+          images:
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{
+            steps.image.outputs.name }}
           tags: |
             type=raw,value=latest
             type=sha,format=short
@@ -55,3 +57,5 @@ jobs:
             NEXT_PUBLIC_CLARITY_ID=${{ secrets.NEXT_PUBLIC_CLARITY_ID }}
             NEXT_PUBLIC_SERVER_URL=${{ secrets.NEXT_PUBLIC_SERVER_URL }}
             PAYLOAD_SECRET=${{ secrets.PAYLOAD_SECRET }}
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+            CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}

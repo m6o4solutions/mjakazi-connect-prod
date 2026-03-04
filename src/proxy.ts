@@ -13,7 +13,7 @@ export default clerkMiddleware(async (auth, req) => {
 export const config = {
 	matcher: [
 		// exclude internal next.js paths and common static assets from middleware execution
-		"/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+		"/((?!_next|.*\\..*|sign-in|sign-up).*)",
 		// ensure middleware always processes backend communication channels
 		"/(api|trpc)(.*)",
 	],

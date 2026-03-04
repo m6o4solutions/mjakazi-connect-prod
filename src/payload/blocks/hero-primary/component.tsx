@@ -1,6 +1,6 @@
 import { Container } from "@/components/container";
 import { HeroPrimary } from "@/payload-types";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, CheckCircle } from "lucide-react";
 
 // maps cms variant values to tailwind background utility classes
 const bgMap: Record<string, string> = { subtle: "bg-bg-subtle", white: "bg-bg-white" };
@@ -29,7 +29,7 @@ const HeroPrimaryBlock = ({
 					<div className="text-center lg:col-span-6 lg:text-left">
 						{/* small descriptive badge to signal platform status or category */}
 						<div className="border-brand-primary/20 bg-brand-primary/10 text-brand-primary mb-6 inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold tracking-wider uppercase">
-							<i data-lucide="check-circle" className="mr-2 h-3 w-3"></i>
+							<CheckCircle className="mr-2 size-3" />
 							{heroOverline}
 						</div>
 						{/* dynamic headline with gradient support for emphasized segments */}
