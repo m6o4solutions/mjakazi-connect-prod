@@ -1,12 +1,5 @@
-import { ClarityTracker } from "@/components/clarity-tracker";
-import { ThemeProvider } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
-import { Footer } from "@/payload/blocks/globals/footer/component";
-import { Header } from "@/payload/blocks/globals/header/component";
-import { getServerSideURL } from "@/payload/utilities/get-url";
-import { mergeOpenGraph } from "@/payload/utilities/merge-opengraph";
 import { ClerkProvider } from "@clerk/nextjs";
-import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
 import { ReactNode } from "react";
 
@@ -31,57 +24,11 @@ const RootLayout = async (props: { children: ReactNode }) => {
 
 	return (
 		<html lang="en" suppressHydrationWarning>
-			{/* initialize global visual styles and typography variables */}
-			<body
-				className={cn(
-					"bg-bg-subtle text-text-default flex min-h-screen flex-col font-sans antialiased",
-					grotesk.variable,
-					jakarta.variable,
-				)}
-			>
-				<ClerkProvider>
-					{/* initialize analytics tracking at the entry point */}
-					<ClarityTracker />
-
-					{/* provide theme context and manage appearance transitions */}
-					<ThemeProvider
-						attribute="class"
-						defaultTheme="light"
-						enableSystem
-						disableTransitionOnChange
-					>
-						{/* render global site navigation */}
-						<header>
-							<Header />
-						</header>
-
-						{/* injectable region for page-specific content */}
-						<main>{children}</main>
-
-						{/* render global site footer with layout-aware positioning */}
-						<footer className="mt-auto">
-							<Footer />
-						</footer>
-					</ThemeProvider>
-				</ClerkProvider>
+			<body className={cn("", grotesk.variable, jakarta.variable)}>
+				<ClerkProvider>{children}</ClerkProvider>
 			</body>
 		</html>
 	);
 };
 
-// construct global seo and social metadata using environment-aware utilities
-const metadata: Metadata = {
-	// establish authority for relative resource resolution
-	metadataBase: new URL(getServerSideURL()),
-	// aggregate common open graph properties from centralized configuration
-	openGraph: mergeOpenGraph(),
-	twitter: {
-		card: "summary_large_image",
-		creator: "@m6o4solutions",
-	},
-	icons: {
-		icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
-	},
-};
-
-export { RootLayout as default, metadata };
+export { RootLayout as default };
