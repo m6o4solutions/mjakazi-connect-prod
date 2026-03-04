@@ -3,9 +3,6 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
 import { ReactNode } from "react";
 
-// load foundational styles for the web application
-import "@/styles/globals.css";
-
 // configure brand-specific typography with css variables for tailwind integration
 const grotesk = Space_Grotesk({
 	subsets: ["latin"],

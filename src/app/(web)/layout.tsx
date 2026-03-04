@@ -7,6 +7,9 @@ import { mergeOpenGraph } from "@/payload/utilities/merge-opengraph";
 import type { Metadata } from "next";
 import { ReactNode } from "react";
 
+// load foundational styles for the web application
+import "@/styles/globals.css";
+
 const WebLayout = ({ children }: { children: ReactNode }) => {
 	return (
 		// initialize global visual styles and typography variables
