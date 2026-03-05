@@ -5,6 +5,8 @@ const WajakaziArchive: Block = {
 	interfaceName: "WajakaziArchive",
 	labels: { singular: "Wajakazi Archive Block", plural: "Wajakazi Archive Blocks" },
 	fields: [
+		{ name: "headline", type: "text", label: "Headline" },
+		{ name: "headlineDescription", type: "text", label: "Headline Description" },
 		{
 			name: "backgroundVariant",
 			type: "select",

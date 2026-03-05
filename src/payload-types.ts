@@ -455,6 +455,8 @@ export interface HowItWorks {
  * via the `definition` "WajakaziArchive".
  */
 export interface WajakaziArchive {
+  headline?: string | null;
+  headlineDescription?: string | null;
   backgroundVariant: 'subtle' | 'white';
   id?: string | null;
   blockName?: string | null;
@@ -1099,6 +1101,8 @@ export interface HowItWorksSelect<T extends boolean = true> {
  * via the `definition` "WajakaziArchive_select".
  */
 export interface WajakaziArchiveSelect<T extends boolean = true> {
+  headline?: T;
+  headlineDescription?: T;
   backgroundVariant?: T;
   id?: T;
   blockName?: T;
