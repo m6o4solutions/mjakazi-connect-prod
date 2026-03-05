@@ -160,6 +160,7 @@ export interface Page {
     | Features
     | HowItWorks
     | WajakaziArchive
+    | Pricing
     | PostsArchive
     | ContentEditor
     | Registration
@@ -461,6 +462,52 @@ export interface WajakaziArchive {
   id?: string | null;
   blockName?: string | null;
   blockType: 'wajakaziArchive';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "Pricing".
+ */
+export interface Pricing {
+  headline: string;
+  headlineDescription: string;
+  pricing: {
+    pricingPlans?:
+      | {
+          planName: string;
+          planDescription: string;
+          planPrice: string;
+          mostPopular?: boolean | null;
+          planPerks?:
+            | {
+                perk?: string | null;
+                id?: string | null;
+              }[]
+            | null;
+          ctaPrice: {
+            link: {
+              type?: ('reference' | 'custom') | null;
+              newTab?: boolean | null;
+              reference?:
+                | ({
+                    relationTo: 'pages';
+                    value: string | Page;
+                  } | null)
+                | ({
+                    relationTo: 'posts';
+                    value: string | Post;
+                  } | null);
+              url?: string | null;
+              label: string;
+            };
+          };
+          id?: string | null;
+        }[]
+      | null;
+  };
+  backgroundVariant: 'subtle' | 'white';
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'pricing';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -977,6 +1024,7 @@ export interface PagesSelect<T extends boolean = true> {
         features?: T | FeaturesSelect<T>;
         howItWorks?: T | HowItWorksSelect<T>;
         wajakaziArchive?: T | WajakaziArchiveSelect<T>;
+        pricing?: T | PricingSelect<T>;
         postsArchive?: T | PostsArchiveSelect<T>;
         contentEditor?: T | ContentEditorSelect<T>;
         registration?: T | RegistrationSelect<T>;
@@ -1103,6 +1151,49 @@ export interface HowItWorksSelect<T extends boolean = true> {
 export interface WajakaziArchiveSelect<T extends boolean = true> {
   headline?: T;
   headlineDescription?: T;
+  backgroundVariant?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "Pricing_select".
+ */
+export interface PricingSelect<T extends boolean = true> {
+  headline?: T;
+  headlineDescription?: T;
+  pricing?:
+    | T
+    | {
+        pricingPlans?:
+          | T
+          | {
+              planName?: T;
+              planDescription?: T;
+              planPrice?: T;
+              mostPopular?: T;
+              planPerks?:
+                | T
+                | {
+                    perk?: T;
+                    id?: T;
+                  };
+              ctaPrice?:
+                | T
+                | {
+                    link?:
+                      | T
+                      | {
+                          type?: T;
+                          newTab?: T;
+                          reference?: T;
+                          url?: T;
+                          label?: T;
+                        };
+                  };
+              id?: T;
+            };
+      };
   backgroundVariant?: T;
   id?: T;
   blockName?: T;

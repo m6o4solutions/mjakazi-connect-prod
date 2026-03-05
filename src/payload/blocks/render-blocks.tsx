@@ -6,6 +6,7 @@ import { HeroPrimaryBlock } from "@/payload/blocks/hero-primary/component";
 import { HeroSecondaryBlock } from "@/payload/blocks/hero-secondary/component";
 import { HowItWorksBlock } from "@/payload/blocks/how-it-works/component";
 import { PostsArchiveBlock } from "@/payload/blocks/posts-archive/component";
+import { PricingBlock } from "@/payload/blocks/pricing/component";
 import { RegistrationBlock } from "@/payload/blocks/registration/component";
 import { WajakaziArchiveBlock } from "@/payload/blocks/wajakazi-archive/component";
 import { ComponentType, Fragment } from "react";
@@ -20,6 +21,7 @@ const blockComponents = {
 	heroSecondary: HeroSecondaryBlock,
 	howItWorks: HowItWorksBlock,
 	postsArchive: PostsArchiveBlock,
+	pricing: PricingBlock,
 	registration: RegistrationBlock,
 	wajakaziArchive: WajakaziArchiveBlock,
 } as const;
