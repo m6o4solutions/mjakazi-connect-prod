@@ -24,7 +24,7 @@ const ImageMedia = ({
 	fill,
 	pictureClassName,
 	imgClassName,
-	priority,
+	preload,
 	resource,
 	size: sizeFromProps,
 	src: srcFromProps,
@@ -53,7 +53,7 @@ const ImageMedia = ({
 	}
 
 	// determines the loading strategy: 'eager' if priority is set, otherwise use the provided loading prop or default to undefined (lazy).
-	const loading = loadingFromProps || (!priority ? "lazy" : undefined);
+	const loading = loadingFromProps || (!preload ? "lazy" : undefined);
 
 	// calculates the responsive 'sizes' attribute string.
 	const sizes = sizeFromProps
@@ -75,9 +75,9 @@ const ImageMedia = ({
 				// enables the blur-up placeholder effect.
 				placeholder="blur"
 				blurDataURL={placeholderBlur}
-				priority={priority}
+				preload={preload}
 				// ensures maximum quality (configurable).
-				quality={100}
+				quality={90}
 				loading={loading}
 				sizes={sizes}
 				src={src}
