@@ -1,3 +1,18 @@
+# [1.5.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.4.0...v1.5.0) (2026-03-05)
+
+
+### Features
+
+* add blog post detail page and update categories schema ([e3216bd](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/e3216bdd90a338a9340a61c8b2515e6522824298))
+* add call to action block ([50044e8](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/50044e88217ddcf4a4c43147152d69c7f46c36fa))
+* add calls-to-action collection ([6c91dfb](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/6c91dfb875a8389f67406b6345ce64f40669c1ee))
+* add features block and update build memory limit ([c0ec108](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/c0ec108b7b346bb49760b79597951a47e0aad00b))
+* add how-it-works block and update build memory limit ([2189cbb](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/2189cbb437c0f5999408b28b7c13667d244de008))
+* add pricing block and update build memory limit ([8742a94](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/8742a94d9f010adfcd107e37673f7a07ea4b4e77))
+* add testimonials block ([08dd353](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/08dd35339c581740b561c36c9fc90930490c7c26))
+* add wajakazi-archive block ([c9b68b2](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/c9b68b228628d29fc226500c30e6b85e02cd6423))
+* **wajakazi-archive:** add headline and description fields ([3092674](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/309267431d5c3c313912fb73acb4f51251476f1e))
+
 # [1.4.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.3.0...v1.4.0) (2026-03-04)
 
 ### Features
