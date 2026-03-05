@@ -154,7 +154,16 @@ export interface UserAuthOperations {
 export interface Page {
   id: string;
   title: string;
-  layout: (HeroPrimary | HeroSecondary | Features | HowItWorks | PostsArchive | ContentEditor | Registration)[];
+  layout: (
+    | HeroPrimary
+    | HeroSecondary
+    | Features
+    | HowItWorks
+    | WajakaziArchive
+    | PostsArchive
+    | ContentEditor
+    | Registration
+  )[];
   meta?: {
     title?: string | null;
     /**
@@ -440,6 +449,16 @@ export interface HowItWorks {
   id?: string | null;
   blockName?: string | null;
   blockType: 'howItWorks';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "WajakaziArchive".
+ */
+export interface WajakaziArchive {
+  backgroundVariant: 'subtle' | 'white';
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'wajakaziArchive';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -955,6 +974,7 @@ export interface PagesSelect<T extends boolean = true> {
         heroSecondary?: T | HeroSecondarySelect<T>;
         features?: T | FeaturesSelect<T>;
         howItWorks?: T | HowItWorksSelect<T>;
+        wajakaziArchive?: T | WajakaziArchiveSelect<T>;
         postsArchive?: T | PostsArchiveSelect<T>;
         contentEditor?: T | ContentEditorSelect<T>;
         registration?: T | RegistrationSelect<T>;
@@ -1070,6 +1090,15 @@ export interface HowItWorksSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  backgroundVariant?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "WajakaziArchive_select".
+ */
+export interface WajakaziArchiveSelect<T extends boolean = true> {
   backgroundVariant?: T;
   id?: T;
   blockName?: T;

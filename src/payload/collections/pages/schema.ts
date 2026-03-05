@@ -9,6 +9,7 @@ import { HeroSecondary } from "@/payload/blocks/hero-secondary/schema";
 import { HowItWorks } from "@/payload/blocks/how-it-works/schema";
 import { PostsArchive } from "@/payload/blocks/posts-archive/schema";
 import { Registration } from "@/payload/blocks/registration/schema";
+import { WajakaziArchive } from "@/payload/blocks/wajakazi-archive/schema";
 import {
 	revalidateDelete,
 	revalidatePage,
@@ -85,6 +86,7 @@ const Pages: CollectionConfig<"pages"> = {
 								HeroSecondary,
 								Features,
 								HowItWorks,
+								WajakaziArchive,
 								PostsArchive,
 								ContentEditor,
 								Registration,
