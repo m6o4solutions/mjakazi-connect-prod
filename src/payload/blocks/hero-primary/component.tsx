@@ -1,4 +1,5 @@
 import { Container } from "@/components/container";
+import { cn } from "@/lib/utils";
 import { HeroPrimary } from "@/payload-types";
 import { ArrowRight, CheckCircle } from "lucide-react";
 
@@ -22,7 +23,7 @@ const HeroPrimaryBlock = ({
 	return (
 		<section
 			id="home"
-			className={`${backgroundClass} overflow-hidden pt-32 pb-20 sm:pt-40 sm:pb-24`}
+			className={cn("overflow-hidden pt-32 pb-20 sm:pt-40 sm:pb-24", backgroundClass)}
 		>
 			<Container className="relative px-4 sm:px-6 lg:px-8">
 				<div className="items-center lg:grid lg:grid-cols-12 lg:gap-16">
@@ -75,7 +76,7 @@ const HeroPrimaryBlock = ({
 								<span className="font-display text-text-default text-2xl font-bold">
 									2k+
 								</span>
-								<span className="text-muted-foreground text-sm">Active Contractors</span>
+								<span className="text-muted-foreground text-sm">Active Wajakazi</span>
 							</div>
 							<div className="bg-border h-8 w-px"></div>
 							<div className="flex flex-col">

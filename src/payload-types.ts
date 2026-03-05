@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     pages: Page;
     posts: Post;
+    callstoaction: Callstoaction;
     categories: Category;
     media: Media;
     users: User;
@@ -86,6 +87,7 @@ export interface Config {
   collectionsSelect: {
     pages: PagesSelect<false> | PagesSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
+    callstoaction: CallstoactionSelect<false> | CallstoactionSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
@@ -154,7 +156,19 @@ export interface UserAuthOperations {
 export interface Page {
   id: string;
   title: string;
-  layout: (HeroPrimary | HeroSecondary | PostsArchive | ContentEditor | Registration)[];
+  layout: (
+    | HeroPrimary
+    | HeroSecondary
+    | Features
+    | HowItWorks
+    | WajakaziArchive
+    | Pricing
+    | Testimonials
+    | CallToAction
+    | PostsArchive
+    | ContentEditor
+    | Registration
+  )[];
   meta?: {
     title?: string | null;
     /**
@@ -349,8 +363,6 @@ export interface Category {
   id: string;
   title: string;
   description?: string | null;
-  slug?: string | null;
-  slugLock?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -394,6 +406,187 @@ export interface HeroSecondary {
   id?: string | null;
   blockName?: string | null;
   blockType: 'heroSecondary';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "Features".
+ */
+export interface Features {
+  headline: string;
+  headlineDescription: string;
+  featureItems: {
+    featureItem: {
+      featureItemIconType: 'text' | 'icon';
+      featureItemIconTypeText?: string | null;
+      featureItemIconTypeIcon?: ('lock' | 'shieldcheck' | 'users') | null;
+      featureItemHeadline: string;
+      featureItemDescription: string;
+      featureItemLink?: string | null;
+    };
+    id?: string | null;
+  }[];
+  backgroundVariant: 'subtle' | 'white';
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'features';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HowItWorks".
+ */
+export interface HowItWorks {
+  headline: string;
+  headlineDescription: string;
+  workingItems: {
+    workingItem: {
+      workingItemIconType: 'text' | 'icon';
+      workingItemIconTypeText?: string | null;
+      workingItemIconTypeIcon?: ('tallyone' | 'tallytwo' | 'tallythree') | null;
+      workingItemHeadline: string;
+      workingItemDescription: string;
+      workingItemLink?: string | null;
+    };
+    id?: string | null;
+  }[];
+  backgroundVariant: 'subtle' | 'white';
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'howItWorks';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "WajakaziArchive".
+ */
+export interface WajakaziArchive {
+  headline?: string | null;
+  headlineDescription?: string | null;
+  backgroundVariant: 'subtle' | 'white';
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'wajakaziArchive';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "Pricing".
+ */
+export interface Pricing {
+  headline: string;
+  headlineDescription: string;
+  pricing: {
+    pricingPlans?:
+      | {
+          planName: string;
+          planDescription: string;
+          planPrice: string;
+          mostPopular?: boolean | null;
+          planPerks?:
+            | {
+                perk?: string | null;
+                id?: string | null;
+              }[]
+            | null;
+          ctaPrice: {
+            link: {
+              type?: ('reference' | 'custom') | null;
+              newTab?: boolean | null;
+              reference?:
+                | ({
+                    relationTo: 'pages';
+                    value: string | Page;
+                  } | null)
+                | ({
+                    relationTo: 'posts';
+                    value: string | Post;
+                  } | null);
+              url?: string | null;
+              label: string;
+            };
+          };
+          id?: string | null;
+        }[]
+      | null;
+  };
+  backgroundVariant: 'subtle' | 'white';
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'pricing';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "Testimonials".
+ */
+export interface Testimonials {
+  headline: string;
+  headlineDescription: string;
+  testimonies?:
+    | {
+        name: string;
+        occupation: string;
+        location: string;
+        rating: number;
+        testimony: string;
+        id?: string | null;
+      }[]
+    | null;
+  backgroundVariant: 'subtle' | 'white';
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'testimonials';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CallToAction".
+ */
+export interface CallToAction {
+  calltoaction: string | Callstoaction;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'callToAction';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "callstoaction".
+ */
+export interface Callstoaction {
+  id: string;
+  headline: string;
+  headlineDescription: string;
+  ctaRegister: {
+    link: {
+      type?: ('reference' | 'custom') | null;
+      newTab?: boolean | null;
+      reference?:
+        | ({
+            relationTo: 'pages';
+            value: string | Page;
+          } | null)
+        | ({
+            relationTo: 'posts';
+            value: string | Post;
+          } | null);
+      url?: string | null;
+      label: string;
+    };
+  };
+  ctaDirectory: {
+    link: {
+      type?: ('reference' | 'custom') | null;
+      newTab?: boolean | null;
+      reference?:
+        | ({
+            relationTo: 'pages';
+            value: string | Page;
+          } | null)
+        | ({
+            relationTo: 'posts';
+            value: string | Post;
+          } | null);
+      url?: string | null;
+      label: string;
+    };
+  };
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -827,6 +1020,10 @@ export interface PayloadLockedDocument {
         value: string | Post;
       } | null)
     | ({
+        relationTo: 'callstoaction';
+        value: string | Callstoaction;
+      } | null)
+    | ({
         relationTo: 'categories';
         value: string | Category;
       } | null)
@@ -907,6 +1104,12 @@ export interface PagesSelect<T extends boolean = true> {
     | {
         heroPrimary?: T | HeroPrimarySelect<T>;
         heroSecondary?: T | HeroSecondarySelect<T>;
+        features?: T | FeaturesSelect<T>;
+        howItWorks?: T | HowItWorksSelect<T>;
+        wajakaziArchive?: T | WajakaziArchiveSelect<T>;
+        pricing?: T | PricingSelect<T>;
+        testimonials?: T | TestimonialsSelect<T>;
+        callToAction?: T | CallToActionSelect<T>;
         postsArchive?: T | PostsArchiveSelect<T>;
         contentEditor?: T | ContentEditorSelect<T>;
         registration?: T | RegistrationSelect<T>;
@@ -971,6 +1174,142 @@ export interface HeroSecondarySelect<T extends boolean = true> {
   heroHeadline?: T;
   heroDescription?: T;
   backgroundVariant?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "Features_select".
+ */
+export interface FeaturesSelect<T extends boolean = true> {
+  headline?: T;
+  headlineDescription?: T;
+  featureItems?:
+    | T
+    | {
+        featureItem?:
+          | T
+          | {
+              featureItemIconType?: T;
+              featureItemIconTypeText?: T;
+              featureItemIconTypeIcon?: T;
+              featureItemHeadline?: T;
+              featureItemDescription?: T;
+              featureItemLink?: T;
+            };
+        id?: T;
+      };
+  backgroundVariant?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HowItWorks_select".
+ */
+export interface HowItWorksSelect<T extends boolean = true> {
+  headline?: T;
+  headlineDescription?: T;
+  workingItems?:
+    | T
+    | {
+        workingItem?:
+          | T
+          | {
+              workingItemIconType?: T;
+              workingItemIconTypeText?: T;
+              workingItemIconTypeIcon?: T;
+              workingItemHeadline?: T;
+              workingItemDescription?: T;
+              workingItemLink?: T;
+            };
+        id?: T;
+      };
+  backgroundVariant?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "WajakaziArchive_select".
+ */
+export interface WajakaziArchiveSelect<T extends boolean = true> {
+  headline?: T;
+  headlineDescription?: T;
+  backgroundVariant?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "Pricing_select".
+ */
+export interface PricingSelect<T extends boolean = true> {
+  headline?: T;
+  headlineDescription?: T;
+  pricing?:
+    | T
+    | {
+        pricingPlans?:
+          | T
+          | {
+              planName?: T;
+              planDescription?: T;
+              planPrice?: T;
+              mostPopular?: T;
+              planPerks?:
+                | T
+                | {
+                    perk?: T;
+                    id?: T;
+                  };
+              ctaPrice?:
+                | T
+                | {
+                    link?:
+                      | T
+                      | {
+                          type?: T;
+                          newTab?: T;
+                          reference?: T;
+                          url?: T;
+                          label?: T;
+                        };
+                  };
+              id?: T;
+            };
+      };
+  backgroundVariant?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "Testimonials_select".
+ */
+export interface TestimonialsSelect<T extends boolean = true> {
+  headline?: T;
+  headlineDescription?: T;
+  testimonies?:
+    | T
+    | {
+        name?: T;
+        occupation?: T;
+        location?: T;
+        rating?: T;
+        testimony?: T;
+        id?: T;
+      };
+  backgroundVariant?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CallToAction_select".
+ */
+export interface CallToActionSelect<T extends boolean = true> {
+  calltoaction?: T;
   id?: T;
   blockName?: T;
 }
@@ -1062,13 +1401,47 @@ export interface PostsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "callstoaction_select".
+ */
+export interface CallstoactionSelect<T extends boolean = true> {
+  headline?: T;
+  headlineDescription?: T;
+  ctaRegister?:
+    | T
+    | {
+        link?:
+          | T
+          | {
+              type?: T;
+              newTab?: T;
+              reference?: T;
+              url?: T;
+              label?: T;
+            };
+      };
+  ctaDirectory?:
+    | T
+    | {
+        link?:
+          | T
+          | {
+              type?: T;
+              newTab?: T;
+              reference?: T;
+              url?: T;
+              label?: T;
+            };
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "categories_select".
  */
 export interface CategoriesSelect<T extends boolean = true> {
   title?: T;
   description?: T;
-  slug?: T;
-  slugLock?: T;
   updatedAt?: T;
   createdAt?: T;
 }

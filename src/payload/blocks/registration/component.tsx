@@ -28,6 +28,7 @@ const RegistrationBlock = ({
 								resource={mjakaziCard.image}
 								className="aspect-video object-cover"
 								unoptimized
+								preload
 							/>
 						</div>
 						<h3 className="font-display text-text-default text-xl font-bold">
@@ -51,6 +52,7 @@ const RegistrationBlock = ({
 								resource={mwaajiriCard.image}
 								className="aspect-video object-cover"
 								unoptimized
+								preload
 							/>
 						</div>
 						<h3 className="font-display text-text-default text-xl font-bold">

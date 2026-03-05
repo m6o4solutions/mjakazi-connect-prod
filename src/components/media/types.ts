@@ -25,8 +25,8 @@ export interface Props {
 	onLoad?: () => void;
 	// loading strategy for the image ('lazy' is default) (next.js image specific).
 	loading?: "lazy" | "eager";
-	// priority loading flag for lcp images (next.js image specific).
-	priority?: boolean;
+	// preload loading flag for lcp images (next.js image specific).
+	preload?: boolean;
 	// forwarded ref for accessing the underlying dom element (img or video).
 	ref?: Ref<HTMLImageElement | HTMLVideoElement | null>;
 	// the source data: a full payload media object, its id, or its url string.

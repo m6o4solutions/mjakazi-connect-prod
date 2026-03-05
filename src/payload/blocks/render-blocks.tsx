@@ -1,21 +1,33 @@
 import type { Page } from "@/payload-types";
+import { CallToActionBlock } from "@/payload/blocks/call-to-action/component";
 import { ContentEditorBlock } from "@/payload/blocks/content-editor/component";
+import { FeaturesBlock } from "@/payload/blocks/features/component";
 import { FormBlock } from "@/payload/blocks/forms/component";
 import { HeroPrimaryBlock } from "@/payload/blocks/hero-primary/component";
 import { HeroSecondaryBlock } from "@/payload/blocks/hero-secondary/component";
+import { HowItWorksBlock } from "@/payload/blocks/how-it-works/component";
 import { PostsArchiveBlock } from "@/payload/blocks/posts-archive/component";
+import { PricingBlock } from "@/payload/blocks/pricing/component";
 import { RegistrationBlock } from "@/payload/blocks/registration/component";
+import { TestimonialsBlock } from "@/payload/blocks/testimonials/component";
+import { WajakaziArchiveBlock } from "@/payload/blocks/wajakazi-archive/component";
 import { ComponentType, Fragment } from "react";
 
 /* defines which payload block types map to which react components.
    this acts as a registry that drives dynamic page rendering. */
 const blockComponents = {
+	callToAction: CallToActionBlock,
 	contentEditor: ContentEditorBlock,
+	features: FeaturesBlock,
 	form: FormBlock,
 	heroPrimary: HeroPrimaryBlock,
 	heroSecondary: HeroSecondaryBlock,
+	howItWorks: HowItWorksBlock,
 	postsArchive: PostsArchiveBlock,
+	pricing: PricingBlock,
 	registration: RegistrationBlock,
+	testimonials: TestimonialsBlock,
+	wajakaziArchive: WajakaziArchiveBlock,
 } as const;
 
 type BlockKey = keyof typeof blockComponents;

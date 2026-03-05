@@ -2,11 +2,17 @@ import {
 	isAuthenticated,
 	isAuthenticatedOrPublished,
 } from "@/payload/access/access-control";
+import { CallToAction } from "@/payload/blocks/call-to-action/schema";
 import { ContentEditor } from "@/payload/blocks/content-editor/schema";
+import { Features } from "@/payload/blocks/features/schema";
 import { HeroPrimary } from "@/payload/blocks/hero-primary/schema";
 import { HeroSecondary } from "@/payload/blocks/hero-secondary/schema";
+import { HowItWorks } from "@/payload/blocks/how-it-works/schema";
 import { PostsArchive } from "@/payload/blocks/posts-archive/schema";
+import { Pricing } from "@/payload/blocks/pricing/schema";
 import { Registration } from "@/payload/blocks/registration/schema";
+import { Testimonials } from "@/payload/blocks/testimonials/schema";
+import { WajakaziArchive } from "@/payload/blocks/wajakazi-archive/schema";
 import {
 	revalidateDelete,
 	revalidatePage,
@@ -81,6 +87,12 @@ const Pages: CollectionConfig<"pages"> = {
 							blocks: [
 								HeroPrimary,
 								HeroSecondary,
+								Features,
+								HowItWorks,
+								WajakaziArchive,
+								Pricing,
+								Testimonials,
+								CallToAction,
 								PostsArchive,
 								ContentEditor,
 								Registration,

@@ -3,8 +3,8 @@ import { ReactNode } from "react";
 // load foundational styles for the web application
 import "@/styles/globals.css";
 
-const AuthLayout = ({ children }: { children: ReactNode }) => {
+const SaaSLayout = ({ children }: { children: ReactNode }) => {
 	return <>{children}</>;
 };
 
-export { AuthLayout as default };
+export { SaaSLayout as default };
