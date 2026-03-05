@@ -6,6 +6,7 @@ import { ContentEditor } from "@/payload/blocks/content-editor/schema";
 import { Features } from "@/payload/blocks/features/schema";
 import { HeroPrimary } from "@/payload/blocks/hero-primary/schema";
 import { HeroSecondary } from "@/payload/blocks/hero-secondary/schema";
+import { HowItWorks } from "@/payload/blocks/how-it-works/schema";
 import { PostsArchive } from "@/payload/blocks/posts-archive/schema";
 import { Registration } from "@/payload/blocks/registration/schema";
 import {
@@ -83,6 +84,7 @@ const Pages: CollectionConfig<"pages"> = {
 								HeroPrimary,
 								HeroSecondary,
 								Features,
+								HowItWorks,
 								PostsArchive,
 								ContentEditor,
 								Registration,

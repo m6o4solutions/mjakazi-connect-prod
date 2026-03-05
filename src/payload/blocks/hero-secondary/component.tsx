@@ -1,4 +1,5 @@
 import { Container } from "@/components/container";
+import { cn } from "@/lib/utils";
 import { HeroSecondary } from "@/payload-types";
 
 // maps cms variant values to tailwind background utility classes
@@ -16,7 +17,7 @@ const HeroSecondaryBlock = ({
 	const backgroundClass = bgMap[backgroundVariant] ?? "bg-bg-white";
 
 	return (
-		<section className={`${backgroundClass} py-12 pt-28`}>
+		<section className={cn("py-12 pt-28", backgroundClass)}>
 			<Container className="px-4 sm:px-6 lg:px-8">
 				{/* emphasizes page identity with bold display typography */}
 				<h1 className="font-display text-text-default text-3xl font-bold md:text-4xl">

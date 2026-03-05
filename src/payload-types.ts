@@ -154,7 +154,7 @@ export interface UserAuthOperations {
 export interface Page {
   id: string;
   title: string;
-  layout: (HeroPrimary | HeroSecondary | Features | PostsArchive | ContentEditor | Registration)[];
+  layout: (HeroPrimary | HeroSecondary | Features | HowItWorks | PostsArchive | ContentEditor | Registration)[];
   meta?: {
     title?: string | null;
     /**
@@ -417,6 +417,29 @@ export interface Features {
   id?: string | null;
   blockName?: string | null;
   blockType: 'features';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HowItWorks".
+ */
+export interface HowItWorks {
+  headline: string;
+  headlineDescription: string;
+  workingItems: {
+    workingItem: {
+      workingItemIconType: 'text' | 'icon';
+      workingItemIconTypeText?: string | null;
+      workingItemIconTypeIcon?: ('tallyone' | 'tallytwo' | 'tallythree') | null;
+      workingItemHeadline: string;
+      workingItemDescription: string;
+      workingItemLink?: string | null;
+    };
+    id?: string | null;
+  }[];
+  backgroundVariant: 'subtle' | 'white';
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'howItWorks';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -931,6 +954,7 @@ export interface PagesSelect<T extends boolean = true> {
         heroPrimary?: T | HeroPrimarySelect<T>;
         heroSecondary?: T | HeroSecondarySelect<T>;
         features?: T | FeaturesSelect<T>;
+        howItWorks?: T | HowItWorksSelect<T>;
         postsArchive?: T | PostsArchiveSelect<T>;
         contentEditor?: T | ContentEditorSelect<T>;
         registration?: T | RegistrationSelect<T>;
@@ -1017,6 +1041,32 @@ export interface FeaturesSelect<T extends boolean = true> {
               featureItemHeadline?: T;
               featureItemDescription?: T;
               featureItemLink?: T;
+            };
+        id?: T;
+      };
+  backgroundVariant?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HowItWorks_select".
+ */
+export interface HowItWorksSelect<T extends boolean = true> {
+  headline?: T;
+  headlineDescription?: T;
+  workingItems?:
+    | T
+    | {
+        workingItem?:
+          | T
+          | {
+              workingItemIconType?: T;
+              workingItemIconTypeText?: T;
+              workingItemIconTypeIcon?: T;
+              workingItemHeadline?: T;
+              workingItemDescription?: T;
+              workingItemLink?: T;
             };
         id?: T;
       };

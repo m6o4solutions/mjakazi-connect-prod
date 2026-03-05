@@ -4,6 +4,7 @@ import { FeaturesBlock } from "@/payload/blocks/features/component";
 import { FormBlock } from "@/payload/blocks/forms/component";
 import { HeroPrimaryBlock } from "@/payload/blocks/hero-primary/component";
 import { HeroSecondaryBlock } from "@/payload/blocks/hero-secondary/component";
+import { HowItWorksBlock } from "@/payload/blocks/how-it-works/component";
 import { PostsArchiveBlock } from "@/payload/blocks/posts-archive/component";
 import { RegistrationBlock } from "@/payload/blocks/registration/component";
 import { ComponentType, Fragment } from "react";
@@ -16,6 +17,7 @@ const blockComponents = {
 	form: FormBlock,
 	heroPrimary: HeroPrimaryBlock,
 	heroSecondary: HeroSecondaryBlock,
+	howItWorks: HowItWorksBlock,
 	postsArchive: PostsArchiveBlock,
 	registration: RegistrationBlock,
 } as const;
