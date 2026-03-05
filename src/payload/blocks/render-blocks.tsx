@@ -1,4 +1,5 @@
 import type { Page } from "@/payload-types";
+import { CallToActionBlock } from "@/payload/blocks/call-to-action/component";
 import { ContentEditorBlock } from "@/payload/blocks/content-editor/component";
 import { FeaturesBlock } from "@/payload/blocks/features/component";
 import { FormBlock } from "@/payload/blocks/forms/component";
@@ -15,6 +16,7 @@ import { ComponentType, Fragment } from "react";
 /* defines which payload block types map to which react components.
    this acts as a registry that drives dynamic page rendering. */
 const blockComponents = {
+	callToAction: CallToActionBlock,
 	contentEditor: ContentEditorBlock,
 	features: FeaturesBlock,
 	form: FormBlock,

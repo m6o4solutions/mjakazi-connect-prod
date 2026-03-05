@@ -2,6 +2,7 @@ import {
 	isAuthenticated,
 	isAuthenticatedOrPublished,
 } from "@/payload/access/access-control";
+import { CallToAction } from "@/payload/blocks/call-to-action/schema";
 import { ContentEditor } from "@/payload/blocks/content-editor/schema";
 import { Features } from "@/payload/blocks/features/schema";
 import { HeroPrimary } from "@/payload/blocks/hero-primary/schema";
@@ -91,6 +92,7 @@ const Pages: CollectionConfig<"pages"> = {
 								WajakaziArchive,
 								Pricing,
 								Testimonials,
+								CallToAction,
 								PostsArchive,
 								ContentEditor,
 								Registration,

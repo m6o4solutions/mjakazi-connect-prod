@@ -164,6 +164,7 @@ export interface Page {
     | WajakaziArchive
     | Pricing
     | Testimonials
+    | CallToAction
     | PostsArchive
     | ContentEditor
     | Registration
@@ -536,6 +537,61 @@ export interface Testimonials {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CallToAction".
+ */
+export interface CallToAction {
+  calltoaction: string | Callstoaction;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'callToAction';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "callstoaction".
+ */
+export interface Callstoaction {
+  id: string;
+  headline: string;
+  headlineDescription: string;
+  ctaRegister: {
+    link: {
+      type?: ('reference' | 'custom') | null;
+      newTab?: boolean | null;
+      reference?:
+        | ({
+            relationTo: 'pages';
+            value: string | Page;
+          } | null)
+        | ({
+            relationTo: 'posts';
+            value: string | Post;
+          } | null);
+      url?: string | null;
+      label: string;
+    };
+  };
+  ctaDirectory: {
+    link: {
+      type?: ('reference' | 'custom') | null;
+      newTab?: boolean | null;
+      reference?:
+        | ({
+            relationTo: 'pages';
+            value: string | Page;
+          } | null)
+        | ({
+            relationTo: 'posts';
+            value: string | Post;
+          } | null);
+      url?: string | null;
+      label: string;
+    };
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "PostsArchive".
  */
 export interface PostsArchive {
@@ -606,51 +662,6 @@ export interface Registration {
   id?: string | null;
   blockName?: string | null;
   blockType: 'registration';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "callstoaction".
- */
-export interface Callstoaction {
-  id: string;
-  headline: string;
-  headlineDescription: string;
-  ctaRegister: {
-    link: {
-      type?: ('reference' | 'custom') | null;
-      newTab?: boolean | null;
-      reference?:
-        | ({
-            relationTo: 'pages';
-            value: string | Page;
-          } | null)
-        | ({
-            relationTo: 'posts';
-            value: string | Post;
-          } | null);
-      url?: string | null;
-      label: string;
-    };
-  };
-  ctaDirectory: {
-    link: {
-      type?: ('reference' | 'custom') | null;
-      newTab?: boolean | null;
-      reference?:
-        | ({
-            relationTo: 'pages';
-            value: string | Page;
-          } | null)
-        | ({
-            relationTo: 'posts';
-            value: string | Post;
-          } | null);
-      url?: string | null;
-      label: string;
-    };
-  };
-  updatedAt: string;
-  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1100,6 +1111,7 @@ export interface PagesSelect<T extends boolean = true> {
         wajakaziArchive?: T | WajakaziArchiveSelect<T>;
         pricing?: T | PricingSelect<T>;
         testimonials?: T | TestimonialsSelect<T>;
+        callToAction?: T | CallToActionSelect<T>;
         postsArchive?: T | PostsArchiveSelect<T>;
         contentEditor?: T | ContentEditorSelect<T>;
         registration?: T | RegistrationSelect<T>;
@@ -1291,6 +1303,15 @@ export interface TestimonialsSelect<T extends boolean = true> {
         id?: T;
       };
   backgroundVariant?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CallToAction_select".
+ */
+export interface CallToActionSelect<T extends boolean = true> {
+  calltoaction?: T;
   id?: T;
   blockName?: T;
 }
