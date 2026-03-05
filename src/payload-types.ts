@@ -161,6 +161,7 @@ export interface Page {
     | HowItWorks
     | WajakaziArchive
     | Pricing
+    | Testimonials
     | PostsArchive
     | ContentEditor
     | Registration
@@ -508,6 +509,28 @@ export interface Pricing {
   id?: string | null;
   blockName?: string | null;
   blockType: 'pricing';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "Testimonials".
+ */
+export interface Testimonials {
+  headline: string;
+  headlineDescription: string;
+  testimonies?:
+    | {
+        name: string;
+        occupation: string;
+        location: string;
+        rating: number;
+        testimony: string;
+        id?: string | null;
+      }[]
+    | null;
+  backgroundVariant: 'subtle' | 'white';
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'testimonials';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1025,6 +1048,7 @@ export interface PagesSelect<T extends boolean = true> {
         howItWorks?: T | HowItWorksSelect<T>;
         wajakaziArchive?: T | WajakaziArchiveSelect<T>;
         pricing?: T | PricingSelect<T>;
+        testimonials?: T | TestimonialsSelect<T>;
         postsArchive?: T | PostsArchiveSelect<T>;
         contentEditor?: T | ContentEditorSelect<T>;
         registration?: T | RegistrationSelect<T>;
@@ -1193,6 +1217,27 @@ export interface PricingSelect<T extends boolean = true> {
                   };
               id?: T;
             };
+      };
+  backgroundVariant?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "Testimonials_select".
+ */
+export interface TestimonialsSelect<T extends boolean = true> {
+  headline?: T;
+  headlineDescription?: T;
+  testimonies?:
+    | T
+    | {
+        name?: T;
+        occupation?: T;
+        location?: T;
+        rating?: T;
+        testimony?: T;
+        id?: T;
       };
   backgroundVariant?: T;
   id?: T;

@@ -10,6 +10,7 @@ import { HowItWorks } from "@/payload/blocks/how-it-works/schema";
 import { PostsArchive } from "@/payload/blocks/posts-archive/schema";
 import { Pricing } from "@/payload/blocks/pricing/schema";
 import { Registration } from "@/payload/blocks/registration/schema";
+import { Testimonials } from "@/payload/blocks/testimonials/schema";
 import { WajakaziArchive } from "@/payload/blocks/wajakazi-archive/schema";
 import {
 	revalidateDelete,
@@ -89,6 +90,7 @@ const Pages: CollectionConfig<"pages"> = {
 								HowItWorks,
 								WajakaziArchive,
 								Pricing,
+								Testimonials,
 								PostsArchive,
 								ContentEditor,
 								Registration,
