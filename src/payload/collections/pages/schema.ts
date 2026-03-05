@@ -3,6 +3,7 @@ import {
 	isAuthenticatedOrPublished,
 } from "@/payload/access/access-control";
 import { ContentEditor } from "@/payload/blocks/content-editor/schema";
+import { Features } from "@/payload/blocks/features/schema";
 import { HeroPrimary } from "@/payload/blocks/hero-primary/schema";
 import { HeroSecondary } from "@/payload/blocks/hero-secondary/schema";
 import { PostsArchive } from "@/payload/blocks/posts-archive/schema";
@@ -81,6 +82,7 @@ const Pages: CollectionConfig<"pages"> = {
 							blocks: [
 								HeroPrimary,
 								HeroSecondary,
+								Features,
 								PostsArchive,
 								ContentEditor,
 								Registration,

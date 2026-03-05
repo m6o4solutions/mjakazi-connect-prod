@@ -75,7 +75,7 @@ const HeroPrimaryBlock = ({
 								<span className="font-display text-text-default text-2xl font-bold">
 									2k+
 								</span>
-								<span className="text-muted-foreground text-sm">Active Contractors</span>
+								<span className="text-muted-foreground text-sm">Active Wajakazi</span>
 							</div>
 							<div className="bg-border h-8 w-px"></div>
 							<div className="flex flex-col">

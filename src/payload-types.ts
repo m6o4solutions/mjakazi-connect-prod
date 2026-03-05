@@ -154,7 +154,7 @@ export interface UserAuthOperations {
 export interface Page {
   id: string;
   title: string;
-  layout: (HeroPrimary | HeroSecondary | PostsArchive | ContentEditor | Registration)[];
+  layout: (HeroPrimary | HeroSecondary | Features | PostsArchive | ContentEditor | Registration)[];
   meta?: {
     title?: string | null;
     /**
@@ -394,6 +394,29 @@ export interface HeroSecondary {
   id?: string | null;
   blockName?: string | null;
   blockType: 'heroSecondary';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "Features".
+ */
+export interface Features {
+  headline: string;
+  headlineDescription: string;
+  featureItems: {
+    featureItem: {
+      featureItemIconType: 'text' | 'icon';
+      featureItemIconTypeText?: string | null;
+      featureItemIconTypeIcon?: ('lock' | 'shieldcheck' | 'users') | null;
+      featureItemHeadline: string;
+      featureItemDescription: string;
+      featureItemLink?: string | null;
+    };
+    id?: string | null;
+  }[];
+  backgroundVariant: 'subtle' | 'white';
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'features';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -907,6 +930,7 @@ export interface PagesSelect<T extends boolean = true> {
     | {
         heroPrimary?: T | HeroPrimarySelect<T>;
         heroSecondary?: T | HeroSecondarySelect<T>;
+        features?: T | FeaturesSelect<T>;
         postsArchive?: T | PostsArchiveSelect<T>;
         contentEditor?: T | ContentEditorSelect<T>;
         registration?: T | RegistrationSelect<T>;
@@ -970,6 +994,32 @@ export interface HeroPrimarySelect<T extends boolean = true> {
 export interface HeroSecondarySelect<T extends boolean = true> {
   heroHeadline?: T;
   heroDescription?: T;
+  backgroundVariant?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "Features_select".
+ */
+export interface FeaturesSelect<T extends boolean = true> {
+  headline?: T;
+  headlineDescription?: T;
+  featureItems?:
+    | T
+    | {
+        featureItem?:
+          | T
+          | {
+              featureItemIconType?: T;
+              featureItemIconTypeText?: T;
+              featureItemIconTypeIcon?: T;
+              featureItemHeadline?: T;
+              featureItemDescription?: T;
+              featureItemLink?: T;
+            };
+        id?: T;
+      };
   backgroundVariant?: T;
   id?: T;
   blockName?: T;
