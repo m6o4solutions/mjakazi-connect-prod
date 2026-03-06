@@ -45,10 +45,10 @@ const Footer: GlobalConfig = {
 					// array of links for waajiri.
 					name: "mwaajiriItems",
 					type: "array",
-					label: "Mwaajiri Items",
-					labels: { singular: "Mwaajiri Link", plural: "Mwaajiri Links" },
+					label: "Mwajiri Items",
+					labels: { singular: "Mwajiri Link", plural: "Mwajiri Links" },
 					fields: [link({ appearances: false })],
-					// maximum of 3 mwaajiri links.
+					// maximum of 3 mwajiri links.
 					maxRows: 3,
 					admin: {
 						components: {

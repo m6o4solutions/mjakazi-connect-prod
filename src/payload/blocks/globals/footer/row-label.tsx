@@ -15,7 +15,7 @@ const RowLabel = (_props: RowLabelProps) => {
 
 	// identifies the parent section based on the field path
 	const sectionName = data.path.includes("mwaajiriItems")
-		? "Mwaajiri"
+		? "Mwajiri"
 		: data.path.includes("wajakaziItems")
 			? "Wajakazi"
 			: data.path.includes("legalItems")

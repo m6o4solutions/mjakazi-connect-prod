@@ -59,10 +59,10 @@ const Registration: Block = {
 			],
 		},
 		{
-			// captures details for the mwaajiri (employer) registration path
+			// captures details for the mwajiri (employer) registration path
 			name: "mwaajiriCard",
 			type: "group",
-			label: "Mwaajiri Card",
+			label: "Mwajiri Card",
 			fields: [
 				{
 					name: "image",
@@ -91,7 +91,7 @@ const Registration: Block = {
 							type: "text",
 							label: "Button Link",
 							required: true,
-							defaultValue: "/sign-up?role=mwaajiri",
+							defaultValue: "/sign-up?role=mwajiri",
 							admin: {
 								width: "50%",
 							},
