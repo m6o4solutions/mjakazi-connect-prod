@@ -28,7 +28,7 @@ export default function PostAuthClient() {
 			if (!role) {
 				const roleFromUrl = searchParams.get("role");
 
-				if (roleFromUrl === "mjakazi" || roleFromUrl === "mwaajiri") {
+				if (roleFromUrl === "mjakazi" || roleFromUrl === "mwajiri") {
 					if (isUpdating) return;
 					setIsUpdating(true);
 
@@ -51,8 +51,8 @@ export default function PostAuthClient() {
 			// route user to their specific dashboard based on assigned role
 			if (role === "mjakazi") {
 				router.push("/dashboard/mjakazi");
-			} else if (role === "mwaajiri") {
-				router.push("/dashboard/mwaajiri");
+			} else if (role === "mwajiri") {
+				router.push("/dashboard/mwajiri");
 			} else {
 				// fallback to home for users with missing or invalid roles
 				router.push("/");
