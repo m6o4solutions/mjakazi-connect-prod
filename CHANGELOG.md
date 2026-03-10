@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.5.0...v1.6.0) (2026-03-10)
+
+
+### Features
+
+* **collections:** add accounts collection and update access rules ([49a0ef8](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/49a0ef8e9f9a559018547a72fccc9d2c99e70c81))
+
 # [1.5.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.4.0...v1.5.0) (2026-03-05)
 
 ### Features
