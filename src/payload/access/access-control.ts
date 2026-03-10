@@ -3,10 +3,12 @@ import type { Access, AccessArgs } from "payload";
 
 type IsAuthenticated = (args: AccessArgs<User>) => boolean;
 
+// verifies that a user is logged into the system
 const isAuthenticated: IsAuthenticated = ({ req: { user } }) => {
 	return Boolean(user);
 };
 
+// allows full access for logged-in users or restricts to public content for guests
 const isAuthenticatedOrPublished: Access = ({ req: { user } }) => {
 	if (user) {
 		return true;
@@ -15,6 +17,33 @@ const isAuthenticatedOrPublished: Access = ({ req: { user } }) => {
 	return { _status: { equals: "published" } };
 };
 
+// grants unrestricted access to everyone
 const isPublic: Access = () => true;
 
-export { isAuthenticated, isAuthenticatedOrPublished, isPublic };
+// denies access to all users and external requests
+const isRestricted: Access = () => false;
+
+// grants full access to admins or restricts users to their own record via clerkId
+const isAdminOrOwnAccount: Access = ({ req: { user } }) => {
+	if (!user) return false;
+
+	const role = (user as any)?.role;
+
+	if (role === "admin" || role === "sa") {
+		return true;
+	}
+
+	return {
+		clerkId: {
+			equals: (user as any)?.clerkId,
+		},
+	};
+};
+
+export {
+	isAdminOrOwnAccount,
+	isAuthenticated,
+	isAuthenticatedOrPublished,
+	isPublic,
+	isRestricted,
+};

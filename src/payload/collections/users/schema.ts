@@ -1,13 +1,19 @@
 import { isAuthenticated } from "@/payload/access/access-control";
 import type { CollectionConfig, FieldHook } from "payload";
 
-const populateFullName: FieldHook = async ({ data }) => {
-	return `${data?.firstName} ${data?.lastName}`;
+// combines first and last names into a single searchable string
+const populateFullName: FieldHook = async ({ data, siblingData }) => {
+	const first = siblingData?.firstName ?? data?.firstName ?? "";
+	const last = siblingData?.lastName ?? data?.lastName ?? "";
+
+	return `${first} ${last}`.trim();
 };
 
+// core collection for administrators and internal system users
 const Users: CollectionConfig = {
 	slug: "users",
 	access: {
+		// restricted to authenticated users to ensure secure admin access
 		admin: isAuthenticated,
 		create: isAuthenticated,
 		delete: isAuthenticated,
@@ -16,9 +22,11 @@ const Users: CollectionConfig = {
 	},
 	admin: {
 		defaultColumns: ["name", "photo", "email", "createdAt", "updatedAt"],
+		group: "Content",
 		useAsTitle: "name",
 	},
 	labels: { singular: "User", plural: "Users" },
+	// enables native payload authentication for this collection
 	auth: true,
 	fields: [
 		{
@@ -28,19 +36,18 @@ const Users: CollectionConfig = {
 					name: "firstName",
 					type: "text",
 					label: "First Name",
-					required: true,
 					admin: { width: "50%" },
 				},
 				{
 					name: "lastName",
 					type: "text",
 					label: "Last Name",
-					required: true,
 					admin: { width: "50%" },
 				},
 			],
 		},
 		{
+			// derived field for admin display and searchability
 			name: "name",
 			type: "text",
 			label: "Name",
@@ -48,6 +55,7 @@ const Users: CollectionConfig = {
 			hooks: { beforeValidate: [populateFullName] },
 		},
 		{
+			// optional avatar image linked to the media collection
 			name: "photo",
 			type: "upload",
 			label: "Photo",

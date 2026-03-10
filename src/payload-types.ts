@@ -67,6 +67,7 @@ export interface Config {
   };
   blocks: {};
   collections: {
+    accounts: Account;
     pages: Page;
     posts: Post;
     callstoaction: Callstoaction;
@@ -85,6 +86,7 @@ export interface Config {
   };
   collectionsJoins: {};
   collectionsSelect: {
+    accounts: AccountsSelect<false> | AccountsSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
     callstoaction: CallstoactionSelect<false> | CallstoactionSelect<true>;
@@ -148,6 +150,21 @@ export interface UserAuthOperations {
     email: string;
     password: string;
   };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "accounts".
+ */
+export interface Account {
+  id: string;
+  clerkId: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  email: string;
+  role: 'mjakazi' | 'mwajiri' | 'admin' | 'sa';
+  fullName?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -372,8 +389,8 @@ export interface Category {
  */
 export interface User {
   id: string;
-  firstName: string;
-  lastName: string;
+  firstName?: string | null;
+  lastName?: string | null;
   name?: string | null;
   photo?: (string | null) | Media;
   updatedAt: string;
@@ -1012,6 +1029,10 @@ export interface PayloadLockedDocument {
   id: string;
   document?:
     | ({
+        relationTo: 'accounts';
+        value: string | Account;
+      } | null)
+    | ({
         relationTo: 'pages';
         value: string | Page;
       } | null)
@@ -1092,6 +1113,20 @@ export interface PayloadMigration {
   batch?: number | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "accounts_select".
+ */
+export interface AccountsSelect<T extends boolean = true> {
+  clerkId?: T;
+  firstName?: T;
+  lastName?: T;
+  email?: T;
+  role?: T;
+  fullName?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

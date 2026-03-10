@@ -14,6 +14,7 @@ const Media: CollectionConfig = {
 	// configures the admin interface for file management
 	admin: {
 		defaultColumns: ["filename", "alt", "createdAt", "updatedAt"],
+		group: "Globals",
 		useAsTitle: "filename",
 	},
 	labels: { singular: "Media", plural: "Media" },
