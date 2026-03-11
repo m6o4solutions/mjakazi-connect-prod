@@ -1,4 +1,4 @@
-import { isAdminOrOwnAccount, isRestricted } from "@/payload/access/access-control";
+import { isAdminOrOwnProfile, isRestricted } from "@/payload/access/access-control";
 import type { CollectionConfig } from "payload";
 
 // defines employer profiles linked to user accounts
@@ -10,7 +10,7 @@ const WaajiriProfiles: CollectionConfig = {
 		update: isRestricted,
 		delete: isRestricted,
 		// allows admins and the profile owner to view the data
-		read: isAdminOrOwnAccount,
+		read: isAdminOrOwnProfile,
 	},
 	admin: {
 		useAsTitle: "displayName",
