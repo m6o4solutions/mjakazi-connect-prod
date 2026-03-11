@@ -5,9 +5,9 @@
 	"license": "MIT",
 	"type": "module",
 	"scripts": {
-		"build": "cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=4096\" next build --webpack",
-		"dev": "cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=4096\" next dev --webpack -H 0.0.0.0",
-		"devsafe": "rm -rf .next && cross-env NODE_OPTIONS=--no-deprecation next dev",
+		"build": "cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=8192\" next build --webpack",
+		"dev": "cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=5120\" next dev --webpack -H 0.0.0.0",
+		"devsafe": "if exist .next rmdir /s /q .next && cross-env NODE_OPTIONS=--no-deprecation next dev",
 		"generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
 		"generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
 		"lint": "cross-env NODE_OPTIONS=--no-deprecation next lint",
@@ -64,6 +64,7 @@
 		"react-hook-form": "^7.71.2",
 		"react-spinners": "^0.17.0",
 		"sharp": "^0.34.5",
+		"svix": "^1.87.0",
 		"tailwind-merge": "^3.5.0",
 		"tailwindcss": "^4.2.1",
 		"vaul": "^1.1.2"
