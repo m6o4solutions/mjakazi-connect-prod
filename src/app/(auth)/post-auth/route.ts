@@ -1,7 +1,8 @@
 import { resolveIdentity } from "@/services/identity.service";
 import { auth } from "@clerk/nextjs/server";
+import config from "@payload-config";
 import { redirect } from "next/navigation";
-import payload from "payload";
+import { getPayload } from "payload";
 
 // handles post-authentication redirection based on user roles and identity
 const GET = async () => {
@@ -11,6 +12,7 @@ const GET = async () => {
 		redirect("/");
 	}
 
+	const payload = await getPayload({ config });
 	const identity = await resolveIdentity(payload, userId);
 
 	if (!identity) {
@@ -19,15 +21,12 @@ const GET = async () => {
 
 	switch (identity.role) {
 		case "mjakazi":
-			redirect("/saas/mjakazi");
-
+			redirect("/dashboard/mjakazi");
 		case "mwajiri":
-			redirect("/saas/mwajiri");
-
+			redirect("/dashboard/mwajiri");
 		case "admin":
 		case "sa":
-			redirect("/admin");
-
+			redirect("/dashboard/admin");
 		default:
 			redirect("/");
 	}

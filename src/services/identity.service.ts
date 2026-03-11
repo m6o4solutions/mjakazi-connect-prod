@@ -8,6 +8,7 @@ interface ClerkUser {
 	first_name?: string;
 	last_name?: string;
 	public_metadata?: { role?: ClerkRole };
+	unsafe_metadata?: { role?: ClerkRole };
 }
 
 interface IdentityContext {
@@ -73,9 +74,18 @@ const syncClerkUser = async (payload: Payload, user: ClerkUser) => {
 	const firstName = user.first_name ?? "";
 	const lastName = user.last_name ?? "";
 
-	const role = user.public_metadata?.role as ClerkRole;
+	const role =
+		(user.public_metadata?.role as ClerkRole) ??
+		(user.unsafe_metadata?.role as ClerkRole);
 
 	if (!email || !role) {
+		console.error("Missing email or role in Clerk payload:", {
+			clerkId,
+			email,
+			role,
+			publicMetadata: user.public_metadata,
+			unsafeMetadata: user.unsafe_metadata,
+		});
 		throw new Error("Invalid Clerk user payload.");
 	}
 
@@ -87,17 +97,22 @@ const syncClerkUser = async (payload: Payload, user: ClerkUser) => {
 
 	let account;
 
-	if (existing.docs.length === 0) {
-		account = await payload.create({
-			collection: "accounts",
-			data: { clerkId, email, firstName, lastName, role },
-		});
-	} else {
-		account = await payload.update({
-			collection: "accounts",
-			id: existing.docs[0].id,
-			data: { email, firstName, lastName, role },
-		});
+	try {
+		if (existing.docs.length === 0) {
+			account = await payload.create({
+				collection: "accounts",
+				data: { clerkId, email, firstName, lastName, role },
+			});
+		} else {
+			account = await payload.update({
+				collection: "accounts",
+				id: existing.docs[0].id,
+				data: { email, firstName, lastName, role },
+			});
+		}
+	} catch (error: any) {
+		console.error("Error creating/updating account:", error);
+		throw new Error(`Failed to sync account: ${error.message}`);
 	}
 
 	await ensureDomainProfile(payload, account.id, role);
