@@ -1,3 +1,4 @@
+import { retry } from "@/lib/retry";
 import { resolveIdentity } from "@/services/identity.service";
 import { auth } from "@clerk/nextjs/server";
 import config from "@payload-config";
@@ -13,7 +14,7 @@ const GET = async () => {
 	}
 
 	const payload = await getPayload({ config });
-	const identity = await resolveIdentity(payload, userId);
+	const identity = await retry(() => resolveIdentity(payload, userId));
 
 	if (!identity) {
 		redirect("/");
