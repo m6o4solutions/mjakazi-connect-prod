@@ -7,11 +7,10 @@ const WajakaziProfiles: CollectionConfig = {
 	access: {
 		// profiles are managed through system hooks or server-side logic
 		create: isRestricted,
+		update: isRestricted,
 		delete: isRestricted,
 		// allows admins and the profile owner to view the data
 		read: isAdminOrOwnAccount,
-		// updates are restricted to ensure data consistency with external systems
-		update: isRestricted,
 	},
 	admin: {
 		useAsTitle: "displayName",
