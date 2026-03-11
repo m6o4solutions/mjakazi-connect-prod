@@ -1,4 +1,4 @@
-import { isAdminOrOwnAccount, isRestricted } from "@/payload/access/access-control";
+import { isAdminOrOwnProfile, isRestricted } from "@/payload/access/access-control";
 import type { CollectionConfig, FieldHook } from "payload";
 
 // combines first and last names into a single searchable string
@@ -13,13 +13,12 @@ const populateFullName: FieldHook = async ({ data, siblingData }) => {
 const Accounts: CollectionConfig = {
 	slug: "accounts",
 	access: {
-		// creation and deletion are handled via system logic or webhooks
+		// profiles are managed through system hooks or server-side logic
 		create: isRestricted,
-		delete: isRestricted,
-		// allows admins full visibility and users access to their own profile
-		read: isAdminOrOwnAccount,
-		// updates are restricted to ensure data integrity through external sync
 		update: isRestricted,
+		delete: isRestricted,
+		// allows admins and the profile owner to view the data
+		read: isAdminOrOwnProfile,
 	},
 	admin: {
 		defaultColumns: ["fullName", "email", "createdAt", "updatedAt"],
@@ -56,6 +55,7 @@ const Accounts: CollectionConfig = {
 		{
 			name: "email",
 			type: "email",
+			label: "Email Address",
 			required: true,
 			index: true,
 		},

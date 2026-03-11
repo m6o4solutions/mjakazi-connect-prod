@@ -24,7 +24,7 @@ const isPublic: Access = () => true;
 const isRestricted: Access = () => false;
 
 // grants full access to admins or restricts users to their own record via clerkId
-const isAdminOrOwnAccount: Access = ({ req: { user } }) => {
+const isAdminOrOwnProfile: Access = ({ req: { user } }) => {
 	if (!user) return false;
 
 	const role = (user as any)?.role;
@@ -34,14 +34,14 @@ const isAdminOrOwnAccount: Access = ({ req: { user } }) => {
 	}
 
 	return {
-		clerkId: {
+		"account.clerkId": {
 			equals: (user as any)?.clerkId,
 		},
 	};
 };
 
 export {
-	isAdminOrOwnAccount,
+	isAdminOrOwnProfile,
 	isAuthenticated,
 	isAuthenticatedOrPublished,
 	isPublic,

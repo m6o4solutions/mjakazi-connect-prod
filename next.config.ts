@@ -2,12 +2,19 @@ import { withPayload } from "@payloadcms/next/withPayload";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+	experimental: {
+		workerThreads: false,
+	},
 	images: {
 		qualities: [25, 50, 75, 100],
 		remotePatterns: [
 			{
 				protocol: "https",
-				hostname: "**.mjakaziconnect.co.ke",
+				hostname: "mjakaziconnect.co.ke",
+			},
+			{
+				protocol: "https",
+				hostname: "*.mjakaziconnect.co.ke",
 			},
 			{
 				protocol: "http",

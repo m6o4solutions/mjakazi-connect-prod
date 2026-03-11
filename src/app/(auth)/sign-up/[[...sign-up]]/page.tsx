@@ -3,13 +3,15 @@
 import { SignUp } from "@clerk/nextjs";
 import { useSearchParams } from "next/navigation";
 
+// custom sign-up page that captures and passes role-based metadata to Clerk
 const Page = () => {
 	const params = useSearchParams();
 	const role = params.get("role");
 
-	const redirectUrl = role ? `/post-auth?role=${role}` : "/post-auth";
+	// attaches the selected role to the user's metadata for backend synchronization
+	const unsafeMetadata = role ? { role } : undefined;
 
-	return <SignUp forceRedirectUrl={redirectUrl} />;
+	return <SignUp forceRedirectUrl="/post-auth" unsafeMetadata={unsafeMetadata} />;
 };
 
 export { Page as default };

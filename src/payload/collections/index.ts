@@ -5,7 +5,20 @@ import { Media } from "@/payload/collections/media/schema";
 import { Pages } from "@/payload/collections/pages/schema";
 import { Posts } from "@/payload/collections/posts/schema";
 import { Users } from "@/payload/collections/users/schema";
+import { WaajiriProfiles } from "@/payload/collections/waajiri-profiles/schema";
+import { WajakaziProfiles } from "@/payload/collections/wajakazi-profiles/schema";
 
-const collections = [Accounts, Pages, Posts, CallsToAction, Categories, Media, Users];
+// central registry for all Payload collections used in the application
+const collections = [
+	Pages,
+	Posts,
+	CallsToAction,
+	Categories,
+	Media,
+	Accounts,
+	Users,
+	WajakaziProfiles,
+	WaajiriProfiles,
+];
 
 export { collections };

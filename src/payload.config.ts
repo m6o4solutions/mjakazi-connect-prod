@@ -19,8 +19,8 @@ const iconURL = `${process.env.NEXT_PUBLIC_SERVER_URL}/api/media/file/${process.
 // determine the current environment to select the appropriate database connection.
 const isProduction = process.env.NODE_ENV === "production";
 const databaseURI = isProduction
-	? process.env.DATABASE_URI_PRD! // use production database
-	: process.env.DATABASE_URI_DEV!; // use development database
+	? process.env.DATABASE_URI_PRD!
+	: process.env.DATABASE_URI_DEV!;
 
 export default buildConfig({
 	admin: {
