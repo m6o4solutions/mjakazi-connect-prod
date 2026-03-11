@@ -75,6 +75,7 @@ export interface Config {
     accounts: Account;
     users: User;
     wajakaziprofiles: Wajakaziprofile;
+    waajiriprofiles: Waajiriprofile;
     forms: Form;
     'form-submissions': FormSubmission;
     redirects: Redirect;
@@ -95,6 +96,7 @@ export interface Config {
     accounts: AccountsSelect<false> | AccountsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     wajakaziprofiles: WajakaziprofilesSelect<false> | WajakaziprofilesSelect<true>;
+    waajiriprofiles: WaajiriprofilesSelect<false> | WaajiriprofilesSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
@@ -704,6 +706,22 @@ export interface Wajakaziprofile {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "waajiriprofiles".
+ */
+export interface Waajiriprofile {
+  id: string;
+  account: string | Account;
+  displayName: string;
+  organization?: string | null;
+  phoneNumber?: string | null;
+  location?: string | null;
+  bio?: string | null;
+  moderationStatus: 'active' | 'flagged' | 'suspended';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "forms".
  */
 export interface Form {
@@ -1083,6 +1101,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'wajakaziprofiles';
         value: string | Wajakaziprofile;
+      } | null)
+    | ({
+        relationTo: 'waajiriprofiles';
+        value: string | Waajiriprofile;
       } | null)
     | ({
         relationTo: 'forms';
@@ -1641,6 +1663,21 @@ export interface WajakaziprofilesSelect<T extends boolean = true> {
   verificationReviewedAt?: T;
   verificationNotes?: T;
   documents?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "waajiriprofiles_select".
+ */
+export interface WaajiriprofilesSelect<T extends boolean = true> {
+  account?: T;
+  displayName?: T;
+  organization?: T;
+  phoneNumber?: T;
+  location?: T;
+  bio?: T;
+  moderationStatus?: T;
   updatedAt?: T;
   createdAt?: T;
 }
