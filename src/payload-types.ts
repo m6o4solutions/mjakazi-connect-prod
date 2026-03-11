@@ -67,13 +67,14 @@ export interface Config {
   };
   blocks: {};
   collections: {
-    accounts: Account;
     pages: Page;
     posts: Post;
     callstoaction: Callstoaction;
     categories: Category;
     media: Media;
+    accounts: Account;
     users: User;
+    wajakaziprofiles: Wajakaziprofile;
     forms: Form;
     'form-submissions': FormSubmission;
     redirects: Redirect;
@@ -86,13 +87,14 @@ export interface Config {
   };
   collectionsJoins: {};
   collectionsSelect: {
-    accounts: AccountsSelect<false> | AccountsSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
     callstoaction: CallstoactionSelect<false> | CallstoactionSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    accounts: AccountsSelect<false> | AccountsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    wajakaziprofiles: WajakaziprofilesSelect<false> | WajakaziprofilesSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
@@ -150,21 +152,6 @@ export interface UserAuthOperations {
     email: string;
     password: string;
   };
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "accounts".
- */
-export interface Account {
-  id: string;
-  clerkId: string;
-  firstName?: string | null;
-  lastName?: string | null;
-  email: string;
-  role: 'mjakazi' | 'mwajiri' | 'admin' | 'sa';
-  fullName?: string | null;
-  updatedAt: string;
-  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -389,8 +376,8 @@ export interface Category {
  */
 export interface User {
   id: string;
-  firstName?: string | null;
-  lastName?: string | null;
+  firstName: string;
+  lastName: string;
   name?: string | null;
   photo?: (string | null) | Media;
   updatedAt: string;
@@ -677,6 +664,43 @@ export interface Registration {
   id?: string | null;
   blockName?: string | null;
   blockType: 'registration';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "accounts".
+ */
+export interface Account {
+  id: string;
+  clerkId: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  email: string;
+  role: 'mjakazi' | 'mwajiri' | 'admin' | 'sa';
+  fullName?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "wajakaziprofiles".
+ */
+export interface Wajakaziprofile {
+  id: string;
+  account: string | Account;
+  displayName: string;
+  profession: string;
+  bio?: string | null;
+  location?: string | null;
+  verificationStatus: 'unverified' | 'pending' | 'verified' | 'rejected';
+  verificationSubmittedAt?: string | null;
+  verificationReviewedAt?: string | null;
+  /**
+   * Internal moderation notes
+   */
+  verificationNotes?: string | null;
+  documents?: (string | Media)[] | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1029,10 +1053,6 @@ export interface PayloadLockedDocument {
   id: string;
   document?:
     | ({
-        relationTo: 'accounts';
-        value: string | Account;
-      } | null)
-    | ({
         relationTo: 'pages';
         value: string | Page;
       } | null)
@@ -1053,8 +1073,16 @@ export interface PayloadLockedDocument {
         value: string | Media;
       } | null)
     | ({
+        relationTo: 'accounts';
+        value: string | Account;
+      } | null)
+    | ({
         relationTo: 'users';
         value: string | User;
+      } | null)
+    | ({
+        relationTo: 'wajakaziprofiles';
+        value: string | Wajakaziprofile;
       } | null)
     | ({
         relationTo: 'forms';
@@ -1113,20 +1141,6 @@ export interface PayloadMigration {
   batch?: number | null;
   updatedAt: string;
   createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "accounts_select".
- */
-export interface AccountsSelect<T extends boolean = true> {
-  clerkId?: T;
-  firstName?: T;
-  lastName?: T;
-  email?: T;
-  role?: T;
-  fullName?: T;
-  updatedAt?: T;
-  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1574,6 +1588,20 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "accounts_select".
+ */
+export interface AccountsSelect<T extends boolean = true> {
+  clerkId?: T;
+  firstName?: T;
+  lastName?: T;
+  email?: T;
+  role?: T;
+  fullName?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
@@ -1597,6 +1625,24 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "wajakaziprofiles_select".
+ */
+export interface WajakaziprofilesSelect<T extends boolean = true> {
+  account?: T;
+  displayName?: T;
+  profession?: T;
+  bio?: T;
+  location?: T;
+  verificationStatus?: T;
+  verificationSubmittedAt?: T;
+  verificationReviewedAt?: T;
+  verificationNotes?: T;
+  documents?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

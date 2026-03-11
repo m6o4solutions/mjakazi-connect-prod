@@ -2,11 +2,8 @@ import { isAuthenticated } from "@/payload/access/access-control";
 import type { CollectionConfig, FieldHook } from "payload";
 
 // combines first and last names into a single searchable string
-const populateFullName: FieldHook = async ({ data, siblingData }) => {
-	const first = siblingData?.firstName ?? data?.firstName ?? "";
-	const last = siblingData?.lastName ?? data?.lastName ?? "";
-
-	return `${first} ${last}`.trim();
+const populateFullName: FieldHook = async ({ data }) => {
+	return `${data?.firstName} ${data?.lastName}`;
 };
 
 // core collection for administrators and internal system users
@@ -36,12 +33,14 @@ const Users: CollectionConfig = {
 					name: "firstName",
 					type: "text",
 					label: "First Name",
+					required: true,
 					admin: { width: "50%" },
 				},
 				{
 					name: "lastName",
 					type: "text",
 					label: "Last Name",
+					required: true,
 					admin: { width: "50%" },
 				},
 			],

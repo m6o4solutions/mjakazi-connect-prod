@@ -56,6 +56,7 @@ const Accounts: CollectionConfig = {
 		{
 			name: "email",
 			type: "email",
+			label: "Email Address",
 			required: true,
 			index: true,
 		},
