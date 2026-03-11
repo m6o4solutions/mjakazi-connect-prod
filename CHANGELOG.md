@@ -1,3 +1,16 @@
+# [1.7.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.6.0...v1.7.0) (2026-03-11)
+
+
+### Features
+
+* add retry mechanism for identity resolution ([c48e1ae](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/c48e1ae8e90b82073294237235841551188df3b1))
+* **auth:** add multi-environment support for Clerk webhooks ([6f65f30](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/6f65f308c660835857da9ef1045d5eb7371a35a8))
+* **auth:** refactor role synchronization and restructure routes ([fdfb71e](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/fdfb71eeffa75f2b5db718f31d249ab137d3e1df))
+* **collections:** add waajiri-profiles collection ([6f71706](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/6f7170662a40c483cdd23542ac96391e181c2ec5))
+* **collections:** add wajakazi-profiles and update user requirements ([0733bf7](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/0733bf701669d913660fcf553810fc8b0c69aa89))
+* **config:** sync waajiri-profiles and update next settings ([98cfff9](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/98cfff988a6db0af58000bd03259aeaa035b0227))
+* **structure:** initialize api and services directories ([b9c4102](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/b9c41025c5e154dfa36c2e00b7c822b26126b016))
+
 # [1.6.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.5.0...v1.6.0) (2026-03-10)
 
 ### Features
