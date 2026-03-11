@@ -89,30 +89,30 @@ const syncClerkUser = async (payload: Payload, user: ClerkUser) => {
 		throw new Error("Invalid Clerk user payload.");
 	}
 
-	const existing = await payload.find({
-		collection: "accounts",
-		where: { clerkId: { equals: clerkId } },
-		limit: 1,
-	});
-
 	let account;
 
 	try {
-		if (existing.docs.length === 0) {
-			account = await payload.create({
-				collection: "accounts",
-				data: { clerkId, email, firstName, lastName, role },
-			});
-		} else {
-			account = await payload.update({
-				collection: "accounts",
-				id: existing.docs[0].id,
-				data: { email, firstName, lastName, role },
-			});
-		}
+		account = await payload.create({
+			collection: "accounts",
+			data: { clerkId, email, firstName, lastName, role },
+		});
 	} catch (error: any) {
-		console.error("Error creating/updating account:", error);
-		throw new Error(`Failed to sync account: ${error.message}`);
+		// duplicate key error → account already exists
+		const existing = await payload.find({
+			collection: "accounts",
+			where: { clerkId: { equals: clerkId } },
+			limit: 1,
+		});
+
+		if (existing.docs.length === 0) {
+			throw error;
+		}
+
+		account = await payload.update({
+			collection: "accounts",
+			id: existing.docs[0].id,
+			data: { email, firstName, lastName, role },
+		});
 	}
 
 	await ensureDomainProfile(payload, account.id, role);
@@ -125,13 +125,7 @@ const ensureDomainProfile = async (
 	role: ClerkRole,
 ) => {
 	if (role === "mjakazi") {
-		const existing = await payload.find({
-			collection: "wajakaziprofiles",
-			where: { account: { equals: accountId } },
-			limit: 1,
-		});
-
-		if (existing.docs.length === 0) {
+		try {
 			await payload.create({
 				collection: "wajakaziprofiles",
 				data: {
@@ -141,17 +135,16 @@ const ensureDomainProfile = async (
 					verificationStatus: "unverified",
 				},
 			});
+		} catch (error: any) {
+			// duplicate profile already exists → ignore
+			if (!error?.message?.includes("duplicate")) {
+				throw error;
+			}
 		}
 	}
 
 	if (role === "mwajiri") {
-		const existing = await payload.find({
-			collection: "waajiriprofiles",
-			where: { account: { equals: accountId } },
-			limit: 1,
-		});
-
-		if (existing.docs.length === 0) {
+		try {
 			await payload.create({
 				collection: "waajiriprofiles",
 				data: {
@@ -160,6 +153,11 @@ const ensureDomainProfile = async (
 					moderationStatus: "active",
 				},
 			});
+		} catch (error: any) {
+			// duplicate profile already exists → ignore
+			if (!error?.message?.includes("duplicate")) {
+				throw error;
+			}
 		}
 	}
 };
@@ -174,7 +172,10 @@ const deleteClerkUser = async (payload: Payload, clerkId: string) => {
 
 	if (existing.docs.length === 0) return;
 
-	await payload.delete({ collection: "accounts", id: existing.docs[0].id });
+	await payload.delete({
+		collection: "accounts",
+		id: existing.docs[0].id,
+	});
 };
 
 export { deleteClerkUser, resolveIdentity, syncClerkUser };
