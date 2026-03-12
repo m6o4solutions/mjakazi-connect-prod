@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.7.0...v1.8.0) (2026-03-12)
+
+
+### Features
+
+* **auth:** center layout content ([28ab959](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/28ab959f791badd3379e350fb9f31dad3c96dc89))
+
 # [1.7.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.6.0...v1.7.0) (2026-03-11)
 
 ### Features
