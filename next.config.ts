@@ -2,7 +2,7 @@ import { withPayload } from "@payloadcms/next/withPayload";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-	allowedDevOrigins: ["nella-nonexcepting-emil.ngrok-free.app"],
+	allowedDevOrigins: ["nella-nonexcepting-emil.ngrok-free.dev"],
 	experimental: {
 		workerThreads: false,
 	},
@@ -21,6 +21,10 @@ const nextConfig: NextConfig = {
 				protocol: "http",
 				hostname: "localhost",
 				port: "3000",
+			},
+			{
+				protocol: "https",
+				hostname: "*.ngrok-free.dev",
 			},
 		],
 	},

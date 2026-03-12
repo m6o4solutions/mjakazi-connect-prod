@@ -1,3 +1,4 @@
+import { clerkClient } from "@clerk/nextjs/server";
 import type { Payload } from "payload";
 
 type ClerkRole = "mjakazi" | "mwajiri" | "admin" | "sa";
@@ -76,7 +77,8 @@ const syncClerkUser = async (payload: Payload, user: ClerkUser) => {
 
 	const role =
 		(user.public_metadata?.role as ClerkRole) ??
-		(user.unsafe_metadata?.role as ClerkRole);
+		(user.unsafe_metadata?.role as ClerkRole) ??
+		null;
 
 	if (!email || !role) {
 		console.error("Missing email or role in Clerk payload:", {
@@ -104,9 +106,7 @@ const syncClerkUser = async (payload: Payload, user: ClerkUser) => {
 			limit: 1,
 		});
 
-		if (existing.docs.length === 0) {
-			throw error;
-		}
+		if (existing.docs.length === 0) throw error;
 
 		account = await payload.update({
 			collection: "accounts",

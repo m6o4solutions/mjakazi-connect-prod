@@ -1,9 +1,9 @@
 # [1.9.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.8.0...v1.9.0) (2026-03-12)
 
-
 ### Features
 
-* update authentication flow and refine access control logic ([eab7c39](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/eab7c39db17e894b691bf037d071e2d059732256))
+- update authentication flow and refine access control logic
+  ([eab7c39](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/eab7c39db17e894b691bf037d071e2d059732256))
 
 # [1.8.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.7.0...v1.8.0) (2026-03-12)
 
