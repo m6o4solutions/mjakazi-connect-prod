@@ -2,6 +2,7 @@ import { withPayload } from "@payloadcms/next/withPayload";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+	allowedDevOrigins: ["nella-nonexcepting-emil.ngrok-free.app"],
 	experimental: {
 		workerThreads: false,
 	},
