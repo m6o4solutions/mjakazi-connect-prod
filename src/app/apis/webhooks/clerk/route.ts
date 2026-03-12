@@ -5,16 +5,10 @@ import { NextResponse } from "next/server";
 import { getPayload } from "payload";
 import { Webhook } from "svix";
 
-const WEBHOOK_SIGNING_SECRET_DEV = process.env.CLERK_WEBHOOK_SIGNING_SECRET_DEV as string;
-const WEBHOOK_SIGNING_SECRET_PRD = process.env.CLERK_WEBHOOK_SIGNING_SECRET_PRD as string;
+const WEBHOOK_SIGNING_SECRET = process.env.CLERK_WEBHOOK_SIGNING_SECRET as string;
 
 // processes incoming webhooks from Clerk to synchronize user state
 const POST = async (req: Request) => {
-	const host = req.headers.get("host");
-	const WEBHOOK_SIGNING_SECRET = host?.includes("ngrok-free.dev")
-		? WEBHOOK_SIGNING_SECRET_DEV
-		: WEBHOOK_SIGNING_SECRET_PRD;
-
 	const payloadBody = await req.text();
 	const headerPayload = await headers();
 
