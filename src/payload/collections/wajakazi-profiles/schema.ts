@@ -1,4 +1,4 @@
-import { isAdminOrOwnProfile, isRestricted } from "@/payload/access/access-control";
+import { isAdminOrProfileOwner, isRestricted } from "@/payload/access/access-control";
 import type { CollectionConfig } from "payload";
 
 // defines public worker profiles linked to user accounts
@@ -10,7 +10,7 @@ const WajakaziProfiles: CollectionConfig = {
 		update: isRestricted,
 		delete: isRestricted,
 		// allows admins and the profile owner to view the data
-		read: isAdminOrOwnProfile,
+		read: isAdminOrProfileOwner,
 	},
 	admin: {
 		useAsTitle: "displayName",

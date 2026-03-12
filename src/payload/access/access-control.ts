@@ -23,25 +23,35 @@ const isPublic: Access = () => true;
 // denies access to all users and external requests
 const isRestricted: Access = () => false;
 
-// grants full access to admins or restricts users to their own record via clerkId
-const isAdminOrOwnProfile: Access = ({ req: { user } }) => {
+// for the accounts collection — matches directly on clerkId
+const isAdminOrAccountOwner: Access = ({ req: { user } }) => {
 	if (!user) return false;
 
 	const role = (user as any)?.role;
 
-	if (role === "admin" || role === "sa") {
-		return true;
-	}
+	if (role === "admin" || role === "sa") return true;
 
-	return {
-		"account.clerkId": {
-			equals: (user as any)?.clerkId,
-		},
-	};
+	const clerkId = (user as any)?.clerkId;
+
+	return { clerkId: { equals: clerkId } };
+};
+
+// for profile collections — matches on the account relationship field (MongoDB ObjectId)
+const isAdminOrProfileOwner: Access = ({ req: { user } }) => {
+	if (!user) return false;
+
+	const role = (user as any)?.role;
+
+	if (role === "admin" || role === "sa") return true;
+
+	const id = (user as any)?.id;
+
+	return { account: { equals: id } };
 };
 
 export {
-	isAdminOrOwnProfile,
+	isAdminOrAccountOwner,
+	isAdminOrProfileOwner,
 	isAuthenticated,
 	isAuthenticatedOrPublished,
 	isPublic,

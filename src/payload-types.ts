@@ -74,8 +74,8 @@ export interface Config {
     media: Media;
     accounts: Account;
     users: User;
-    wajakaziprofiles: Wajakaziprofile;
     waajiriprofiles: Waajiriprofile;
+    wajakaziprofiles: Wajakaziprofile;
     forms: Form;
     'form-submissions': FormSubmission;
     redirects: Redirect;
@@ -95,8 +95,8 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     accounts: AccountsSelect<false> | AccountsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
-    wajakaziprofiles: WajakaziprofilesSelect<false> | WajakaziprofilesSelect<true>;
     waajiriprofiles: WaajiriprofilesSelect<false> | WaajiriprofilesSelect<true>;
+    wajakaziprofiles: WajakaziprofilesSelect<false> | WajakaziprofilesSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
@@ -684,6 +684,22 @@ export interface Account {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "waajiriprofiles".
+ */
+export interface Waajiriprofile {
+  id: string;
+  account: string | Account;
+  displayName: string;
+  organization?: string | null;
+  phoneNumber?: string | null;
+  location?: string | null;
+  bio?: string | null;
+  moderationStatus: 'active' | 'flagged' | 'suspended';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "wajakaziprofiles".
  */
 export interface Wajakaziprofile {
@@ -701,22 +717,6 @@ export interface Wajakaziprofile {
    */
   verificationNotes?: string | null;
   documents?: (string | Media)[] | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "waajiriprofiles".
- */
-export interface Waajiriprofile {
-  id: string;
-  account: string | Account;
-  displayName: string;
-  organization?: string | null;
-  phoneNumber?: string | null;
-  location?: string | null;
-  bio?: string | null;
-  moderationStatus: 'active' | 'flagged' | 'suspended';
   updatedAt: string;
   createdAt: string;
 }
@@ -1099,12 +1099,12 @@ export interface PayloadLockedDocument {
         value: string | User;
       } | null)
     | ({
-        relationTo: 'wajakaziprofiles';
-        value: string | Wajakaziprofile;
-      } | null)
-    | ({
         relationTo: 'waajiriprofiles';
         value: string | Waajiriprofile;
+      } | null)
+    | ({
+        relationTo: 'wajakaziprofiles';
+        value: string | Wajakaziprofile;
       } | null)
     | ({
         relationTo: 'forms';
@@ -1650,6 +1650,21 @@ export interface UsersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "waajiriprofiles_select".
+ */
+export interface WaajiriprofilesSelect<T extends boolean = true> {
+  account?: T;
+  displayName?: T;
+  organization?: T;
+  phoneNumber?: T;
+  location?: T;
+  bio?: T;
+  moderationStatus?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "wajakaziprofiles_select".
  */
 export interface WajakaziprofilesSelect<T extends boolean = true> {
@@ -1663,21 +1678,6 @@ export interface WajakaziprofilesSelect<T extends boolean = true> {
   verificationReviewedAt?: T;
   verificationNotes?: T;
   documents?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "waajiriprofiles_select".
- */
-export interface WaajiriprofilesSelect<T extends boolean = true> {
-  account?: T;
-  displayName?: T;
-  organization?: T;
-  phoneNumber?: T;
-  location?: T;
-  bio?: T;
-  moderationStatus?: T;
   updatedAt?: T;
   createdAt?: T;
 }
