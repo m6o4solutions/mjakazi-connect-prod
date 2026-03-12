@@ -1,4 +1,3 @@
-import { clerkClient } from "@clerk/nextjs/server";
 import type { Payload } from "payload";
 
 type ClerkRole = "mjakazi" | "mwajiri" | "admin" | "sa";
