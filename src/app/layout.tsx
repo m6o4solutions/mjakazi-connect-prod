@@ -25,8 +25,8 @@ const RootLayout = async (props: { children: ReactNode }) => {
 				<ClerkProvider
 					signInUrl="/sign-in"
 					signUpUrl="/sign-up"
-					signInFallbackRedirectUrl="/authenticating"
-					signUpFallbackRedirectUrl="/authenticating"
+					signInFallbackRedirectUrl="/post-auth"
+					signUpFallbackRedirectUrl="/post-auth"
 				>
 					{children}
 				</ClerkProvider>
