@@ -17,8 +17,8 @@ const collections = [
 	Media,
 	Accounts,
 	Users,
-	WajakaziProfiles,
 	WaajiriProfiles,
+	WajakaziProfiles,
 ];
 
 export { collections };

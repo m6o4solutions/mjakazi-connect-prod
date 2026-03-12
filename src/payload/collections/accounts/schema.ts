@@ -1,4 +1,4 @@
-import { isAdminOrOwnProfile, isRestricted } from "@/payload/access/access-control";
+import { isAdminOrAccountOwner, isRestricted } from "@/payload/access/access-control";
 import type { CollectionConfig, FieldHook } from "payload";
 
 // combines first and last names into a single searchable string
@@ -18,7 +18,7 @@ const Accounts: CollectionConfig = {
 		update: isRestricted,
 		delete: isRestricted,
 		// allows admins and the profile owner to view the data
-		read: isAdminOrOwnProfile,
+		read: isAdminOrAccountOwner,
 	},
 	admin: {
 		defaultColumns: ["fullName", "email", "createdAt", "updatedAt"],

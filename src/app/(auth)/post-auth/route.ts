@@ -9,16 +9,12 @@ import { getPayload } from "payload";
 const GET = async () => {
 	const { userId } = await auth();
 
-	if (!userId) {
-		redirect("/");
-	}
+	if (!userId) redirect("/");
 
 	const payload = await getPayload({ config });
 	const identity = await retry(() => resolveIdentity(payload, userId));
 
-	if (!identity) {
-		redirect("/");
-	}
+	if (!identity) redirect("/");
 
 	switch (identity.role) {
 		case "mjakazi":
