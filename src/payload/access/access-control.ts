@@ -49,9 +49,23 @@ const isAdminOrProfileOwner: Access = ({ req: { user } }) => {
 	return { account: { equals: id } };
 };
 
+// for vault collection — matches on the profile relationship field
+const isAdminOrVaultOwner: Access = ({ req: { user } }) => {
+	if (!user) return false;
+
+	const role = (user as any)?.role;
+
+	if (role === "admin" || role === "sa") return true;
+
+	const id = (user as any)?.id;
+
+	return { uploadedBy: { equals: id } };
+};
+
 export {
 	isAdminOrAccountOwner,
 	isAdminOrProfileOwner,
+	isAdminOrVaultOwner,
 	isAuthenticated,
 	isAuthenticatedOrPublished,
 	isPublic,

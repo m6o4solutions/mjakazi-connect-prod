@@ -205,7 +205,7 @@ const plugins: Plugin[] = [
 	// configures s3-compatible storage for media handling
 	// uses env variables to allow flexible deployment across regions or providers
 	s3Storage({
-		collections: { media: true },
+		collections: { media: true, vault: true },
 		bucket: process.env.S3_BUCKET!,
 		config: {
 			credentials: {

@@ -145,7 +145,7 @@ const WajakaziProfiles: CollectionConfig = {
 			name: "documents",
 			type: "relationship",
 			label: "Verification Documents",
-			relationTo: "media",
+			relationTo: "vault",
 			hasMany: true,
 		},
 	],
