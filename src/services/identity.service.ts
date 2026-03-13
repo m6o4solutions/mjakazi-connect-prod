@@ -131,7 +131,8 @@ const ensureDomainProfile = async (
 					account: accountId,
 					displayName: "New Worker",
 					profession: "Unspecified",
-					verificationStatus: "unverified",
+					verificationStatus: "draft",
+					availabilityStatus: "available",
 				},
 			});
 		} catch (error: any) {

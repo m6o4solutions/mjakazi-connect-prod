@@ -709,7 +709,16 @@ export interface Wajakaziprofile {
   profession: string;
   bio?: string | null;
   location?: string | null;
-  verificationStatus: 'unverified' | 'pending_review' | 'verified' | 'rejected';
+  availabilityStatus: 'available' | 'hired' | 'on_break';
+  verificationStatus:
+    | 'draft'
+    | 'pending_payment'
+    | 'pending_review'
+    | 'verified'
+    | 'rejected'
+    | 'verification_expired'
+    | 'blacklisted'
+    | 'deactivated';
   verificationSubmittedAt?: string | null;
   verificationReviewedAt?: string | null;
   /**
@@ -721,6 +730,8 @@ export interface Wajakaziprofile {
    * Reason provided when verification is rejected.
    */
   rejectionReason?: string | null;
+  blacklistedAt?: string | null;
+  deactivatedAt?: string | null;
   /**
    * Internal moderation notes.
    */
@@ -1682,12 +1693,15 @@ export interface WajakaziprofilesSelect<T extends boolean = true> {
   profession?: T;
   bio?: T;
   location?: T;
+  availabilityStatus?: T;
   verificationStatus?: T;
   verificationSubmittedAt?: T;
   verificationReviewedAt?: T;
   verificationExpiry?: T;
   verificationAttempts?: T;
   rejectionReason?: T;
+  blacklistedAt?: T;
+  deactivatedAt?: T;
   verificationNotes?: T;
   documents?: T;
   updatedAt?: T;

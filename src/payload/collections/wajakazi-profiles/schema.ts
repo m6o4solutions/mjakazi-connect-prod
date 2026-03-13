@@ -55,6 +55,19 @@ const WajakaziProfiles: CollectionConfig = {
 			index: true,
 		},
 		{
+			name: "availabilityStatus",
+			type: "select",
+			label: "Availability Status",
+			required: true,
+			index: true,
+			options: [
+				{ label: "Available", value: "available" },
+				{ label: "Hired", value: "hired" },
+				{ label: "On Break", value: "on_break" },
+			],
+			defaultValue: "available",
+		},
+		{
 			// tracks the vetting process for the worker profile
 			name: "verificationStatus",
 			type: "select",
@@ -62,12 +75,16 @@ const WajakaziProfiles: CollectionConfig = {
 			required: true,
 			index: true,
 			options: [
-				{ label: "Unverified", value: "unverified" },
+				{ label: "Draft", value: "draft" },
+				{ label: "Pending Payment", value: "pending_payment" },
 				{ label: "Pending Review", value: "pending_review" },
 				{ label: "Verified", value: "verified" },
 				{ label: "Rejected", value: "rejected" },
+				{ label: "Verification Expired", value: "verification_expired" },
+				{ label: "Blacklisted", value: "blacklisted" },
+				{ label: "Deactivated", value: "deactivated" },
 			],
-			defaultValue: "unverified",
+			defaultValue: "draft",
 		},
 		{
 			name: "verificationSubmittedAt",
@@ -103,6 +120,18 @@ const WajakaziProfiles: CollectionConfig = {
 			admin: {
 				description: "Reason provided when verification is rejected.",
 			},
+		},
+		{
+			name: "blacklistedAt",
+			type: "date",
+			label: "Blacklisted At",
+			admin: { readOnly: true },
+		},
+		{
+			name: "deactivatedAt",
+			type: "date",
+			label: "Deactivated At",
+			admin: { readOnly: true },
 		},
 		{
 			// provides a space for administrative feedback during the review process
