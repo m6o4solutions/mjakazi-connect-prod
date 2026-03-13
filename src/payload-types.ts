@@ -709,11 +709,20 @@ export interface Wajakaziprofile {
   profession: string;
   bio?: string | null;
   location?: string | null;
-  verificationStatus: 'unverified' | 'pending' | 'verified' | 'rejected';
+  verificationStatus: 'unverified' | 'pending_review' | 'verified' | 'rejected';
   verificationSubmittedAt?: string | null;
   verificationReviewedAt?: string | null;
   /**
-   * Internal moderation notes
+   * Date when verification expires and requires renewal.
+   */
+  verificationExpiry?: string | null;
+  verificationAttempts?: number | null;
+  /**
+   * Reason provided when verification is rejected.
+   */
+  rejectionReason?: string | null;
+  /**
+   * Internal moderation notes.
    */
   verificationNotes?: string | null;
   documents?: (string | Media)[] | null;
@@ -1676,6 +1685,9 @@ export interface WajakaziprofilesSelect<T extends boolean = true> {
   verificationStatus?: T;
   verificationSubmittedAt?: T;
   verificationReviewedAt?: T;
+  verificationExpiry?: T;
+  verificationAttempts?: T;
+  rejectionReason?: T;
   verificationNotes?: T;
   documents?: T;
   updatedAt?: T;

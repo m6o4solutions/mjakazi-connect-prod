@@ -63,7 +63,7 @@ const WajakaziProfiles: CollectionConfig = {
 			index: true,
 			options: [
 				{ label: "Unverified", value: "unverified" },
-				{ label: "Pending Review", value: "pending" },
+				{ label: "Pending Review", value: "pending_review" },
 				{ label: "Verified", value: "verified" },
 				{ label: "Rejected", value: "rejected" },
 			],
@@ -82,11 +82,34 @@ const WajakaziProfiles: CollectionConfig = {
 			admin: { readOnly: true },
 		},
 		{
+			name: "verificationExpiry",
+			type: "date",
+			label: "Verification Expiry",
+			admin: {
+				description: "Date when verification expires and requires renewal.",
+			},
+		},
+		{
+			name: "verificationAttempts",
+			type: "number",
+			label: "Verification Attempts",
+			defaultValue: 0,
+			admin: { readOnly: true },
+		},
+		{
+			name: "rejectionReason",
+			type: "textarea",
+			label: "Rejection Reason",
+			admin: {
+				description: "Reason provided when verification is rejected.",
+			},
+		},
+		{
 			// provides a space for administrative feedback during the review process
 			name: "verificationNotes",
 			type: "textarea",
 			label: "Verification Notes",
-			admin: { description: "Internal moderation notes" },
+			admin: { description: "Internal moderation notes." },
 		},
 		{
 			// allows for multiple supporting files to be attached for verification
