@@ -1,9 +1,9 @@
 ## [1.10.1](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.10.0...v1.10.1) (2026-03-15)
 
-
 ### Bug Fixes
 
-* add clear size variant and ref support to button ([a3e0fe3](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/a3e0fe3a20fcac830a250d646185e4a0a26a796c))
+- add clear size variant and ref support to button
+  ([a3e0fe3](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/a3e0fe3a20fcac830a250d646185e4a0a26a796c))
 
 # [1.10.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.9.0...v1.10.0) (2026-03-15)
 
