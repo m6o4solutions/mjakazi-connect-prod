@@ -1,3 +1,4 @@
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
@@ -28,7 +29,7 @@ const RootLayout = async (props: { children: ReactNode }) => {
 					signInFallbackRedirectUrl="/authenticating"
 					signUpFallbackRedirectUrl="/authenticating"
 				>
-					{children}
+					<TooltipProvider>{children}</TooltipProvider>
 				</ClerkProvider>
 			</body>
 		</html>

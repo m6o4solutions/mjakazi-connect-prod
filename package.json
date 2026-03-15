@@ -58,6 +58,7 @@
 		"payload": "^3.79.0",
 		"postcss": "^8.5.8",
 		"prism-react-renderer": "^2.4.1",
+		"radix-ui": "^1.4.3",
 		"react": "^19.2.4",
 		"react-day-picker": "^9.14.0",
 		"react-dom": "^19.2.4",

@@ -27,8 +27,8 @@ const AuthLayout = ({ children }: { children: ReactNode }) => {
 					</h2>
 
 					<p className="max-w-sm text-sm leading-relaxed text-white/65">
-						A verified directory connecting professional domestic workers with Kenya's
-						households — securely, transparently, and on your terms.
+						A verified directory connecting professional wajakazi with Kenya's households
+						— securely, transparently, and on your terms.
 					</p>
 
 					<ul className="space-y-3 pt-4">
@@ -46,7 +46,7 @@ const AuthLayout = ({ children }: { children: ReactNode }) => {
 				</div>
 
 				<p className="relative z-10 text-xs text-white/30">
-					© {new Date().getFullYear()} Mjakazi Connect
+					© {new Date().getFullYear()} Mjakazi Connect Limited
 				</p>
 			</div>
 
