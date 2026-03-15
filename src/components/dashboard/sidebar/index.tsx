@@ -306,7 +306,7 @@ const DashboardSidebar = ({ role }: DashboardSidebarProps) => {
 						</SidebarGroupLabel>
 						<SidebarMenu>
 							{section.items.map((item) => {
-								const isActive = pathname === item.href;
+								const isActive = pathname.startsWith(item.href);
 								return (
 									<SidebarMenuItem key={item.href}>
 										<SidebarMenuButton
