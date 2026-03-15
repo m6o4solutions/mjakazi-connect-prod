@@ -1,28 +1,42 @@
 # [1.10.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.9.0...v1.10.0) (2026-03-15)
 
-
 ### Bug Fixes
 
-* **ui:** update sidebar active state logic ([4a20a85](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/4a20a85464148ceeb9d33d0a68f37bfb267727f6))
-
+- **ui:** update sidebar active state logic
+  ([4a20a85](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/4a20a85464148ceeb9d33d0a68f37bfb267727f6))
 
 ### Features
 
-* add dashboard layouts and placeholder content for role-based views ([11152a5](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/11152a5f13ce0c7644f5d9016cadf96b35283c8a))
-* **api:** add verification endpoint ([e69aff7](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/e69aff707b6427aec290d51c84e91bc4d390a50c))
-* **api:** add verification uploads endpoint ([e8bac18](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/e8bac18dfc47beaa3117e13acdbd186b529c3fe1))
-* **auth:** add admin and sa dashboard pages and routing ([b3afdd6](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/b3afdd6818a7e346961554c5923a01414e19ca24))
-* **identity:** add verification status and new api endpoints ([692e01d](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/692e01d9d155b2cca8eb5ed2e94a3434ae2b7370))
-* implement mjakazi dashboard status and update auth metadata ([3cc2d8e](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/3cc2d8e0de80537ab7f3b14a8dedbaa12faccbd6))
-* implement mjakazi dashboard verification status ([51d94ac](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/51d94ac2dc663c4b0e3b7cec5bba1edfb73248b0))
-* **inngest:** integrate inngest and add configuration ([60d78fc](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/60d78fc92bc9afa44f758c76fcb979e10870429d))
-* **payments:** add payment bypass configuration and api endpoint ([3969eac](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/3969eac57eee3b7f1092d6aa6dfe61e8956e73a8))
-* redesign authentication layout and style clerk components ([ff4c9f9](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/ff4c9f9ce11a1160ca2a0a88e1ab9ae637cf72d7))
-* **ui:** add sidebar and update components to unified radix-ui ([6624479](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/662447958dae0dde0b0c7cb35584c766749cdb0c))
-* **ui:** center saas layout content ([4a71c49](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/4a71c49c8023bd4906d6d4401fb2c54f232a221b))
-* **vault:** add vault collection for verification documents ([7e3485e](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/7e3485e7921ab4da833da2564585974bae74f133))
-* **wajakazi-profiles:** expand verification and availability tracking ([4f8c400](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/4f8c40021d185779d699a510e32208d2c4653834))
-* **wajakazi-profiles:** update verification schema and status options ([b6ff2df](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/b6ff2df3cbc57fa2414037d688c2a9e24593f033))
+- add dashboard layouts and placeholder content for role-based views
+  ([11152a5](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/11152a5f13ce0c7644f5d9016cadf96b35283c8a))
+- **api:** add verification endpoint
+  ([e69aff7](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/e69aff707b6427aec290d51c84e91bc4d390a50c))
+- **api:** add verification uploads endpoint
+  ([e8bac18](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/e8bac18dfc47beaa3117e13acdbd186b529c3fe1))
+- **auth:** add admin and sa dashboard pages and routing
+  ([b3afdd6](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/b3afdd6818a7e346961554c5923a01414e19ca24))
+- **identity:** add verification status and new api endpoints
+  ([692e01d](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/692e01d9d155b2cca8eb5ed2e94a3434ae2b7370))
+- implement mjakazi dashboard status and update auth metadata
+  ([3cc2d8e](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/3cc2d8e0de80537ab7f3b14a8dedbaa12faccbd6))
+- implement mjakazi dashboard verification status
+  ([51d94ac](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/51d94ac2dc663c4b0e3b7cec5bba1edfb73248b0))
+- **inngest:** integrate inngest and add configuration
+  ([60d78fc](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/60d78fc92bc9afa44f758c76fcb979e10870429d))
+- **payments:** add payment bypass configuration and api endpoint
+  ([3969eac](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/3969eac57eee3b7f1092d6aa6dfe61e8956e73a8))
+- redesign authentication layout and style clerk components
+  ([ff4c9f9](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/ff4c9f9ce11a1160ca2a0a88e1ab9ae637cf72d7))
+- **ui:** add sidebar and update components to unified radix-ui
+  ([6624479](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/662447958dae0dde0b0c7cb35584c766749cdb0c))
+- **ui:** center saas layout content
+  ([4a71c49](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/4a71c49c8023bd4906d6d4401fb2c54f232a221b))
+- **vault:** add vault collection for verification documents
+  ([7e3485e](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/7e3485e7921ab4da833da2564585974bae74f133))
+- **wajakazi-profiles:** expand verification and availability tracking
+  ([4f8c400](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/4f8c40021d185779d699a510e32208d2c4653834))
+- **wajakazi-profiles:** update verification schema and status options
+  ([b6ff2df](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/b6ff2df3cbc57fa2414037d688c2a9e24593f033))
 
 # [1.9.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.8.0...v1.9.0) (2026-03-12)
 
