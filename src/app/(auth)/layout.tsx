@@ -7,7 +7,7 @@ import "@/styles/globals.css";
 export const metadata: Metadata = {
 	title: "Mjakazi Connect",
 	description:
-		"Kenya's trusted digital bureau connecting verified wajakazi with waajiri.",
+		"Kenya's premier high-trust digital bureau for domestic help. Find and hire verified wajakazi through our secure, document-backed platform. NDPA-compliant vetting including National ID and Certificate of Good Conduct checks.",
 	robots: { index: false, follow: false },
 };
 
