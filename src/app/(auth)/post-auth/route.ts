@@ -18,13 +18,14 @@ const GET = async () => {
 	if (!identity) redirect("/");
 
 	switch (identity.role) {
+		case "admin":
+			redirect("/dashboard/admin");
 		case "mjakazi":
 			redirect("/dashboard/mjakazi");
 		case "mwajiri":
 			redirect("/dashboard/mwajiri");
-		case "admin":
 		case "sa":
-			redirect("/dashboard/admin");
+			redirect("/dashboard/sa");
 		default:
 			redirect("/");
 	}

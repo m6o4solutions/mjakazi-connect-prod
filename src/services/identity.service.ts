@@ -1,7 +1,16 @@
-import { clerkClient } from "@clerk/nextjs/server";
 import type { Payload } from "payload";
 
 type ClerkRole = "mjakazi" | "mwajiri" | "admin" | "sa";
+
+type VerificationState =
+	| "draft"
+	| "pending_payment"
+	| "pending_review"
+	| "verified"
+	| "rejected"
+	| "verification_expired"
+	| "blacklisted"
+	| "deactivated";
 
 interface ClerkUser {
 	id: string;
@@ -15,6 +24,8 @@ interface ClerkUser {
 interface IdentityContext {
 	accountId: string;
 	role: "mjakazi" | "mwajiri" | "admin" | "sa";
+	verificationStatus?: VerificationState;
+	subscriptionState?: string;
 	wajakaziProfileId?: string;
 	waajiriProfileId?: string;
 }
@@ -30,9 +41,7 @@ const resolveIdentity = async (
 		limit: 1,
 	});
 
-	if (accountQuery.docs.length === 0) {
-		return null;
-	}
+	if (accountQuery.docs.length === 0) return null;
 
 	const account = accountQuery.docs[0];
 
@@ -41,6 +50,7 @@ const resolveIdentity = async (
 		role: account.role,
 	};
 
+	// resolve worker profile and verification state
 	if (account.role === "mjakazi") {
 		const profile = await payload.find({
 			collection: "wajakaziprofiles",
@@ -49,10 +59,14 @@ const resolveIdentity = async (
 		});
 
 		if (profile.docs.length > 0) {
-			identity.wajakaziProfileId = profile.docs[0].id;
+			const workerProfile = profile.docs[0];
+
+			identity.wajakaziProfileId = workerProfile.id;
+			identity.verificationStatus = workerProfile.verificationStatus;
 		}
 	}
 
+	// resolve employer profile and subscription state
 	if (account.role === "mwajiri") {
 		const profile = await payload.find({
 			collection: "waajiriprofiles",
@@ -62,6 +76,8 @@ const resolveIdentity = async (
 
 		if (profile.docs.length > 0) {
 			identity.waajiriProfileId = profile.docs[0].id;
+			// subscriptionState to be added when subscriptions collection
+			// is implemented in Phase 5
 		}
 	}
 
@@ -132,7 +148,8 @@ const ensureDomainProfile = async (
 					account: accountId,
 					displayName: "New Worker",
 					profession: "Unspecified",
-					verificationStatus: "unverified",
+					verificationStatus: "draft",
+					availabilityStatus: "available",
 				},
 			});
 		} catch (error: any) {

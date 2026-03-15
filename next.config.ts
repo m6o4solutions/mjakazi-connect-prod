@@ -32,14 +32,19 @@ const nextConfig: NextConfig = {
 	turbopack: {
 		resolveExtensions: [".mdx", ".tsx", ".ts", ".jsx", ".js", ".mjs", ".json"],
 	},
-	webpack: (webpackConfig) => {
+	webpack: (webpackConfig, { dev }) => {
 		webpackConfig.resolve.extensionAlias = {
 			".cjs": [".cts", ".cjs"],
 			".js": [".ts", ".tsx", ".js", ".jsx"],
 			".mjs": [".mts", ".mjs"],
 		};
 
-		// suppress the "Critical dependency" warning from Payload
+		// disable persistent disk caching during development to prevent ArrayBuffer crashes
+		if (dev) {
+			webpackConfig.cache = false;
+		}
+
+		// suppress the "critical dependency" warning from payload cms
 		webpackConfig.ignoreWarnings = [
 			...(webpackConfig.ignoreWarnings || []),
 			{ module: /node_modules\/payload/ },

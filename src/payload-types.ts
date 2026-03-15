@@ -76,6 +76,7 @@ export interface Config {
     users: User;
     waajiriprofiles: Waajiriprofile;
     wajakaziprofiles: Wajakaziprofile;
+    vault: Vault;
     forms: Form;
     'form-submissions': FormSubmission;
     redirects: Redirect;
@@ -97,6 +98,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     waajiriprofiles: WaajiriprofilesSelect<false> | WaajiriprofilesSelect<true>;
     wajakaziprofiles: WajakaziprofilesSelect<false> | WajakaziprofilesSelect<true>;
+    vault: VaultSelect<false> | VaultSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
@@ -709,16 +711,57 @@ export interface Wajakaziprofile {
   profession: string;
   bio?: string | null;
   location?: string | null;
-  verificationStatus: 'unverified' | 'pending' | 'verified' | 'rejected';
+  availabilityStatus: 'available' | 'hired' | 'on_break';
+  verificationStatus:
+    | 'draft'
+    | 'pending_payment'
+    | 'pending_review'
+    | 'verified'
+    | 'rejected'
+    | 'verification_expired'
+    | 'blacklisted'
+    | 'deactivated';
   verificationSubmittedAt?: string | null;
   verificationReviewedAt?: string | null;
   /**
-   * Internal moderation notes
+   * Date when verification expires and requires renewal.
+   */
+  verificationExpiry?: string | null;
+  verificationAttempts?: number | null;
+  /**
+   * Reason provided when verification is rejected.
+   */
+  rejectionReason?: string | null;
+  blacklistedAt?: string | null;
+  deactivatedAt?: string | null;
+  /**
+   * Internal moderation notes.
    */
   verificationNotes?: string | null;
-  documents?: (string | Media)[] | null;
+  documents?: (string | Vault)[] | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "vault".
+ */
+export interface Vault {
+  id: string;
+  profile: string | Wajakaziprofile;
+  uploadedBy: string | Account;
+  documentType: 'national_id' | 'good_conduct' | 'qualification' | 'other';
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1105,6 +1148,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'wajakaziprofiles';
         value: string | Wajakaziprofile;
+      } | null)
+    | ({
+        relationTo: 'vault';
+        value: string | Vault;
       } | null)
     | ({
         relationTo: 'forms';
@@ -1673,13 +1720,39 @@ export interface WajakaziprofilesSelect<T extends boolean = true> {
   profession?: T;
   bio?: T;
   location?: T;
+  availabilityStatus?: T;
   verificationStatus?: T;
   verificationSubmittedAt?: T;
   verificationReviewedAt?: T;
+  verificationExpiry?: T;
+  verificationAttempts?: T;
+  rejectionReason?: T;
+  blacklistedAt?: T;
+  deactivatedAt?: T;
   verificationNotes?: T;
   documents?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "vault_select".
+ */
+export interface VaultSelect<T extends boolean = true> {
+  profile?: T;
+  uploadedBy?: T;
+  documentType?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

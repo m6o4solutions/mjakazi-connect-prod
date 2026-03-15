@@ -3,15 +3,39 @@
 import { SignUp } from "@clerk/nextjs";
 import { useSearchParams } from "next/navigation";
 
-// custom sign-up page that captures and passes role-based metadata to Clerk
+// facilitates registration while capturing intent-based roles for user classification
 const Page = () => {
 	const params = useSearchParams();
 	const role = params.get("role");
 
-	// attaches the selected role to the user's metadata for backend synchronization
+	// ensures user intent is persisted in the session for backend synchronization
 	const unsafeMetadata = role ? { role } : undefined;
 
-	return <SignUp forceRedirectUrl="/post-auth" unsafeMetadata={unsafeMetadata} />;
+	return (
+		<SignUp
+			forceRedirectUrl="/authenticating"
+			unsafeMetadata={unsafeMetadata}
+			appearance={{
+				elements: {
+					rootBox: "w-full",
+					card: "shadow-none border-none bg-transparent p-0",
+					headerTitle: "font-display text-xl font-bold text-foreground",
+					headerSubtitle: "text-muted-foreground text-sm",
+					socialButtonsBlockButton:
+						"border-border bg-background text-foreground hover:bg-muted text-sm font-medium",
+					formFieldLabel: "text-xs font-medium text-muted-foreground",
+					formFieldInput:
+						"border-border bg-background text-foreground text-sm rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary",
+					formButtonPrimary:
+						"bg-primary hover:bg-brand-primary-light text-primary-foreground text-sm font-semibold rounded-lg",
+					footerActionText: "text-muted-foreground text-xs",
+					footerActionLink: "text-primary font-medium text-xs",
+					dividerLine: "bg-border",
+					dividerText: "text-muted-foreground text-xs",
+				},
+			}}
+		/>
+	);
 };
 
 export { Page as default };

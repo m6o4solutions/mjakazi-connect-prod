@@ -4,7 +4,7 @@ import { ReactNode } from "react";
 import "@/styles/globals.css";
 
 const SaaSLayout = ({ children }: { children: ReactNode }) => {
-	return <>{children}</>;
+	return <div className="flex min-h-screen items-center justify-center">{children}</div>;
 };
 
 export { SaaSLayout as default };

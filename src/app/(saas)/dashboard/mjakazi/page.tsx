@@ -1,14 +1,112 @@
-import { Button } from "@/components/ui/button";
-import { SignOutButton } from "@clerk/nextjs";
+import { DashboardTopbar } from "@/components/dashboard/topbar";
+import { resolveIdentity } from "@/services/identity.service";
+import { auth } from "@clerk/nextjs/server";
+import config from "@payload-config";
+import { redirect } from "next/navigation";
+import { getPayload } from "payload";
 
-const Page = () => {
+// map technical status keys to human-readable labels for the dashboard ui
+const statusDisplayMap: Record<string, string> = {
+	draft: "Draft",
+	pending_payment: "Pending Payment",
+	pending_review: "Pending Review",
+	verified: "Verified",
+	rejected: "Rejected",
+	verification_expired: "Expired",
+	blacklisted: "Blacklisted",
+	deactivated: "Deactivated",
+	unknown: "Unknown",
+};
+
+// correlate verification states with semantic colors to convey status urgency
+const statusColorMap: Record<string, string> = {
+	draft: "text-muted-foreground",
+	pending_payment: "text-amber-600",
+	pending_review: "text-blue-600",
+	verified: "text-accent",
+	rejected: "text-destructive",
+	verification_expired: "text-destructive",
+	blacklisted: "text-destructive",
+	deactivated: "text-muted-foreground",
+	unknown: "text-muted-foreground",
+};
+
+const Page = async () => {
+	// ensure the user is authenticated before attempting to resolve identity
+	const { userId } = await auth();
+
+	if (!userId) redirect("/sign-in");
+
+	// initialize payload and fetch the identity record linked to the clerk user
+	const payload = await getPayload({ config });
+	const identity = await resolveIdentity(payload, userId);
+
+	// handle scenarios where identity or status might be missing
+	const verificationStatus = identity?.verificationStatus ?? "unknown";
+
+	const verificationStatusLabel =
+		statusDisplayMap[verificationStatus] ?? verificationStatus;
+
+	const statusColor = statusColorMap[verificationStatus] ?? "text-foreground";
+
 	return (
-		<div>
-			<div>Mjakazi Dashboard</div>
-			<SignOutButton>
-				<Button variant="outline">Sign Out</Button>
-			</SignOutButton>
-		</div>
+		<>
+			{/* provide consistent header navigation and context */}
+			<DashboardTopbar title="My Dashboard" />
+
+			<main className="flex flex-1 flex-col gap-6 p-6">
+				<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+					{/* highlight the worker's current verification lifecycle stage */}
+					<div className="bg-card border-border rounded-xl border p-6">
+						<div className="flex flex-col gap-2">
+							<p className="text-muted-foreground text-sm font-semibold">
+								Verification Status
+							</p>
+
+							<p className={`font-display text-2xl font-bold ${statusColor}`}>
+								{verificationStatusLabel}
+							</p>
+
+							<p className="text-muted-foreground text-sm">
+								This reflects the current review state of your worker verification.
+							</p>
+						</div>
+					</div>
+
+					{/* future container for tracking profile completion milestones */}
+					<div className="bg-card border-border rounded-xl border p-6">
+						<div className="flex flex-col gap-2">
+							<p className="text-muted-foreground text-sm font-semibold">
+								Profile Completion
+							</p>
+
+							<p className="font-display text-foreground text-2xl font-bold">
+								Coming Soon
+							</p>
+
+							<p className="text-muted-foreground text-sm">
+								Profile completion tracking will appear here.
+							</p>
+						</div>
+					</div>
+
+					{/* future container for a chronological feed of user activity */}
+					<div className="bg-card border-border rounded-xl border p-6">
+						<div className="flex flex-col gap-2">
+							<p className="text-muted-foreground text-sm font-semibold">Activity</p>
+
+							<p className="font-display text-foreground text-2xl font-bold">
+								Coming Soon
+							</p>
+
+							<p className="text-muted-foreground text-sm">
+								Your recent activity and updates will appear here.
+							</p>
+						</div>
+					</div>
+				</div>
+			</main>
+		</>
 	);
 };
 
