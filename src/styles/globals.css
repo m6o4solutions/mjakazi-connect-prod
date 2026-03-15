@@ -2,6 +2,12 @@
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
 
+/* restrict tailwind 4 scanning exclusively to frontend directories */
+@source "../src/app";
+@source "../src/components";
+@source "../src/lib";
+@source "../src/payload/blocks";
+
 /* defines a custom variant for dark mode based on the .dark class */
 @custom-variant dark (&:is(.dark *));
 

@@ -1,7 +1,15 @@
+import { Metadata } from "next";
 import { ReactNode } from "react";
 
 // provides the global base styles for the entire authentication experience
 import "@/styles/globals.css";
+
+export const metadata: Metadata = {
+	title: "Mjakazi Connect",
+	description:
+		"Kenya's trusted digital bureau connecting verified wajakazi with waajiri.",
+	robots: { index: false, follow: false },
+};
 
 const AuthLayout = ({ children }: { children: ReactNode }) => {
 	return (

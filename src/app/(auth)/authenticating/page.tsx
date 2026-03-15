@@ -15,13 +15,9 @@ const Page = () => {
 
 	return (
 		<div className="bg-bg-subtle flex min-h-screen flex-col items-center justify-center gap-5 px-6">
+			<Loader2 className="text-primary size-8 animate-spin" />
 			<div className="text-center">
-				<p className="font-display text-foreground text-lg font-bold">Mjakazi Connect</p>
-				<div className="bg-accent mx-auto mt-3 h-px w-10" />
-			</div>
-			<Loader2 className="text-primary h-8 w-8 animate-spin" />
-			<div className="text-center">
-				<p className="text-foreground text-sm font-medium">Preparing your dashboard</p>
+				<p className="text-foreground text-lg font-medium">Preparing your dashboard</p>
 				<p className="text-muted-foreground mt-1 text-xs">
 					This will only take a moment...
 				</p>
