@@ -1,4 +1,5 @@
 import { DashboardTopbar } from "@/components/dashboard/topbar";
+import { VerificationProgress } from "@/components/dashboard/verification-progress";
 import { resolveIdentity } from "@/services/identity.service";
 import { auth } from "@clerk/nextjs/server";
 import config from "@payload-config";
@@ -21,8 +22,8 @@ const statusDisplayMap: Record<string, string> = {
 // correlate verification states with semantic colors to convey status urgency
 const statusColorMap: Record<string, string> = {
 	draft: "text-muted-foreground",
-	pending_payment: "text-amber-600",
-	pending_review: "text-blue-600",
+	pending_payment: "text-warning",
+	pending_review: "text-primary",
 	verified: "text-accent",
 	rejected: "text-destructive",
 	verification_expired: "text-destructive",
@@ -40,6 +41,9 @@ const Page = async () => {
 	// initialize payload and fetch the identity record linked to the clerk user
 	const payload = await getPayload({ config });
 	const identity = await resolveIdentity(payload, userId);
+
+	// guard against rare race conditions where identity has not yet synchronized
+	if (!identity) redirect("/post-auth");
 
 	// handle scenarios where identity or status might be missing
 	const verificationStatus = identity?.verificationStatus ?? "unknown";
@@ -73,22 +77,8 @@ const Page = async () => {
 						</div>
 					</div>
 
-					{/* future container for tracking profile completion milestones */}
-					<div className="bg-card border-border rounded-xl border p-6">
-						<div className="flex flex-col gap-2">
-							<p className="text-muted-foreground text-sm font-semibold">
-								Profile Completion
-							</p>
-
-							<p className="font-display text-foreground text-2xl font-bold">
-								Coming Soon
-							</p>
-
-							<p className="text-muted-foreground text-sm">
-								Profile completion tracking will appear here.
-							</p>
-						</div>
-					</div>
+					{/* visual progress representation of the verification journey */}
+					<VerificationProgress status={verificationStatus} />
 
 					{/* future container for a chronological feed of user activity */}
 					<div className="bg-card border-border rounded-xl border p-6">
