@@ -1,6 +1,6 @@
 import { Container } from "@/components/container";
 import type { Footer } from "@/payload-types";
-import { HouseHeart } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 interface FooterClientProps {
@@ -9,8 +9,15 @@ interface FooterClientProps {
 
 // renders the site footer with dynamic content from payload cms
 const FooterClient = async ({ data }: FooterClientProps) => {
-	const { copyright, legal, organizationName, organizationSlogan, waajiri, wajakazi } =
-		data;
+	const {
+		copyright,
+		legal,
+		organizationLogo,
+		organizationName,
+		organizationSlogan,
+		waajiri,
+		wajakazi,
+	} = data;
 	const parts = (organizationName ?? "").split("|").map((s) => s.trim());
 	const [main, accent] = parts.length > 1 ? parts : [organizationName ?? "", null];
 
@@ -21,9 +28,15 @@ const FooterClient = async ({ data }: FooterClientProps) => {
 					<div className="col-span-2 space-y-3 lg:col-span-2">
 						{/* branding section with logo and organization names */}
 						<Link href="/" className="flex cursor-pointer items-center">
-							<div className="bg-brand-primary mr-3 flex size-8 items-center justify-center rounded-lg">
-								<HouseHeart className="text-primary-foreground size-5" />
-							</div>
+							{organizationLogo && typeof organizationLogo === "object" && (
+								<Image
+									src={organizationLogo.url || ""}
+									alt={organizationLogo.alt || ""}
+									width={organizationLogo.width || 32}
+									height={organizationLogo.height || 32}
+									className="mr-3 size-8 rounded-lg object-contain"
+								/>
+							)}
 							<span className="font-display text-text-default text-xl font-bold tracking-tight">
 								{main} {accent && <span className="text-brand-primary">{accent}</span>}
 							</span>

@@ -4,7 +4,8 @@ import { Container } from "@/components/container";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import type { Header } from "@/payload-types";
-import { HouseHeart, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -15,7 +16,8 @@ interface HeaderClientProps {
 // manages the interactive navigation experience including mobile menu states and branding
 const HeaderClient = ({ data }: HeaderClientProps) => {
 	const [isOpen, setIsOpen] = useState(false);
-	const { organizationName, navigationItems, authorization, register } = data;
+	const { organizationName, organizationLogo, navigationItems, authorization, register } =
+		data;
 	const parts = (organizationName ?? "").split("|").map((s) => s.trim());
 	const [main, accent] = parts.length > 1 ? parts : [organizationName ?? "", null];
 
@@ -25,9 +27,16 @@ const HeaderClient = ({ data }: HeaderClientProps) => {
 				<div className="flex h-20 items-center justify-between">
 					{/* branding section with logo icon and organization name */}
 					<Link href="/" className="flex cursor-pointer items-center">
-						<div className="bg-brand-primary mr-3 flex size-8 items-center justify-center rounded-lg">
-							<HouseHeart className="size-5 text-white" />
-						</div>
+						{organizationLogo && typeof organizationLogo === "object" && (
+							<Image
+								src={organizationLogo.url || ""}
+								alt={organizationLogo.alt || ""}
+								width={organizationLogo.width || 32}
+								height={organizationLogo.height || 32}
+								className="mr-3 size-8 rounded-lg object-contain"
+								priority
+							/>
+						)}
 						<span className="font-display text-text-default text-xl font-bold tracking-tight">
 							{main} {accent && <span className="text-brand-primary">{accent}</span>}
 						</span>
