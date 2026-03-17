@@ -1,13 +1,13 @@
 {
 	"name": "mjakazi-connect-prod",
-	"version": "1.10.0",
+	"version": "1.10.1",
 	"description": "Mjakazi Connect SaaS web application.",
 	"license": "MIT",
 	"type": "module",
 	"scripts": {
 		"build": "cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=8192\" next build --webpack",
-		"dev": "cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=5120\" next dev --webpack",
-		"devsafe": "if exist .next rmdir /s /q .next && cross-env NODE_OPTIONS=--no-deprecation next dev --webpack",
+		"dev": "cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=5120\" next dev --webpack -H 0.0.0.0",
+		"devsafe": "if exist .next rmdir /s /q .next && cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=5120\" next dev --webpack -H 0.0.0.0",
 		"generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
 		"generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
 		"lint": "cross-env NODE_OPTIONS=--no-deprecation next lint",
