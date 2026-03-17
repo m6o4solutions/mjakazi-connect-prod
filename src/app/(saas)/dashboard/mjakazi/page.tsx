@@ -1,3 +1,4 @@
+import { DocumentUploadCard } from "@/components/dashboard/document-upload-card";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { VerificationProgress } from "@/components/dashboard/verification-progress";
 import { resolveIdentity } from "@/services/identity.service";
@@ -94,6 +95,15 @@ const Page = async () => {
 							</p>
 						</div>
 					</div>
+
+					{/* upload national id */}
+					<DocumentUploadCard documentType="national_id" label="National ID" />
+
+					{/* upload certificate of good conduct */}
+					<DocumentUploadCard
+						documentType="good_conduct"
+						label="Certificate of Good Conduct"
+					/>
 				</div>
 			</main>
 		</>
