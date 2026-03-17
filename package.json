@@ -1,6 +1,6 @@
 {
 	"name": "mjakazi-connect-prod",
-	"version": "1.10.1",
+	"version": "1.11.0",
 	"description": "Mjakazi Connect SaaS web application.",
 	"license": "MIT",
 	"type": "module",
