@@ -1,3 +1,12 @@
+# [1.11.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.10.1...v1.11.0) (2026-03-17)
+
+
+### Features
+
+* **dashboard:** implement document upload cards ([bdc55bd](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/bdc55bde150817246aab95f5368aa9de55aae81e))
+* **dashboard:** implement verification progress component ([89d351d](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/89d351d65d27c6a35fca8651a30f0945dbd3ad3e))
+* implement dynamic branding and update dev environment ([78dbba8](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/78dbba8ad0ace7d463427dc5405564ea8911297c))
+
 ## [1.10.1](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.10.0...v1.10.1) (2026-03-15)
 
 ### Bug Fixes
