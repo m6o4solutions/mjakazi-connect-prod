@@ -4,13 +4,14 @@ import { getPayload } from "payload";
 
 export const verificationExpiry = inngest.createFunction(
 	{ id: "verification-expiry-job" },
-	{ cron: "0 2 * * *" }, // runs daily at 02:00 UTC
-	async ({ step }) => {
+	{ cron: "0 2 * * *" },
+	// @ts-expect-error - Inngest v3 type mismatch in some environments
+	async ({ step }: { step: any }) => {
 		const payload = await getPayload({ config });
 
 		// fetch all verified profiles whose expiry has passed
 		const expiredProfiles = await step.run("find-expired-profiles", async () => {
-			return payload.find({
+			const result = await payload.find({
 				collection: "wajakaziprofiles",
 				where: {
 					and: [
@@ -20,27 +21,22 @@ export const verificationExpiry = inngest.createFunction(
 				},
 				limit: 1000,
 			});
+			return result.docs.map((doc: any) => ({ id: doc.id }));
 		});
 
 		// update each expired profile individually for auditability
-		let succeeded = 0;
-		let failed = 0;
-
-		for (const profile of expiredProfiles.docs) {
+		for (const profile of expiredProfiles) {
 			await step.run(`expire-profile-${profile.id}`, async () => {
 				await payload.update({
 					collection: "wajakaziprofiles",
 					id: profile.id,
 					data: { verificationStatus: "verification_expired" },
 				});
-				succeeded++;
 			});
 		}
 
 		return {
-			processed: expiredProfiles.docs.length,
-			succeeded,
-			failed,
+			processed: expiredProfiles.length,
 		};
 	},
 );
