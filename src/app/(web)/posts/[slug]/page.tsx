@@ -13,8 +13,7 @@ import Image from "next/image";
 import { getPayload } from "payload";
 import { cache } from "react";
 
-// generates static paths for posts at build time to improve performance.
-// limits to 100 to avoid excessive build times for large sites.
+// pre-renders a subset of blog posts to optimize build performance and initial load speed
 const generateStaticParams = async () => {
 	const payload = await getPayload({ config });
 	const posts = await payload.find({
@@ -31,8 +30,7 @@ const generateStaticParams = async () => {
 
 type Args = { params: Promise<{ slug?: string }> };
 
-// fetches a specific post by slug, enabling draft mode if active.
-// uses react cache to prevent duplicate database queries during rendering.
+// retrieves post data with support for draft mode and request memoization
 const queryPostBySlug = cache(async ({ slug }: { slug: string }) => {
 	const { isEnabled: draft } = await draftMode();
 	const payload = await getPayload({ config });
@@ -48,22 +46,21 @@ const queryPostBySlug = cache(async ({ slug }: { slug: string }) => {
 	return result.docs?.[0] || null;
 });
 
-// dynamically generates seo metadata based on the post content.
+// constructs seo metadata using the specific post content
 const generateMetadata = async ({ params: paramsPromise }: Args): Promise<Metadata> => {
 	const { slug = "" } = await paramsPromise;
 	const post = await queryPostBySlug({ slug });
 	return generateMeta({ doc: post });
 };
 
-// renders the individual blog post page.
-// handles redirects for missing posts and integrates live preview for editors.
+// manages the post detail view including live preview and content rendering
 const Page = async ({ params: paramsPromise }: Args) => {
 	const { isEnabled: draft } = await draftMode();
 	const { slug = "" } = await paramsPromise;
 	const url = "/posts/" + slug;
 	const post = await queryPostBySlug({ slug });
 
-	// redirects to 404 if the post is not found.
+	// fallback to managed redirects if the requested post is unavailable
 	if (!post) return <PayloadRedirects url={url} />;
 
 	const { content, categories, heroImage, populatedAuthors, publishedAt, title } = post;
@@ -80,7 +77,7 @@ const Page = async ({ params: paramsPromise }: Args) => {
 			<Container>
 				<PayloadRedirects disableNotFound url={url} />
 
-				{/* enables live updates when viewing in draft mode */}
+				{/* synchronizes content state for real-time editor feedback */}
 				{draft && <LivePreviewListener />}
 
 				<div className="mx-auto max-w-5xl py-5">
@@ -122,7 +119,14 @@ const Page = async ({ params: paramsPromise }: Args) => {
 					</div>
 
 					<div className="border-border bg-card relative mb-12 aspect-video w-full overflow-hidden rounded-2xl border shadow-md">
-						<Image src={imageSrc} alt={imageAlt} fill priority className="object-cover" />
+						<Image
+							src={imageSrc}
+							alt={imageAlt}
+							fill
+							priority
+							className="object-cover"
+							sizes="(max-width: 768px) 100vw, (max-width: 1200px) 75vw, 1024px"
+						/>
 					</div>
 
 					<RichText className="mx-auto max-w-4xl" data={content} enableGutter={false} />
