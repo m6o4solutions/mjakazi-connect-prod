@@ -1,4 +1,5 @@
 import { DocumentUploadCard } from "@/components/dashboard/document-upload-card";
+import { SubmitVerificationCard } from "@/components/dashboard/submit-verification-card";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { VerificationProgress } from "@/components/dashboard/verification-progress";
 import { resolveIdentity } from "@/services/identity.service";
@@ -104,6 +105,9 @@ const Page = async () => {
 						documentType="good_conduct"
 						label="Certificate of Good Conduct"
 					/>
+
+					{/* submission trigger once all prerequisites are met */}
+					<SubmitVerificationCard verificationStatus={verificationStatus} />
 				</div>
 			</main>
 		</>
