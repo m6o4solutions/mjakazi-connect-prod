@@ -51,7 +51,7 @@ const Vault: CollectionConfig = {
 		},
 	],
 	// restricts file types to images and pdfs to ensure document compatibility
-	upload: { mimeTypes: ["image/*", "application/pdf"] },
+	upload: { mimeTypes: ["application/pdf", "image/jpeg", "image/png", "image/webp"] },
 };
 
 export { Vault };
