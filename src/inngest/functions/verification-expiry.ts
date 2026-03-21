@@ -3,9 +3,8 @@ import config from "@payload-config";
 import { getPayload } from "payload";
 
 export const verificationExpiry = inngest.createFunction(
-	{ id: "verification-expiry-job" },
-	{ cron: "0 2 * * *" },
-	// @ts-expect-error - Inngest v3 type mismatch in some environments
+	{ id: "verification-expiry-job", triggers: [{ cron: "0 2 * * *" }] },
+
 	async ({ step }: { step: any }) => {
 		const payload = await getPayload({ config });
 
