@@ -1,3 +1,11 @@
+# [1.13.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.12.0...v1.13.0) (2026-03-26)
+
+
+### Features
+
+* **prompts:** enhance git commit prompt to enforce conventional commits ([7654ff5](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/7654ff5250efb7ba898107e0504c8804c1298318))
+* **prompts:** enhance project summary generation with detailed prompt ([fc94f42](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/fc94f42a8d7a2a4028710dfb78c982a30f97f887))
+
 # [1.12.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.11.0...v1.12.0) (2026-03-26)
 
 
