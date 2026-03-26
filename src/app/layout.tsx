@@ -17,7 +17,7 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 // define the primary shell for the web frontend, managing site-wide providers and layout structure
-const RootLayout = async (props: { children: ReactNode }) => {
+const RootLayout = (props: { children: ReactNode }) => {
 	const { children } = props;
 
 	return (
