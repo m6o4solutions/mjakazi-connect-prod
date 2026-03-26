@@ -3,9 +3,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
 	allowedDevOrigins: ["nella-nonexcepting-emil.ngrok-free.dev"],
-	experimental: {
-		workerThreads: false,
-	},
+	experimental: { workerThreads: false },
 	images: {
 		qualities: [25, 50, 75, 100],
 		remotePatterns: [

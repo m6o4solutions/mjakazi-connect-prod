@@ -56,24 +56,36 @@ const DocumentUploadCard = ({ documentType, label }: DocumentUploadCardProps) =>
 				</p>
 			</div>
 
-			<input
-				type="file"
-				accept="image/*,application/pdf"
-				onChange={(e) => {
-					const selected = e.target.files?.[0] ?? null;
+			{/* file selection */}
+			<div className="flex flex-col gap-3">
+				<input
+					id={`file-${documentType}`}
+					type="file"
+					accept="image/*,application/pdf"
+					className="hidden"
+					onChange={(e) => {
+						const selected = e.target.files?.[0] ?? null;
 
-					// validate file size immediately to provide fast feedback
-					if (selected && selected.size > MAX_FILE_SIZE) {
-						setError("File must be under 10MB.");
-						setFile(null);
-						return;
-					}
+						// validate file size immediately to provide fast feedback
+						if (selected && selected.size > MAX_FILE_SIZE) {
+							setError("File must be under 10MB.");
+							setFile(null);
+							return;
+						}
 
-					setError(null);
-					setFile(selected);
-				}}
-				className="text-sm"
-			/>
+						setError(null);
+						setFile(selected);
+					}}
+				/>
+
+				<label htmlFor={`file-${documentType}`}>
+					<Button variant="outline" className="w-full" asChild>
+						<span>Choose File</span>
+					</Button>
+				</label>
+
+				{file && <p className="text-muted-foreground truncate text-sm">{file.name}</p>}
+			</div>
 
 			<Button onClick={handleUpload} disabled={!file || uploading || success}>
 				{success ? "Uploaded" : uploading ? "Uploading..." : "Upload"}

@@ -21,6 +21,7 @@ const isValidDocumentType = (value: string): value is DocumentType => {
 // handles the upload and storage of worker verification documents into the secure vault
 const POST = async (req: Request) => {
 	const { userId } = await auth();
+
 	if (!userId) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
@@ -28,6 +29,7 @@ const POST = async (req: Request) => {
 	const payload = await getPayload({ config });
 
 	const identity = await resolveIdentity(payload, userId);
+
 	if (!identity) {
 		return NextResponse.json({ error: "Identity not found" }, { status: 404 });
 	}

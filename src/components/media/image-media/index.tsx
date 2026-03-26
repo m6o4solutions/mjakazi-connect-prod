@@ -60,7 +60,8 @@ const ImageMedia = ({
 		? sizeFromProps
 		: // default logic: iterates over defined breakpoints to generate the string required by next/image.
 			Object.entries(breakpoints)
-				.map(([, value]) => `(max-width: ${value}px) ${value * 2}w`)
+				.map(([, value]) => `(max-width: ${value}px) 100vw`)
+				.concat("100vw")
 				.join(", ");
 
 	return (
