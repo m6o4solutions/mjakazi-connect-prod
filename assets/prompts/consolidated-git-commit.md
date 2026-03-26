@@ -1,3 +1,5 @@
-Go through the commits and generate an appropriate commit message that summarizes the key
-changes. Generate the commit message by comparing 'main' and 'development. Do not under
-any circumstances change branches.
+Compose a single, comprehensive commit message summarizing all key modifications, their
+collective purpose, and significant impacts implemented between the 'main' and
+'development' branches, strictly adhering to the Conventional Commits specification:
+`type(scope): subject`, a detailed body explaining the _why_ and _impact_ of changes, and
+appropriate footers (e.g., `BREAKING CHANGE:`, `Refs:`).
