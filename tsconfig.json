@@ -17,16 +17,19 @@
 		"plugins": [{ "name": "next" }],
 		"paths": {
 			"@/*": ["./src/*"],
-			"@payload-config": ["./src/payload.config.ts"]
+			"@payload-config": ["./src/payload.config.ts"],
+			"react": ["./node_modules/@types/react"]
 		},
 		"target": "ES2022"
 	},
 	"include": [
-		"next-env.d.ts",
 		"**/*.ts",
 		"**/*.tsx",
 		".next/types/**/*.ts",
 		".next/dev/types/**/*.ts",
+		"next.config.ts",
+		"next-sitemap.config.ts",
+		"next-env.d.ts",
 		"src/types/**/*.d.ts"
 	],
 	"exclude": ["node_modules"]
