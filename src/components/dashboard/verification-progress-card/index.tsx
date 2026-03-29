@@ -1,4 +1,4 @@
-interface VerificationProgressProps {
+interface VerificationProgressCardProps {
 	status: string;
 }
 
@@ -22,7 +22,7 @@ const stepMap: Record<string, number> = {
 // identify statuses that signify a permanent or critical account restriction
 const terminalNegativeStates = ["blacklisted", "deactivated"];
 
-const VerificationProgress = ({ status }: VerificationProgressProps) => {
+const VerificationProgressCard = ({ status }: VerificationProgressCardProps) => {
 	// handle accounts with restricted access by showing a terminal state message
 	if (terminalNegativeStates.includes(status)) {
 		return (
@@ -93,4 +93,4 @@ const VerificationProgress = ({ status }: VerificationProgressProps) => {
 	);
 };
 
-export { VerificationProgress };
+export { VerificationProgressCard };

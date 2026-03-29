@@ -4,6 +4,7 @@ import config from "@payload-config";
 import { NextResponse } from "next/server";
 import { getPayload } from "payload";
 
+// restrict uploads to these verification document categories
 const VALID_DOCUMENT_TYPES = [
 	"national_id",
 	"good_conduct",
@@ -13,12 +14,37 @@ const VALID_DOCUMENT_TYPES = [
 
 type DocumentType = (typeof VALID_DOCUMENT_TYPES)[number];
 
-// verifies that the provided string matches one of the allowed document categories
 const isValidDocumentType = (value: string): value is DocumentType => {
 	return VALID_DOCUMENT_TYPES.includes(value as DocumentType);
 };
 
-// handles the upload and storage of worker verification documents into the secure vault
+// fallback to extension-based mime detection when the browser omits file.type
+const resolveMimeType = (file: File): string => {
+	if (file.type) return file.type;
+
+	const ext = file.name.split(".").pop()?.toLowerCase();
+	const mimeMap: Record<string, string> = {
+		jpg: "image/jpeg",
+		jpeg: "image/jpeg",
+		png: "image/png",
+		webp: "image/webp",
+		pdf: "application/pdf",
+	};
+
+	return mimeMap[ext ?? ""] ?? "application/octet-stream";
+};
+
+// random suffix prevents storage collisions when different users upload same-named files
+const generateUniqueFilename = (originalName: string): string => {
+	const ext = originalName.includes(".")
+		? originalName.slice(originalName.lastIndexOf("."))
+		: "";
+	const base = originalName.slice(0, originalName.lastIndexOf(".")) || originalName;
+	const suffix = Math.random().toString(36).slice(2, 8);
+	return `${base}-${suffix}${ext}`;
+};
+
+// handles verification document uploads for mjakazi profiles
 const POST = async (req: Request) => {
 	const { userId } = await auth();
 
@@ -28,13 +54,14 @@ const POST = async (req: Request) => {
 
 	const payload = await getPayload({ config });
 
+	// look up the clerk user's identity to get profile and role context
 	const identity = await resolveIdentity(payload, userId);
 
 	if (!identity) {
 		return NextResponse.json({ error: "Identity not found" }, { status: 404 });
 	}
 
-	// ensures that only users with a worker role can contribute to their verification vault
+	// only mjakazi role users can upload verification documents
 	if (identity.role !== "mjakazi") {
 		return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 	}
@@ -58,26 +85,46 @@ const POST = async (req: Request) => {
 		);
 	}
 
-	// converts the uploaded file into a format compatible with payload's media processing
-	const payloadFile = {
-		data: Buffer.from(await file.arrayBuffer()),
-		filename: file.name,
-		mimeType: file.type,
-		name: file.name,
-		size: file.size,
-	};
+	// enforce one document per type per profile so users replace rather than duplicate
+	const existingDoc = await payload.find({
+		collection: "vault",
+		where: {
+			and: [
+				{ profile: { equals: identity.wajakaziProfileId } },
+				{ documentType: { equals: documentType } },
+			],
+		},
+		overrideAccess: true,
+		limit: 1,
+	});
+
+	if (existingDoc.totalDocs >= 1) {
+		return NextResponse.json(
+			{ error: "A document of this type has already been uploaded." },
+			{ status: 400 },
+		);
+	}
+
+	const mimeType = resolveMimeType(file);
+	const fileBuffer = await file.arrayBuffer();
+	const uniqueFilename = generateUniqueFilename(file.name);
 
 	try {
-		// creates a new entry in the vault collection, linking the file to the user's profile
 		const vaultDocument = await payload.create({
 			collection: "vault",
 			draft: false,
+			overrideAccess: true,
 			data: {
 				profile: identity.wajakaziProfileId,
 				uploadedBy: identity.accountId,
 				documentType,
 			},
-			file: payloadFile as any,
+			file: {
+				data: Buffer.from(fileBuffer),
+				mimetype: mimeType,
+				name: uniqueFilename,
+				size: file.size,
+			},
 		});
 
 		return NextResponse.json({

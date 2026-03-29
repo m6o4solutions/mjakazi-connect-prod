@@ -18,12 +18,7 @@ const WebLayout = ({ children }: { children: ReactNode }) => {
 			<ClarityTracker />
 
 			{/* provide theme context and manage appearance transitions */}
-			<ThemeProvider
-				attribute="class"
-				defaultTheme="light"
-				enableSystem
-				disableTransitionOnChange
-			>
+			<ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
 				{/* render global site navigation */}
 				<header>
 					<Header />
