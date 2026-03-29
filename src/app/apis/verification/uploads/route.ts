@@ -4,6 +4,7 @@ import config from "@payload-config";
 import { NextResponse } from "next/server";
 import { getPayload } from "payload";
 
+// restrict uploads to these verification document categories
 const VALID_DOCUMENT_TYPES = [
 	"national_id",
 	"good_conduct",
@@ -17,6 +18,7 @@ const isValidDocumentType = (value: string): value is DocumentType => {
 	return VALID_DOCUMENT_TYPES.includes(value as DocumentType);
 };
 
+// fallback to extension-based mime detection when the browser omits file.type
 const resolveMimeType = (file: File): string => {
 	if (file.type) return file.type;
 
@@ -32,7 +34,7 @@ const resolveMimeType = (file: File): string => {
 	return mimeMap[ext ?? ""] ?? "application/octet-stream";
 };
 
-// appends a short random hex suffix to prevent filename collisions in storage
+// random suffix prevents storage collisions when different users upload same-named files
 const generateUniqueFilename = (originalName: string): string => {
 	const ext = originalName.includes(".")
 		? originalName.slice(originalName.lastIndexOf("."))
@@ -42,6 +44,7 @@ const generateUniqueFilename = (originalName: string): string => {
 	return `${base}-${suffix}${ext}`;
 };
 
+// handles verification document uploads for mjakazi profiles
 const POST = async (req: Request) => {
 	const { userId } = await auth();
 
@@ -51,12 +54,14 @@ const POST = async (req: Request) => {
 
 	const payload = await getPayload({ config });
 
+	// look up the clerk user's identity to get profile and role context
 	const identity = await resolveIdentity(payload, userId);
 
 	if (!identity) {
 		return NextResponse.json({ error: "Identity not found" }, { status: 404 });
 	}
 
+	// only mjakazi role users can upload verification documents
 	if (identity.role !== "mjakazi") {
 		return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 	}
@@ -80,7 +85,7 @@ const POST = async (req: Request) => {
 		);
 	}
 
-	// reject if a document of this type already exists for this profile
+	// enforce one document per type per profile so users replace rather than duplicate
 	const existingDoc = await payload.find({
 		collection: "vault",
 		where: {

@@ -52,7 +52,7 @@ const Vault: CollectionConfig = {
 	],
 	// restricts file types to images and pdfs to ensure document compatibility
 	upload: {
-		mimeTypes: ["application/pdf", "image/jpeg", "image/png", "image/webp"],
+		mimeTypes: ["application/pdf", "image/jpeg", "image/jpg", "image/png", "image/webp"],
 	},
 };
 

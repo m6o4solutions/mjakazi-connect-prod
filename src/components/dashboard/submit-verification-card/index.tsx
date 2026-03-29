@@ -92,7 +92,7 @@ const SubmitVerificationCard = ({
 	const buttonLabel = alreadySubmitted
 		? blockedLabel
 		: !documentsReady
-			? "Upload documents first"
+			? "Upload Required Documents"
 			: success
 				? "Submitted"
 				: loading
