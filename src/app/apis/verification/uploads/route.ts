@@ -13,17 +13,16 @@ const VALID_DOCUMENT_TYPES = [
 
 type DocumentType = (typeof VALID_DOCUMENT_TYPES)[number];
 
-// verifies that the provided string matches one of the allowed document categories
 const isValidDocumentType = (value: string): value is DocumentType => {
 	return VALID_DOCUMENT_TYPES.includes(value as DocumentType);
 };
 
-// derives mime type from file extension when browser does not provide it
 const resolveMimeType = (file: File): string => {
 	if (file.type) return file.type;
 
 	const ext = file.name.split(".").pop()?.toLowerCase();
 	const mimeMap: Record<string, string> = {
+		jpg: "image/jpeg",
 		jpeg: "image/jpeg",
 		png: "image/png",
 		webp: "image/webp",
@@ -33,7 +32,16 @@ const resolveMimeType = (file: File): string => {
 	return mimeMap[ext ?? ""] ?? "application/octet-stream";
 };
 
-// handles the upload and storage of worker verification documents into the secure vault
+// appends a short random hex suffix to prevent filename collisions in storage
+const generateUniqueFilename = (originalName: string): string => {
+	const ext = originalName.includes(".")
+		? originalName.slice(originalName.lastIndexOf("."))
+		: "";
+	const base = originalName.slice(0, originalName.lastIndexOf(".")) || originalName;
+	const suffix = Math.random().toString(36).slice(2, 8);
+	return `${base}-${suffix}${ext}`;
+};
+
 const POST = async (req: Request) => {
 	const { userId } = await auth();
 
@@ -49,7 +57,6 @@ const POST = async (req: Request) => {
 		return NextResponse.json({ error: "Identity not found" }, { status: 404 });
 	}
 
-	// ensures that only users with a worker role can contribute to their verification vault
 	if (identity.role !== "mjakazi") {
 		return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 	}
@@ -73,12 +80,31 @@ const POST = async (req: Request) => {
 		);
 	}
 
+	// reject if a document of this type already exists for this profile
+	const existingDoc = await payload.find({
+		collection: "vault",
+		where: {
+			and: [
+				{ profile: { equals: identity.wajakaziProfileId } },
+				{ documentType: { equals: documentType } },
+			],
+		},
+		overrideAccess: true,
+		limit: 1,
+	});
+
+	if (existingDoc.totalDocs >= 1) {
+		return NextResponse.json(
+			{ error: "A document of this type has already been uploaded." },
+			{ status: 400 },
+		);
+	}
+
 	const mimeType = resolveMimeType(file);
 	const fileBuffer = await file.arrayBuffer();
+	const uniqueFilename = generateUniqueFilename(file.name);
 
 	try {
-		// uses the local api with overrideAccess and the corrected file shape
-		// payload 3.x expects "mimetype" (lowercase) not "mimeType" in the file object
 		const vaultDocument = await payload.create({
 			collection: "vault",
 			draft: false,
@@ -91,7 +117,7 @@ const POST = async (req: Request) => {
 			file: {
 				data: Buffer.from(fileBuffer),
 				mimetype: mimeType,
-				name: file.name,
+				name: uniqueFilename,
 				size: file.size,
 			},
 		});
