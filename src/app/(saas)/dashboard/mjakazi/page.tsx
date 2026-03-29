@@ -107,7 +107,7 @@ const Page = async () => {
 					/>
 
 					{/* submission trigger once all prerequisites are met */}
-					<SubmitVerificationCard verificationStatus={verificationStatus} />
+					{/* <SubmitVerificationCard verificationStatus={verificationStatus} /> */}
 				</div>
 			</main>
 		</>

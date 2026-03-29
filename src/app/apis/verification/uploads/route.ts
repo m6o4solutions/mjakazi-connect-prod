@@ -18,6 +18,21 @@ const isValidDocumentType = (value: string): value is DocumentType => {
 	return VALID_DOCUMENT_TYPES.includes(value as DocumentType);
 };
 
+// derives mime type from file extension when browser does not provide it
+const resolveMimeType = (file: File): string => {
+	if (file.type) return file.type;
+
+	const ext = file.name.split(".").pop()?.toLowerCase();
+	const mimeMap: Record<string, string> = {
+		jpeg: "image/jpeg",
+		png: "image/png",
+		webp: "image/webp",
+		pdf: "application/pdf",
+	};
+
+	return mimeMap[ext ?? ""] ?? "application/octet-stream";
+};
+
 // handles the upload and storage of worker verification documents into the secure vault
 const POST = async (req: Request) => {
 	const { userId } = await auth();
@@ -58,26 +73,27 @@ const POST = async (req: Request) => {
 		);
 	}
 
-	// converts the uploaded file into a format compatible with payload's media processing
-	const payloadFile = {
-		data: Buffer.from(await file.arrayBuffer()),
-		filename: file.name,
-		mimeType: file.type,
-		name: file.name,
-		size: file.size,
-	};
+	const mimeType = resolveMimeType(file);
+	const fileBuffer = await file.arrayBuffer();
 
 	try {
-		// creates a new entry in the vault collection, linking the file to the user's profile
+		// uses the local api with overrideAccess and the corrected file shape
+		// payload 3.x expects "mimetype" (lowercase) not "mimeType" in the file object
 		const vaultDocument = await payload.create({
 			collection: "vault",
 			draft: false,
+			overrideAccess: true,
 			data: {
 				profile: identity.wajakaziProfileId,
 				uploadedBy: identity.accountId,
 				documentType,
 			},
-			file: payloadFile as any,
+			file: {
+				data: Buffer.from(fileBuffer),
+				mimetype: mimeType,
+				name: file.name,
+				size: file.size,
+			},
 		});
 
 		return NextResponse.json({
