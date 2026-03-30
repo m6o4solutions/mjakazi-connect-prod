@@ -60,7 +60,6 @@ const resolveIdentity = async (
 
 		if (profile.docs.length > 0) {
 			const workerProfile = profile.docs[0];
-
 			identity.wajakaziProfileId = workerProfile.id;
 			identity.verificationStatus = workerProfile.verificationStatus;
 		}
@@ -84,6 +83,10 @@ const resolveIdentity = async (
 	return identity;
 };
 
+// roles that can only be assigned via clerk dashboard or seed script
+// prevents privilege escalation through the public sign-up flow
+const PRIVILEGED_ROLES: ClerkRole[] = ["admin", "sa"];
+
 // synchronizes user data from Clerk into the internal accounts collection
 const syncClerkUser = async (payload: Payload, user: ClerkUser) => {
 	const clerkId = user.id;
@@ -91,10 +94,21 @@ const syncClerkUser = async (payload: Payload, user: ClerkUser) => {
 	const firstName = user.first_name ?? "";
 	const lastName = user.last_name ?? "";
 
-	const role =
-		(user.public_metadata?.role as ClerkRole) ??
-		(user.unsafe_metadata?.role as ClerkRole) ??
-		null;
+	const roleFromPublic = user.public_metadata?.role as ClerkRole | undefined;
+	const roleFromUnsafe = user.unsafe_metadata?.role as ClerkRole | undefined;
+
+	// privileged roles must come from publicMetadata only
+	// publicMetadata is server-writable only — unsafeMetadata is user-writable
+	// if a privileged role appears only in unsafeMetadata it is a spoofing attempt
+	if (roleFromUnsafe && PRIVILEGED_ROLES.includes(roleFromUnsafe) && !roleFromPublic) {
+		console.error("Privilege escalation attempt blocked:", {
+			clerkId,
+			roleFromUnsafe,
+		});
+		throw new Error("Invalid Clerk user payload.");
+	}
+
+	const role = roleFromPublic ?? roleFromUnsafe ?? null;
 
 	if (!email || !role) {
 		console.error("Missing email or role in Clerk payload:", {
@@ -144,6 +158,7 @@ const ensureDomainProfile = async (
 		try {
 			await payload.create({
 				collection: "wajakaziprofiles",
+				draft: false,
 				data: {
 					account: accountId,
 					displayName: "New Worker",
@@ -164,6 +179,7 @@ const ensureDomainProfile = async (
 		try {
 			await payload.create({
 				collection: "waajiriprofiles",
+				draft: false,
 				data: {
 					account: accountId,
 					displayName: "New Employer",
@@ -177,6 +193,8 @@ const ensureDomainProfile = async (
 			}
 		}
 	}
+
+	// admin and sa roles do not require domain profiles
 };
 
 // removes an account and associated data when a user is deleted from Clerk
