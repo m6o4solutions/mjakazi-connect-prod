@@ -42,7 +42,9 @@ const POST = async (req: Request) => {
 			emailAddress: [email],
 			firstName,
 			lastName: lastName ?? "",
+			password: `tmp-${crypto.randomUUID()}`,
 			skipPasswordRequirement: true,
+			legalAcceptedAt: new Date(),
 			publicMetadata: { role: "admin" },
 		});
 
