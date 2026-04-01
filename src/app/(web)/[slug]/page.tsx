@@ -15,7 +15,7 @@ const generateStaticParams = async () => {
 	const pages = await payload.find({
 		collection: "pages",
 		draft: false,
-		limit: 610,
+		limit: 100,
 		overrideAccess: false,
 		pagination: false,
 		select: { slug: true },
