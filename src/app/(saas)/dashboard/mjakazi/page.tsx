@@ -1,3 +1,4 @@
+import { DevPaymentBypassCard } from "@/components/dashboard/dev-payment-bypass-card";
 import { DocumentUploadCard } from "@/components/dashboard/document-upload-card";
 import { SubmitVerificationCard } from "@/components/dashboard/submit-verification-card";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
@@ -8,6 +9,9 @@ import { auth } from "@clerk/nextjs/server";
 import config from "@payload-config";
 import { redirect } from "next/navigation";
 import { getPayload } from "payload";
+
+// payment bypass is a dev-only feature controlled by environment variable
+const isPaymentBypassEnabled = process.env.ENABLE_PAYMENT_BYPASS === "true";
 
 const Page = async () => {
 	const { userId } = await auth();
@@ -34,6 +38,10 @@ const Page = async () => {
 	const hasNationalId = uploadedTypes.includes("national_id");
 	const hasGoodConduct = uploadedTypes.includes("good_conduct");
 	const bothUploaded = hasNationalId && hasGoodConduct;
+
+	// show payment bypass only in dev when status is pending_payment
+	const showPaymentBypass =
+		isPaymentBypassEnabled && verificationStatus === "pending_payment";
 
 	return (
 		<>
@@ -72,6 +80,13 @@ const Page = async () => {
 						documentsReady={bothUploaded}
 					/>
 				</div>
+
+				{/* dev payment bypass — only renders in development with bypass enabled */}
+				{showPaymentBypass && (
+					<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+						<DevPaymentBypassCard />
+					</div>
+				)}
 			</main>
 		</>
 	);

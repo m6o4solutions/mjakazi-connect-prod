@@ -359,7 +359,7 @@ const DashboardSidebar = ({
 							</DropdownMenuTrigger>
 							<DropdownMenuContent side="top" align="start" className="w-52">
 								<SignOutButton>
-									<DropdownMenuItem className="text-destructive focus:text-destructive cursor-pointer gap-2">
+									<DropdownMenuItem className="cursor-pointer gap-2 text-black">
 										<LogOut className="size-4" />
 										Sign out
 									</DropdownMenuItem>
