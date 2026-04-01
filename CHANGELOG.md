@@ -1,18 +1,23 @@
 # [1.15.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.14.0...v1.15.0) (2026-04-01)
 
-
 ### Bug Fixes
 
-* **api:** set tmp password and legal acceptance on staff creation ([7c66499](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/7c66499eaf7b2d1843860204ef57c425afd57aa7))
-
+- **api:** set tmp password and legal acceptance on staff creation
+  ([7c66499](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/7c66499eaf7b2d1843860204ef57c425afd57aa7))
 
 ### Features
 
-* **admin:** add tmp password and legal acceptance to staff creation, remove standalone form component ([5b37474](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/5b37474791ae19e22262d8234a305b660e5c9089))
-* **dashboard:** add dev payment bypass card and refine verification progress UI ([870f659](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/870f659155fa0fb65087c4021b877c6914df321c))
-* **dashboard:** add functional employer and super admin dashboards with auth gating ([6e87aa8](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/6e87aa81340737e098607d6b175314834fe8a3cb))
-* **dashboard:** add live pending verification count badge to admin sidebar ([72df167](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/72df167a648cb19450b73ffcecbb298aae559aa3))
-* **dashboard:** add staff table, delete-staff API, and live staff count to sa dashboard ([9091a6c](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/9091a6c85b97aaeb0bebac584764ec20c1e41742))
+- **admin:** add tmp password and legal acceptance to staff creation, remove standalone
+  form component
+  ([5b37474](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/5b37474791ae19e22262d8234a305b660e5c9089))
+- **dashboard:** add dev payment bypass card and refine verification progress UI
+  ([870f659](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/870f659155fa0fb65087c4021b877c6914df321c))
+- **dashboard:** add functional employer and super admin dashboards with auth gating
+  ([6e87aa8](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/6e87aa81340737e098607d6b175314834fe8a3cb))
+- **dashboard:** add live pending verification count badge to admin sidebar
+  ([72df167](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/72df167a648cb19450b73ffcecbb298aae559aa3))
+- **dashboard:** add staff table, delete-staff API, and live staff count to sa dashboard
+  ([9091a6c](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/9091a6c85b97aaeb0bebac584764ec20c1e41742))
 
 # [1.14.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.13.0...v1.14.0) (2026-03-29)
 

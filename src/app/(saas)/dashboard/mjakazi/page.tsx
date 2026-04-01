@@ -1,5 +1,6 @@
 import { DevPaymentBypassCard } from "@/components/dashboard/dev-payment-bypass-card";
 import { DocumentUploadCard } from "@/components/dashboard/document-upload-card";
+import { LegalNameForm } from "@/components/dashboard/mjakazi/legal-name-form";
 import { SubmitVerificationCard } from "@/components/dashboard/submit-verification-card";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { VerificationProgressCard } from "@/components/dashboard/verification-progress-card";
@@ -10,8 +11,10 @@ import config from "@payload-config";
 import { redirect } from "next/navigation";
 import { getPayload } from "payload";
 
-// payment bypass is a dev-only feature controlled by environment variable
 const isPaymentBypassEnabled = process.env.ENABLE_PAYMENT_BYPASS === "true";
+
+// statuses where legal name editing is locked
+const LOCKED_STATUSES = ["pending_review", "verified", "blacklisted", "deactivated"];
 
 const Page = async () => {
 	const { userId } = await auth();
@@ -24,12 +27,23 @@ const Page = async () => {
 
 	const verificationStatus = identity.verificationStatus ?? "draft";
 
+	// fetch full profile to read legal name and photo state
+	const profileQuery = await payload.find({
+		collection: "wajakaziprofiles",
+		where: { account: { equals: identity.accountId } },
+		overrideAccess: true,
+		limit: 1,
+	});
+
+	const profile = profileQuery.docs[0] ?? null;
+	const legalFirstName = profile?.legalFirstName ?? null;
+	const legalLastName = profile?.legalLastName ?? null;
+	const isNameLocked = LOCKED_STATUSES.includes(verificationStatus);
+
 	// query vault to determine which required documents have been uploaded
 	const existingDocs = await payload.find({
 		collection: "vault",
-		where: {
-			profile: { equals: identity.wajakaziProfileId },
-		},
+		where: { profile: { equals: identity.wajakaziProfileId } },
 		overrideAccess: true,
 		limit: 10,
 	});
@@ -39,7 +53,6 @@ const Page = async () => {
 	const hasGoodConduct = uploadedTypes.includes("good_conduct");
 	const bothUploaded = hasNationalId && hasGoodConduct;
 
-	// show payment bypass only in dev when status is pending_payment
 	const showPaymentBypass =
 		isPaymentBypassEnabled && verificationStatus === "pending_payment";
 
@@ -51,7 +64,6 @@ const Page = async () => {
 				<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
 					<VerificationStatusCard verificationState={verificationStatus} />
 					<VerificationProgressCard status={verificationStatus} />
-					{/* activity placeholder */}
 					<div className="bg-card border-border rounded-xl border p-6">
 						<p className="text-muted-foreground text-sm font-semibold">Activity</p>
 						<p className="font-display text-foreground mt-2 text-2xl font-bold">
@@ -81,7 +93,15 @@ const Page = async () => {
 					/>
 				</div>
 
-				{/* dev payment bypass — only renders in development with bypass enabled */}
+				{/* profile completion row */}
+				<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+					<LegalNameForm
+						currentLegalFirstName={legalFirstName}
+						currentLegalLastName={legalLastName}
+						isLocked={isNameLocked}
+					/>
+				</div>
+
 				{showPaymentBypass && (
 					<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
 						<DevPaymentBypassCard />

@@ -145,7 +145,7 @@ const syncClerkUser = async (payload: Payload, user: ClerkUser) => {
 		});
 	}
 
-	await ensureDomainProfile(payload, account.id, role);
+	await ensureDomainProfile(payload, account.id, role, firstName, lastName);
 };
 
 // ensures that role-specific profile records exist for the given account
@@ -153,7 +153,13 @@ const ensureDomainProfile = async (
 	payload: Payload,
 	accountId: string,
 	role: ClerkRole,
+	firstName?: string,
+	lastName?: string,
 ) => {
+	// derive a human display name from clerk identity data
+	// falls back to role-appropriate placeholder if name is unavailable
+	const derivedName = [firstName, lastName].filter(Boolean).join(" ");
+
 	if (role === "mjakazi") {
 		try {
 			await payload.create({
@@ -161,17 +167,14 @@ const ensureDomainProfile = async (
 				draft: false,
 				data: {
 					account: accountId,
-					displayName: "New Worker",
+					displayName: derivedName || "New Worker",
 					profession: "Unspecified",
 					verificationStatus: "draft",
 					availabilityStatus: "available",
 				},
 			});
 		} catch (error: any) {
-			// duplicate profile already exists → ignore
-			if (!error?.message?.includes("duplicate")) {
-				throw error;
-			}
+			if (!error?.message?.includes("duplicate")) throw error;
 		}
 	}
 
@@ -182,19 +185,14 @@ const ensureDomainProfile = async (
 				draft: false,
 				data: {
 					account: accountId,
-					displayName: "New Employer",
+					displayName: derivedName || "New Employer",
 					moderationStatus: "active",
 				},
 			});
 		} catch (error: any) {
-			// duplicate profile already exists → ignore
-			if (!error?.message?.includes("duplicate")) {
-				throw error;
-			}
+			if (!error?.message?.includes("duplicate")) throw error;
 		}
 	}
-
-	// admin and sa roles do not require domain profiles
 };
 
 // removes an account and associated data when a user is deleted from Clerk
