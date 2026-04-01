@@ -1,15 +1,16 @@
 # [1.14.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.13.0...v1.14.0) (2026-03-29)
 
-
 ### Bug Fixes
 
-* **vault:** add image/jpg to allowed MIME types and improve upload comments ([a2fad1c](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/a2fad1ca8608094bf73330fb146c2fed5aa39a4e))
-
+- **vault:** add image/jpg to allowed MIME types and improve upload comments
+  ([a2fad1c](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/a2fad1ca8608094bf73330fb146c2fed5aa39a4e))
 
 ### Features
 
-* **api:** improve document upload handling and vault integration ([e392566](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/e39256643ce5f3562753863d1a30159a10e55c26))
-* **dashboard:** improve verification flow with status tracking and duplicate prevention ([f85752e](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/f85752e3f1344121b010c5e2604aaabdfc6e7f0c))
+- **api:** improve document upload handling and vault integration
+  ([e392566](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/e39256643ce5f3562753863d1a30159a10e55c26))
+- **dashboard:** improve verification flow with status tracking and duplicate prevention
+  ([f85752e](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/f85752e3f1344121b010c5e2604aaabdfc6e7f0c))
 
 # [1.13.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.12.0...v1.13.0) (2026-03-26)
 
