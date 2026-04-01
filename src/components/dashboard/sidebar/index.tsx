@@ -50,7 +50,6 @@ interface NavigationSection {
 	items: NavigationItem[];
 }
 
-// define navigation structures for different user roles to ensure tailored experiences
 const mjakaziNavigation: NavigationSection[] = [
 	{
 		label: "Main",
@@ -133,7 +132,9 @@ const mwajiriNavigation: NavigationSection[] = [
 	},
 ];
 
-const adminNavigation: NavigationSection[] = [
+// admin and sa navigation are built dynamically to support
+// the live pending verification count badge
+const buildAdminNavigation = (pendingCount: number): NavigationSection[] => [
 	{
 		label: "Main",
 		items: [
@@ -151,7 +152,8 @@ const adminNavigation: NavigationSection[] = [
 				title: "Pending Verifications",
 				href: "/dashboard/admin/verifications",
 				icon: ShieldCheck,
-				badge: "Action",
+				// only show badge when there are items to action
+				badge: pendingCount > 0 ? String(pendingCount) : undefined,
 			},
 			{
 				title: "Accounts",
@@ -177,7 +179,7 @@ const adminNavigation: NavigationSection[] = [
 	},
 ];
 
-const saNavigation: NavigationSection[] = [
+const buildSaNavigation = (pendingCount: number): NavigationSection[] => [
 	{
 		label: "Main",
 		items: [
@@ -195,7 +197,7 @@ const saNavigation: NavigationSection[] = [
 				title: "Pending Verifications",
 				href: "/dashboard/sa/verifications",
 				icon: ShieldCheck,
-				badge: "Action",
+				badge: pendingCount > 0 ? String(pendingCount) : undefined,
 			},
 			{
 				title: "Accounts",
@@ -228,15 +230,8 @@ const saNavigation: NavigationSection[] = [
 
 interface DashboardSidebarProps {
 	role: "mjakazi" | "mwajiri" | "admin" | "sa";
+	pendingVerificationCount?: number;
 }
-
-// centralize role-based configuration for easy maintenance
-const navigationMap = {
-	mjakazi: mjakaziNavigation,
-	mwajiri: mwajiriNavigation,
-	admin: adminNavigation,
-	sa: saNavigation,
-};
 
 const dashboardLabelMap = {
 	mjakazi: "Mjakazi Dashboard",
@@ -252,23 +247,33 @@ const roleLabelMap = {
 	sa: "Super Admin",
 };
 
-const DashboardSidebar = ({ role }: DashboardSidebarProps) => {
+const DashboardSidebar = ({
+	role,
+	pendingVerificationCount = 0,
+}: DashboardSidebarProps) => {
 	const pathname = usePathname();
 	const { user } = useUser();
 
-	// resolve configuration based on the assigned user role
-	const navigation = navigationMap[role];
+	// build navigation dynamically for roles that need live counts
+	// static navigation is used for roles that do not need dynamic badges
+	const navigation: NavigationSection[] =
+		role === "admin"
+			? buildAdminNavigation(pendingVerificationCount)
+			: role === "sa"
+				? buildSaNavigation(pendingVerificationCount)
+				: role === "mjakazi"
+					? mjakaziNavigation
+					: mwajiriNavigation;
+
 	const dashboardLabel = dashboardLabelMap[role];
 	const roleLabel = roleLabelMap[role];
 
-	// fallback to project initials if Clerk user data is unavailable
 	const initials =
 		[user?.firstName, user?.lastName]
 			.filter(Boolean)
 			.map((n) => n![0].toUpperCase())
 			.join("") || "MC";
 
-	// prioritize personal name, then email, finally a generic placeholder
 	const displayName =
 		[user?.firstName, user?.lastName].filter(Boolean).join(" ") ||
 		user?.emailAddresses[0]?.emailAddress ||
@@ -279,7 +284,7 @@ const DashboardSidebar = ({ role }: DashboardSidebarProps) => {
 			{/* identify the application and current portal context */}
 			<SidebarHeader className="border-sidebar-border border-b px-4 py-4">
 				<div className="flex items-center gap-3">
-					<div className="bg-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
+					<div className="bg-primary flex size-8 shrink-0 items-center justify-center rounded-lg">
 						<span className="font-display text-primary-foreground text-xs font-bold">
 							MC
 						</span>
@@ -299,7 +304,6 @@ const DashboardSidebar = ({ role }: DashboardSidebarProps) => {
 			<SidebarContent className="px-2 py-2">
 				{navigation.map((section, i) => (
 					<SidebarGroup key={section.label}>
-						{/* visual break between navigation sections */}
 						{i > 0 && <SidebarSeparator className="mb-2" />}
 						<SidebarGroupLabel className="text-sidebar-foreground/50 text-[10px] font-semibold tracking-widest">
 							{section.label}
@@ -315,9 +319,8 @@ const DashboardSidebar = ({ role }: DashboardSidebarProps) => {
 											className="gap-3 text-sm"
 										>
 											<Link href={item.href}>
-												<item.icon className="h-4 w-4 shrink-0" />
+												<item.icon className="size-4 shrink-0" />
 												<span>{item.title}</span>
-												{/* highlight specific features or required actions */}
 												{item.badge && (
 													<SidebarMenuBadge className="bg-accent text-accent-foreground ml-auto">
 														{item.badge}
@@ -340,7 +343,7 @@ const DashboardSidebar = ({ role }: DashboardSidebarProps) => {
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<SidebarMenuButton className="h-auto gap-3 py-2">
-									<Avatar className="h-8 w-8 shrink-0">
+									<Avatar className="size-8 shrink-0">
 										<AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
 											{initials}
 										</AvatarFallback>
@@ -351,13 +354,13 @@ const DashboardSidebar = ({ role }: DashboardSidebarProps) => {
 										</p>
 										<p className="text-sidebar-foreground/50 text-[11px]">{roleLabel}</p>
 									</div>
-									<ChevronUp className="text-sidebar-foreground/40 ml-auto h-4 w-4 shrink-0" />
+									<ChevronUp className="text-sidebar-foreground/40 ml-auto size-4 shrink-0" />
 								</SidebarMenuButton>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent side="top" align="start" className="w-52">
 								<SignOutButton>
 									<DropdownMenuItem className="text-destructive focus:text-destructive cursor-pointer gap-2">
-										<LogOut className="h-4 w-4" />
+										<LogOut className="size-4" />
 										Sign out
 									</DropdownMenuItem>
 								</SignOutButton>
