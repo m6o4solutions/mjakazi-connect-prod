@@ -1,3 +1,10 @@
+# [1.16.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.15.0...v1.16.0) (2026-04-01)
+
+
+### Features
+
+* **profile:** add legal name and display name editing to worker and employer dashboards ([fdf9b6b](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/fdf9b6b1c7d0021233261871f7d6a18c306a2428))
+
 # [1.15.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.14.0...v1.15.0) (2026-04-01)
 
 ### Bug Fixes
