@@ -1,15 +1,12 @@
 import { isAdminOrProfileOwner, isRestricted } from "@/payload/access/access-control";
 import type { CollectionConfig } from "payload";
 
-// defines public worker profiles linked to user accounts
 const WajakaziProfiles: CollectionConfig = {
 	slug: "wajakaziprofiles",
 	access: {
-		// profiles are managed through system hooks or server-side logic
 		create: isRestricted,
 		update: isRestricted,
 		delete: isRestricted,
-		// allows admins and the profile owner to view the data
 		read: isAdminOrProfileOwner,
 	},
 	admin: {
@@ -20,7 +17,6 @@ const WajakaziProfiles: CollectionConfig = {
 	labels: { singular: "Mjakazi Profile", plural: "Wajakazi Profiles" },
 	fields: [
 		{
-			// establishes a unique link to the primary user account
 			name: "account",
 			type: "relationship",
 			label: "Account",
@@ -30,11 +26,24 @@ const WajakaziProfiles: CollectionConfig = {
 			index: true,
 		},
 		{
+			// google profile name or manually set display name
 			name: "displayName",
 			type: "text",
 			label: "Display Name",
 			required: true,
 			index: true,
+		},
+		{
+			// legal first name as it appears on national id
+			name: "legalFirstName",
+			type: "text",
+			label: "Legal First Name",
+		},
+		{
+			// legal last name as it appears on national id
+			name: "legalLastName",
+			type: "text",
+			label: "Legal Last Name",
 		},
 		{
 			name: "profession",
@@ -55,6 +64,15 @@ const WajakaziProfiles: CollectionConfig = {
 			index: true,
 		},
 		{
+			// passport-sized profile photo for marketplace listing
+			// not required at schema level but enforced as a visibility
+			// requirement at the public directory query level in phase 6
+			name: "photo",
+			type: "upload",
+			label: "Profile Photo",
+			relationTo: "media",
+		},
+		{
 			name: "availabilityStatus",
 			type: "select",
 			label: "Availability Status",
@@ -68,7 +86,6 @@ const WajakaziProfiles: CollectionConfig = {
 			defaultValue: "available",
 		},
 		{
-			// tracks the vetting process for the worker profile
 			name: "verificationStatus",
 			type: "select",
 			label: "Verification Status",
@@ -134,14 +151,12 @@ const WajakaziProfiles: CollectionConfig = {
 			admin: { readOnly: true },
 		},
 		{
-			// provides a space for administrative feedback during the review process
 			name: "verificationNotes",
 			type: "textarea",
 			label: "Verification Notes",
 			admin: { description: "Internal moderation notes." },
 		},
 		{
-			// allows for multiple supporting files to be attached for verification
 			name: "documents",
 			type: "relationship",
 			label: "Verification Documents",

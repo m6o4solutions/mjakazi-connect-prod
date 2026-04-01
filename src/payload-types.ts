@@ -708,9 +708,12 @@ export interface Wajakaziprofile {
   id: string;
   account: string | Account;
   displayName: string;
+  legalFirstName?: string | null;
+  legalLastName?: string | null;
   profession: string;
   bio?: string | null;
   location?: string | null;
+  photo?: (string | null) | Media;
   availabilityStatus: 'available' | 'hired' | 'on_break';
   verificationStatus:
     | 'draft'
@@ -1717,9 +1720,12 @@ export interface WaajiriprofilesSelect<T extends boolean = true> {
 export interface WajakaziprofilesSelect<T extends boolean = true> {
   account?: T;
   displayName?: T;
+  legalFirstName?: T;
+  legalLastName?: T;
   profession?: T;
   bio?: T;
   location?: T;
+  photo?: T;
   availabilityStatus?: T;
   verificationStatus?: T;
   verificationSubmittedAt?: T;
