@@ -4,9 +4,11 @@ import config from "@payload-config";
 import { NextResponse } from "next/server";
 import { getPayload } from "payload";
 
-const POST = async (req: Request) => {
+// only super-admins (sa) may delete staff accounts
+const DELETE = async (req: Request) => {
 	const { userId } = await auth();
 
+	// reject unauthenticated requests before doing anything else
 	if (!userId) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
@@ -14,21 +16,27 @@ const POST = async (req: Request) => {
 	const payload = await getPayload({ config });
 	const identity = await resolveIdentity(payload, userId);
 
+	// identity must exist in our db, not just in Clerk
 	if (!identity) {
 		return NextResponse.json({ error: "Identity not found" }, { status: 404 });
 	}
 
-	// only sa can create admin accounts
+	// only the sa role is permitted — admins cannot delete other staff
 	if (identity.role !== "sa") {
 		return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 	}
 
 	const body = await req.json();
-	const { email, firstName, lastName } = body;
+	const { clerkId } = body;
 
-	if (!email || !firstName) {
+	if (!clerkId) {
+		return NextResponse.json({ error: "clerkId is required" }, { status: 400 });
+	}
+
+	// prevent an sa from accidentally removing themselves
+	if (clerkId === userId) {
 		return NextResponse.json(
-			{ error: "email and firstName are required" },
+			{ error: "You cannot delete your own account." },
 			{ status: 400 },
 		);
 	}
@@ -36,20 +44,11 @@ const POST = async (req: Request) => {
 	try {
 		const client = await clerkClient();
 
-		// create the clerk user with admin role in publicMetadata
-		// no password is set — user must set one on first login via Account Portal
-		const newUser = await client.users.createUser({
-			emailAddress: [email],
-			firstName,
-			lastName: lastName ?? "",
-			skipPasswordRequirement: true,
-			publicMetadata: { role: "admin" },
-		});
+		// deleting from Clerk triggers the user.deleted webhook,
+		// which handles removal of the corresponding MongoDB record
+		await client.users.deleteUser(clerkId);
 
-		return NextResponse.json({
-			success: true,
-			clerkId: newUser.id,
-		});
+		return NextResponse.json({ success: true });
 	} catch (error: any) {
 		return NextResponse.json(
 			{ error: error.errors?.[0]?.message ?? error.message },
@@ -58,4 +57,4 @@ const POST = async (req: Request) => {
 	}
 };
 
-export { POST };
+export { DELETE };

@@ -6,7 +6,6 @@ import { CreditCard } from "lucide-react";
 import { redirect } from "next/navigation";
 import { getPayload } from "payload";
 
-// employer dashboard — gates access to authenticated mwajiri users only
 const Page = async () => {
 	const { userId } = await auth();
 	if (!userId) redirect("/sign-in");
@@ -14,7 +13,6 @@ const Page = async () => {
 	const payload = await getPayload({ config });
 	const identity = await resolveIdentity(payload, userId);
 
-	// reject if identity lookup fails or role is not employer
 	if (!identity || identity.role !== "mwajiri") redirect("/sign-in");
 
 	return (
