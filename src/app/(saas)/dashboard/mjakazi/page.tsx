@@ -99,19 +99,13 @@ const Page = async () => {
 
 				{/* profile completion row */}
 				<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-					<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-						<LegalNameForm
-							currentLegalFirstName={legalFirstName}
-							currentLegalLastName={legalLastName}
-							isLocked={isNameLocked}
-						/>
-					</div>
+					<LegalNameForm
+						currentLegalFirstName={legalFirstName}
+						currentLegalLastName={legalLastName}
+						isLocked={isNameLocked}
+					/>
 
-					{showPaymentBypass && (
-						<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-							<DevPaymentBypassCard />
-						</div>
-					)}
+					{showPaymentBypass && <DevPaymentBypassCard />}
 				</div>
 			</main>
 		</>
