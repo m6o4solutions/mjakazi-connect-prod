@@ -63,7 +63,9 @@ const Page = async () => {
 				{/* status row */}
 				<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
 					<VerificationStatusCard verificationState={verificationStatus} />
+
 					<VerificationProgressCard status={verificationStatus} />
+
 					<div className="bg-card border-border rounded-xl border p-6">
 						<p className="text-muted-foreground text-sm font-semibold">Activity</p>
 						<p className="font-display text-foreground mt-2 text-2xl font-bold">
@@ -82,11 +84,13 @@ const Page = async () => {
 						label="National ID"
 						alreadyUploaded={hasNationalId}
 					/>
+
 					<DocumentUploadCard
 						documentType="good_conduct"
 						label="Certificate of Good Conduct"
 						alreadyUploaded={hasGoodConduct}
 					/>
+
 					<SubmitVerificationCard
 						verificationStatus={verificationStatus}
 						documentsReady={bothUploaded}
@@ -95,18 +99,20 @@ const Page = async () => {
 
 				{/* profile completion row */}
 				<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-					<LegalNameForm
-						currentLegalFirstName={legalFirstName}
-						currentLegalLastName={legalLastName}
-						isLocked={isNameLocked}
-					/>
-				</div>
-
-				{showPaymentBypass && (
 					<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-						<DevPaymentBypassCard />
+						<LegalNameForm
+							currentLegalFirstName={legalFirstName}
+							currentLegalLastName={legalLastName}
+							isLocked={isNameLocked}
+						/>
 					</div>
-				)}
+
+					{showPaymentBypass && (
+						<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+							<DevPaymentBypassCard />
+						</div>
+					)}
+				</div>
 			</main>
 		</>
 	);
