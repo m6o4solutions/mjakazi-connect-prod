@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { CheckCircle2, UserPlus } from "lucide-react";
 import { useState } from "react";
 
-const CreateAdminForm = () => {
+const CreateStaffForm = () => {
 	const [firstName, setFirstName] = useState("");
 	const [lastName, setLastName] = useState("");
 	const [email, setEmail] = useState("");
@@ -15,6 +15,7 @@ const CreateAdminForm = () => {
 	const [error, setError] = useState<string | null>(null);
 
 	const handleSubmit = async () => {
+		// first name and email are the minimum required to provision a clerk account
 		if (!firstName.trim() || !email.trim()) {
 			setError("First name and email are required.");
 			return;
@@ -24,6 +25,8 @@ const CreateAdminForm = () => {
 		setError(null);
 
 		try {
+			// delegate account creation to the server-side api route which
+			// handles clerk provisioning and payload record creation
 			const res = await fetch("/apis/admin/create-staff", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
@@ -35,13 +38,14 @@ const CreateAdminForm = () => {
 			});
 
 			if (res.ok) {
+				// reset form on success so the sa can immediately add another account
 				setSuccess(true);
 				setFirstName("");
 				setLastName("");
 				setEmail("");
 			} else {
 				const data = await res.json();
-				setError(data.error ?? "Failed to create admin account.");
+				setError(data.error ?? "Failed to create staff account.");
 			}
 		} catch {
 			setError("Network error. Please try again.");
@@ -54,10 +58,10 @@ const CreateAdminForm = () => {
 		<div className="bg-card border-border flex flex-col gap-4 rounded-xl border p-6">
 			<div>
 				<p className="text-muted-foreground text-sm font-semibold">
-					Create Admin Account
+					Create Staff Account
 				</p>
 				<p className="text-muted-foreground text-sm">
-					The new admin will receive a password reset email from Clerk.
+					New staff must reset their password during their initial sign-in.
 				</p>
 			</div>
 
@@ -65,7 +69,7 @@ const CreateAdminForm = () => {
 				<div className="bg-accent/10 flex items-center gap-3 rounded-lg px-4 py-3">
 					<CheckCircle2 className="text-accent size-5 shrink-0" />
 					<p className="text-accent text-sm font-medium">
-						Admin account created successfully.
+						Staff account created successfully.
 					</p>
 				</div>
 			)}
@@ -104,7 +108,7 @@ const CreateAdminForm = () => {
 				<Input
 					id="email"
 					type="email"
-					placeholder="admin@mjakaziconnect.co.ke"
+					placeholder="staff@mjakaziconnect.co.ke"
 					value={email}
 					onChange={(e) => setEmail(e.target.value)}
 					className="text-sm"
@@ -113,7 +117,7 @@ const CreateAdminForm = () => {
 
 			<Button onClick={handleSubmit} disabled={loading} className="w-full gap-2">
 				<UserPlus className="size-4" />
-				{loading ? "Creating..." : "Create Admin Account"}
+				{loading ? "Creating..." : "Create Staff Account"}
 			</Button>
 
 			{error && <p className="text-destructive text-sm">{error}</p>}
@@ -121,4 +125,4 @@ const CreateAdminForm = () => {
 	);
 };
 
-export { CreateAdminForm };
+export { CreateStaffForm };

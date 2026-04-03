@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { getPayload } from "payload";
 
 const Page = async () => {
+	// gate this page to authenticated sa users only
 	const { userId } = await auth();
 	if (!userId) redirect("/sign-in");
 
@@ -15,6 +16,7 @@ const Page = async () => {
 
 	if (!identity || identity.role !== "sa") redirect("/sign-in");
 
+	// fetch clerk user to pre-populate the name form with current values
 	const clerkUser = await currentUser();
 
 	return (

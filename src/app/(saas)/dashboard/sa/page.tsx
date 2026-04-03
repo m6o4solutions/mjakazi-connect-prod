@@ -1,5 +1,3 @@
-import { CreateAdminForm } from "@/components/dashboard/sa/create-admin-form";
-import { StaffTable } from "@/components/dashboard/sa/staff-table";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { resolveIdentity } from "@/services/identity.service";
 import { auth } from "@clerk/nextjs/server";
@@ -13,32 +11,18 @@ const Page = async () => {
 	if (!userId) redirect("/sign-in");
 
 	const payload = await getPayload({ config });
-
 	const identity = await resolveIdentity(payload, userId);
 
 	if (!identity) redirect("/sign-in");
-
-	// only sa accounts are permitted on this dashboard
 	if (identity.role !== "sa") redirect("/sign-in");
 
-	// load all admin and sa accounts to populate the staff table and summary count
+	// staff count for the overview card
 	const staffAccounts = await payload.find({
 		collection: "accounts",
 		where: { role: { in: ["admin", "sa"] } },
 		overrideAccess: true,
-		sort: "-createdAt",
-		limit: 100,
+		limit: 0,
 	});
-
-	const staff = staffAccounts.docs.map((account: any) => ({
-		id: account.id,
-		clerkId: account.clerkId,
-		firstName: account.firstName ?? "",
-		lastName: account.lastName ?? "",
-		email: account.email,
-		role: account.role,
-		createdAt: account.createdAt,
-	}));
 
 	return (
 		<>
@@ -62,7 +46,7 @@ const Page = async () => {
 							<p className="text-muted-foreground text-sm font-semibold">Staff</p>
 						</div>
 						<p className="font-display text-foreground text-2xl font-bold">
-							{staff.length}
+							{staffAccounts.totalDocs}
 						</p>
 						<p className="text-muted-foreground text-sm">
 							Total staff accounts on the platform.
@@ -72,9 +56,7 @@ const Page = async () => {
 					<div className="bg-card border-border flex flex-col gap-3 rounded-xl border p-6">
 						<div className="flex items-center gap-2">
 							<Settings className="text-muted-foreground size-4" />
-							<p className="text-muted-foreground text-sm font-semibold">
-								Global Settings
-							</p>
+							<p className="text-muted-foreground text-sm font-semibold">Settings</p>
 						</div>
 						<p className="font-display text-foreground text-2xl font-bold">Coming Soon</p>
 						<p className="text-muted-foreground text-sm">
@@ -82,12 +64,6 @@ const Page = async () => {
 						</p>
 					</div>
 				</div>
-
-				<div className="grid gap-6 md:grid-cols-2">
-					<CreateAdminForm />
-				</div>
-
-				<StaffTable staff={staff} currentUserClerkId={userId} />
 			</main>
 		</>
 	);

@@ -7,18 +7,15 @@ const Page = () => {
 	const params = useSearchParams();
 	const roleParam = params.get("role");
 
-	// only allow "mwajiri" if explicitly passed — all other cases default to "mjakazi"
-	// mwajiri (employer) sign-ups are typically initiated from a dedicated flow that appends ?role=mwajiri
+	// default to mjakazi if no role is specified
+	// mwajiri accounts are reached via the dedicated employer sign-up flow
 	const role = roleParam === "mwajiri" ? "mwajiri" : "mjakazi";
 
 	return (
-		// role is stored in unsafeMetadata so the authenticating route can assign
-		// the correct permissions and profile type after Clerk verifies the user
 		<SignUp
 			forceRedirectUrl="/authenticating"
 			unsafeMetadata={{ role }}
 			appearance={{
-				// override Clerk's default styles to match the app's design system
 				elements: {
 					rootBox: "w-full",
 					card: "shadow-none border-none bg-transparent p-0",
