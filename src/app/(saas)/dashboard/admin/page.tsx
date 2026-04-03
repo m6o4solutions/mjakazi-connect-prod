@@ -1,14 +1,31 @@
 import { DashboardTopbar } from "@/components/dashboard/topbar";
+import { resolveIdentity } from "@/services/identity.service";
+import { auth } from "@clerk/nextjs/server";
+import config from "@payload-config";
+import { redirect } from "next/navigation";
+import { getPayload } from "payload";
 
-const Page = () => {
+const Page = async () => {
+	// guard: unauthenticated users are sent to sign-in
+	const { userId } = await auth();
+
+	if (!userId) redirect("/sign-in");
+
+	const payload = await getPayload({ config });
+	const identity = await resolveIdentity(payload, userId);
+
+	if (!identity) redirect("/sign-in");
+
+	// only admin and sa roles may access the admin dashboard
+	if (identity.role !== "admin" && identity.role !== "sa") {
+		redirect("/sign-in");
+	}
+
 	return (
 		<>
-			{/* provide clear navigation context for the current view */}
 			<DashboardTopbar title="Admin Dashboard" />
-			{/* center placeholder content to manage user expectations during development */}
 			<main className="flex flex-1 flex-col items-center justify-center p-8 text-center">
 				<div className="flex flex-col items-center gap-4">
-					{/* visual anchor for the coming soon state */}
 					<div className="bg-muted flex h-14 w-14 items-center justify-center rounded-2xl">
 						<span className="text-2xl">🏗️</span>
 					</div>
@@ -16,7 +33,6 @@ const Page = () => {
 						<h2 className="font-display text-foreground text-lg font-bold">
 							Admin panel coming soon
 						</h2>
-						{/* clarify the intended purpose of this view for the user */}
 						<p className="text-muted-foreground mt-1 max-w-xs text-sm">
 							Pending verifications, account moderation, and audit logs will appear here
 							once built out.

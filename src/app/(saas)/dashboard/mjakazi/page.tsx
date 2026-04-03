@@ -18,6 +18,7 @@ const LOCKED_STATUSES = ["pending_review", "verified", "blacklisted", "deactivat
 
 const Page = async () => {
 	const { userId } = await auth();
+
 	if (!userId) redirect("/sign-in");
 
 	const payload = await getPayload({ config });
