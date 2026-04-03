@@ -50,7 +50,6 @@ interface NavigationSection {
 	items: NavigationItem[];
 }
 
-// static navigation trees for roles that don't need runtime data
 const mjakaziNavigation: NavigationSection[] = [
 	{
 		label: "Main",
@@ -269,14 +268,12 @@ const DashboardSidebar = ({
 	const dashboardLabel = dashboardLabelMap[role];
 	const roleLabel = roleLabelMap[role];
 
-	// derive initials from clerk profile; fall back to generic "MC" if unavailable
 	const initials =
 		[user?.firstName, user?.lastName]
 			.filter(Boolean)
 			.map((n) => n![0].toUpperCase())
 			.join("") || "MC";
 
-	// prefer full name, then email, then a generic fallback for the footer label
 	const displayName =
 		[user?.firstName, user?.lastName].filter(Boolean).join(" ") ||
 		user?.emailAddresses[0]?.emailAddress ||
@@ -313,8 +310,6 @@ const DashboardSidebar = ({
 						</SidebarGroupLabel>
 						<SidebarMenu>
 							{section.items.map((item) => {
-								// highlight the active link using prefix matching so nested
-								// routes within a section remain highlighted correctly
 								const isActive = pathname.startsWith(item.href);
 								return (
 									<SidebarMenuItem key={item.href}>

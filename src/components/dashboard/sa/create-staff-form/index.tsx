@@ -15,7 +15,6 @@ const CreateStaffForm = () => {
 	const [error, setError] = useState<string | null>(null);
 
 	const handleSubmit = async () => {
-		// first name and email are the minimum required to provision a clerk account
 		if (!firstName.trim() || !email.trim()) {
 			setError("First name and email are required.");
 			return;
@@ -25,8 +24,6 @@ const CreateStaffForm = () => {
 		setError(null);
 
 		try {
-			// delegate account creation to the server-side api route which
-			// handles clerk provisioning and payload record creation
 			const res = await fetch("/apis/admin/create-staff", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
@@ -38,7 +35,6 @@ const CreateStaffForm = () => {
 			});
 
 			if (res.ok) {
-				// reset form on success so the sa can immediately add another account
 				setSuccess(true);
 				setFirstName("");
 				setLastName("");
