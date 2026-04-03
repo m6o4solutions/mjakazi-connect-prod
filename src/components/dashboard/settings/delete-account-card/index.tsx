@@ -8,7 +8,7 @@ import { AlertTriangle, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-// phrase the user must type verbatim to unlock the delete button
+// the user must type this phrase to confirm deletion
 const CONFIRMATION_PHRASE = "delete my account";
 
 interface DeleteAccountCardProps {
@@ -18,13 +18,11 @@ interface DeleteAccountCardProps {
 const DeleteAccountCard = ({ role }: DeleteAccountCardProps) => {
 	const router = useRouter();
 	const { signOut } = useClerk();
-	// two-step UX: first click reveals the confirmation input, second executes deletion
 	const [showConfirm, setShowConfirm] = useState(false);
 	const [confirmText, setConfirmText] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
-	// gate deletion on an exact phrase match to prevent accidental clicks
 	const isConfirmed = confirmText.toLowerCase() === CONFIRMATION_PHRASE;
 
 	const handleDelete = async () => {
@@ -39,7 +37,7 @@ const DeleteAccountCard = ({ role }: DeleteAccountCardProps) => {
 			});
 
 			if (res.ok) {
-				// sign the user out of Clerk then redirect to the homepage
+				// sign out from clerk and redirect to homepage
 				await signOut(() => router.push("/"));
 			} else {
 				const data = await res.json();
@@ -65,7 +63,7 @@ const DeleteAccountCard = ({ role }: DeleteAccountCardProps) => {
 				</div>
 			</div>
 
-			{/* surface role-specific data that will be erased so the user knows the full scope */}
+			{/* what gets deleted */}
 			<div className="bg-destructive/5 rounded-lg px-4 py-3">
 				<p className="text-destructive mb-2 text-xs font-semibold tracking-wide uppercase">
 					The following will be permanently deleted

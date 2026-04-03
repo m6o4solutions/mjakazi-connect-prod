@@ -1,5 +1,4 @@
-import { DisplayNameForm } from "@/components/dashboard/mwajiri/display-name-form";
-import { DeleteAccountCard } from "@/components/dashboard/settings/delete-account-card";
+import { ProfileForm } from "@/components/dashboard/mjakazi/profile-form";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { resolveIdentity } from "@/services/identity.service";
 import { auth } from "@clerk/nextjs/server";
@@ -15,27 +14,36 @@ const Page = async () => {
 	const payload = await getPayload({ config });
 	const identity = await resolveIdentity(payload, userId);
 
-	if (!identity || identity.role !== "mwajiri") redirect("/sign-in");
+	if (!identity || identity.role !== "mjakazi") redirect("/sign-in");
 
+	// depth: 1 is required to populate the photo media document so we can read its url
 	const profileQuery = await payload.find({
-		collection: "waajiriprofiles",
+		collection: "wajakaziprofiles",
 		where: { account: { equals: identity.accountId } },
 		overrideAccess: true,
+		depth: 1,
 		limit: 1,
 	});
 
 	const profile = profileQuery.docs[0] ?? null;
-	const currentDisplayName = profile?.displayName ?? "New Employer";
+	const currentDisplayName = profile?.displayName ?? "New Worker";
+
+	// photo is stored as a relationship to the media collection — extract the url
+	// after population so the form can display the current photo immediately
+	const photoUrl =
+		profile?.photo && typeof profile.photo === "object" && "url" in profile.photo
+			? (profile.photo as any).url
+			: null;
 
 	return (
 		<>
-			<DashboardTopbar title="Settings" />
+			<DashboardTopbar title="My Profile" />
 			<main className="flex flex-1 flex-col gap-6 p-6">
 				<div className="grid gap-6 md:grid-cols-2">
-					<DisplayNameForm currentDisplayName={currentDisplayName} />
-				</div>
-				<div className="grid gap-6 md:grid-cols-2">
-					<DeleteAccountCard role="mwajiri" />
+					<ProfileForm
+						currentDisplayName={currentDisplayName}
+						currentPhotoUrl={photoUrl}
+					/>
 				</div>
 			</main>
 		</>

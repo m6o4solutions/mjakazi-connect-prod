@@ -1,4 +1,3 @@
-import { DisplayNameForm } from "@/components/dashboard/mwajiri/display-name-form";
 import { DeleteAccountCard } from "@/components/dashboard/settings/delete-account-card";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { resolveIdentity } from "@/services/identity.service";
@@ -9,33 +8,22 @@ import { getPayload } from "payload";
 
 const Page = async () => {
 	const { userId } = await auth();
-
 	if (!userId) redirect("/sign-in");
 
 	const payload = await getPayload({ config });
 	const identity = await resolveIdentity(payload, userId);
 
-	if (!identity || identity.role !== "mwajiri") redirect("/sign-in");
-
-	const profileQuery = await payload.find({
-		collection: "waajiriprofiles",
-		where: { account: { equals: identity.accountId } },
-		overrideAccess: true,
-		limit: 1,
-	});
-
-	const profile = profileQuery.docs[0] ?? null;
-	const currentDisplayName = profile?.displayName ?? "New Employer";
+	// gate the page to mjakazi accounts only
+	if (!identity || identity.role !== "mjakazi") redirect("/sign-in");
 
 	return (
 		<>
 			<DashboardTopbar title="Settings" />
+
 			<main className="flex flex-1 flex-col gap-6 p-6">
+				{/* role is passed so the delete flow can target the correct account type */}
 				<div className="grid gap-6 md:grid-cols-2">
-					<DisplayNameForm currentDisplayName={currentDisplayName} />
-				</div>
-				<div className="grid gap-6 md:grid-cols-2">
-					<DeleteAccountCard role="mwajiri" />
+					<DeleteAccountCard role="mjakazi" />
 				</div>
 			</main>
 		</>

@@ -14,7 +14,6 @@ const Page = async () => {
 	const payload = await getPayload({ config });
 	const identity = await resolveIdentity(payload, userId);
 
-	// guard against non-mwajiri users reaching this dashboard
 	if (!identity || identity.role !== "mwajiri") redirect("/sign-in");
 
 	return (
@@ -23,7 +22,6 @@ const Page = async () => {
 
 			<main className="flex flex-1 flex-col gap-6 p-6">
 				<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-					{/* subscription state — placeholder until billing is implemented */}
 					<div className="bg-card border-border flex flex-col gap-4 rounded-xl border p-6">
 						<p className="text-muted-foreground text-sm font-semibold">
 							Subscription Status
@@ -41,7 +39,6 @@ const Page = async () => {
 						</div>
 					</div>
 
-					{/* worker browsing — gated behind an active subscription */}
 					<div className="bg-card border-border flex flex-col gap-4 rounded-xl border p-6">
 						<p className="text-muted-foreground text-sm font-semibold">Browse Wajakazi</p>
 						<p className="font-display text-foreground mt-2 text-2xl font-bold">
@@ -53,7 +50,6 @@ const Page = async () => {
 						</p>
 					</div>
 
-					{/* activity feed placeholder for contact unlocks and hiring history */}
 					<div className="bg-card border-border flex flex-col gap-4 rounded-xl border p-6">
 						<p className="text-muted-foreground text-sm font-semibold">Activity</p>
 						<p className="font-display text-foreground mt-2 text-2xl font-bold">

@@ -1,20 +1,23 @@
-import { DevPaymentBypassCard } from "@/components/dashboard/dev-payment-bypass-card";
-import { DocumentUploadCard } from "@/components/dashboard/document-upload-card";
-import { LegalNameForm } from "@/components/dashboard/mjakazi/legal-name-form";
-import { SubmitVerificationCard } from "@/components/dashboard/submit-verification-card";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { VerificationProgressCard } from "@/components/dashboard/verification-progress-card";
 import { VerificationStatusCard } from "@/components/dashboard/verification-status-card";
 import { resolveIdentity } from "@/services/identity.service";
 import { auth } from "@clerk/nextjs/server";
 import config from "@payload-config";
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getPayload } from "payload";
 
-const isPaymentBypassEnabled = process.env.ENABLE_PAYMENT_BYPASS === "true";
-
-// statuses where legal name editing is locked
-const LOCKED_STATUSES = ["pending_review", "verified", "blacklisted", "deactivated"];
+// any status that means the worker hasn't completed verification yet —
+// used to decide whether to surface the verification CTA on the dashboard
+const INCOMPLETE_STATUSES = [
+	"draft",
+	"pending_payment",
+	"pending_review",
+	"rejected",
+	"verification_expired",
+];
 
 const Page = async () => {
 	const { userId } = await auth();
@@ -24,50 +27,25 @@ const Page = async () => {
 	const payload = await getPayload({ config });
 	const identity = await resolveIdentity(payload, userId);
 
+	// non-mjakazi users have no business here
 	if (!identity || identity.role !== "mjakazi") redirect("/sign-in");
 
 	const verificationStatus = identity.verificationStatus ?? "draft";
-
-	// fetch full profile to read legal name and photo state
-	const profileQuery = await payload.find({
-		collection: "wajakaziprofiles",
-		where: { account: { equals: identity.accountId } },
-		overrideAccess: true,
-		limit: 1,
-	});
-
-	const profile = profileQuery.docs[0] ?? null;
-	const legalFirstName = profile?.legalFirstName ?? null;
-	const legalLastName = profile?.legalLastName ?? null;
-	const isNameLocked = LOCKED_STATUSES.includes(verificationStatus);
-
-	// query vault to determine which required documents have been uploaded
-	const existingDocs = await payload.find({
-		collection: "vault",
-		where: { profile: { equals: identity.wajakaziProfileId } },
-		overrideAccess: true,
-		limit: 10,
-	});
-
-	const uploadedTypes = existingDocs.docs.map((doc: any) => doc.documentType);
-	const hasNationalId = uploadedTypes.includes("national_id");
-	const hasGoodConduct = uploadedTypes.includes("good_conduct");
-	const bothUploaded = hasNationalId && hasGoodConduct;
-
-	const showPaymentBypass =
-		isPaymentBypassEnabled && verificationStatus === "pending_payment";
+	// show the CTA card when verification still requires action from the worker
+	const showVerificationCta = INCOMPLETE_STATUSES.includes(verificationStatus);
 
 	return (
 		<>
 			<DashboardTopbar title="My Dashboard" />
 			<main className="flex flex-1 flex-col gap-6 p-6">
-				{/* status row */}
+				{/* status overview row */}
 				<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
 					<VerificationStatusCard verificationState={verificationStatus} />
 
 					<VerificationProgressCard status={verificationStatus} />
 
-					<div className="bg-card border-border rounded-xl border p-6">
+					{/* activity placeholder — reserved for future feed of recent job/application events */}
+					<div className="bg-card border-border flex flex-col gap-4 rounded-xl border p-6">
 						<p className="text-muted-foreground text-sm font-semibold">Activity</p>
 						<p className="font-display text-foreground mt-2 text-2xl font-bold">
 							Coming Soon
@@ -78,36 +56,29 @@ const Page = async () => {
 					</div>
 				</div>
 
-				{/* document upload row */}
-				<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-					<DocumentUploadCard
-						documentType="national_id"
-						label="National ID"
-						alreadyUploaded={hasNationalId}
-					/>
-
-					<DocumentUploadCard
-						documentType="good_conduct"
-						label="Certificate of Good Conduct"
-						alreadyUploaded={hasGoodConduct}
-					/>
-
-					<SubmitVerificationCard
-						verificationStatus={verificationStatus}
-						documentsReady={bothUploaded}
-					/>
-				</div>
-
-				{/* profile completion row */}
-				<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-					<LegalNameForm
-						currentLegalFirstName={legalFirstName}
-						currentLegalLastName={legalLastName}
-						isLocked={isNameLocked}
-					/>
-
-					{showPaymentBypass && <DevPaymentBypassCard />}
-				</div>
+				{/* verification CTA — only shown when verification is incomplete */}
+				{showVerificationCta && (
+					<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+						<div className="bg-card border-border flex flex-col gap-4 rounded-xl border p-6">
+							<div>
+								<p className="text-muted-foreground text-sm font-semibold">
+									Complete Your Verification
+								</p>
+								<p className="text-muted-foreground mt-1 text-sm">
+									Upload your documents and submit for admin review to get your verified
+									badge and appear in the directory.
+								</p>
+							</div>
+							<Link
+								href="/dashboard/mjakazi/verification"
+								className="bg-primary text-primary-foreground hover:bg-brand-primary-light inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors"
+							>
+								Go to Verification
+								<ArrowRight className="size-4" />
+							</Link>
+						</div>
+					</div>
+				)}
 			</main>
 		</>
 	);

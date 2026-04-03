@@ -65,7 +65,7 @@ const LegalNameForm = ({
 				<div>
 					<p className="text-muted-foreground text-sm font-semibold">Legal Name</p>
 					<p className="text-muted-foreground text-sm">
-						Enter your name exactly as it appears on your National ID.
+						Enter your name exactly as it appears on your ID Card.
 					</p>
 				</div>
 				{isLocked && (
