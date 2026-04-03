@@ -14,15 +14,12 @@ interface ProfileFormProps {
 
 const ProfileForm = ({ currentDisplayName, currentPhotoUrl }: ProfileFormProps) => {
 	const router = useRouter();
-	// hidden file input driven programmatically from the photo preview area and button
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
-	// treat the placeholder default name as an empty field so the worker is prompted to fill it
 	const [displayName, setDisplayName] = useState(
 		currentDisplayName === "New Worker" ? "" : currentDisplayName,
 	);
 	const [photoFile, setPhotoFile] = useState<File | null>(null);
-	// initialise preview from the existing stored photo url
 	const [photoPreview, setPhotoPreview] = useState<string | null>(currentPhotoUrl);
 	const [loading, setLoading] = useState(false);
 	const [success, setSuccess] = useState(false);
@@ -33,7 +30,6 @@ const ProfileForm = ({ currentDisplayName, currentPhotoUrl }: ProfileFormProps) 
 
 		if (!file) return;
 
-		// validate before storing to avoid a silent upload failure later
 		if (file.size > 5 * 1024 * 1024) {
 			setError("Photo must be under 5MB.");
 			return;
@@ -46,12 +42,11 @@ const ProfileForm = ({ currentDisplayName, currentPhotoUrl }: ProfileFormProps) 
 
 		setError(null);
 		setPhotoFile(file);
-		// object url gives instant preview without a round-trip to the server
 		setPhotoPreview(URL.createObjectURL(file));
 	};
 
-	// uploads the photo to payload's media collection and returns the new document id.
-	// the id is then sent to the profile update endpoint so it can be linked as a relationship.
+	// uploads the selected photo to the media collection and returns its ID.
+	// the ID is then passed to the profile update endpoint to link the photo to the worker.
 	const uploadPhoto = async (): Promise<string | null> => {
 		if (!photoFile) return null;
 
@@ -59,7 +54,7 @@ const ProfileForm = ({ currentDisplayName, currentPhotoUrl }: ProfileFormProps) 
 		formData.append("file", photoFile);
 		formData.append("alt", `Profile photo for ${displayName || "Mjakazi"}`);
 
-		// payload's media rest endpoint handles storage and image processing
+		// Payload's REST API handles storage and image resizing for the media collection
 		const res = await fetch(`${window.location.origin}/api/media`, {
 			method: "POST",
 			body: formData,
@@ -84,7 +79,7 @@ const ProfileForm = ({ currentDisplayName, currentPhotoUrl }: ProfileFormProps) 
 		setSuccess(false);
 
 		try {
-			// photo must be uploaded first so we have an id to attach to the profile
+			// photo is uploaded first so its ID is available when saving the profile
 			let photoId: string | null = null;
 			if (photoFile) {
 				photoId = await uploadPhoto();
@@ -95,15 +90,14 @@ const ProfileForm = ({ currentDisplayName, currentPhotoUrl }: ProfileFormProps) 
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
 					displayName: displayName.trim(),
+					// only include photoId when a new photo was uploaded to avoid overwriting with null
 					...(photoId ? { photoId } : {}),
 				}),
 			});
 
 			if (res.ok) {
 				setSuccess(true);
-				// clear the staged file so a subsequent save doesn't re-upload the same photo
 				setPhotoFile(null);
-				// refresh server data so the topbar and other server components reflect the new name/photo
 				router.refresh();
 			} else {
 				const data = await res.json();

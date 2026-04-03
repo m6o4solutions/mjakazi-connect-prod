@@ -7,8 +7,6 @@ import { redirect } from "next/navigation";
 import { getPayload } from "payload";
 import { ReactNode } from "react";
 
-// shared layout for all mjakazi dashboard routes — enforces role guard once
-// so individual pages don't need to repeat the auth/identity checks for layout concerns
 const MjakaziDashboardLayout = async ({ children }: { children: ReactNode }) => {
 	const { userId } = await auth();
 
@@ -19,8 +17,6 @@ const MjakaziDashboardLayout = async ({ children }: { children: ReactNode }) => 
 
 	if (!identity || identity.role !== "mjakazi") redirect("/sign-in");
 
-	// verification status is passed to the sidebar so the nav indicator
-	// can reflect whether the worker needs to take action
 	const verificationStatus = identity.verificationStatus ?? "draft";
 
 	return (

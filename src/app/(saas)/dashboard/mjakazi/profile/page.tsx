@@ -16,7 +16,7 @@ const Page = async () => {
 
 	if (!identity || identity.role !== "mjakazi") redirect("/sign-in");
 
-	// depth: 1 is required to populate the photo media document so we can read its url
+	// fetch full profile to read display name and current photo
 	const profileQuery = await payload.find({
 		collection: "wajakaziprofiles",
 		where: { account: { equals: identity.accountId } },
@@ -28,8 +28,8 @@ const Page = async () => {
 	const profile = profileQuery.docs[0] ?? null;
 	const currentDisplayName = profile?.displayName ?? "New Worker";
 
-	// photo is stored as a relationship to the media collection — extract the url
-	// after population so the form can display the current photo immediately
+	// extract the photo URL — photo is a relationship to media
+	// depth: 1 populates the full media document
 	const photoUrl =
 		profile?.photo && typeof profile.photo === "object" && "url" in profile.photo
 			? (profile.photo as any).url

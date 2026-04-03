@@ -13,7 +13,6 @@ const Page = async () => {
 	const payload = await getPayload({ config });
 	const identity = await resolveIdentity(payload, userId);
 
-	// gate the page to mjakazi accounts only
 	if (!identity || identity.role !== "mjakazi") redirect("/sign-in");
 
 	return (
@@ -21,7 +20,6 @@ const Page = async () => {
 			<DashboardTopbar title="Settings" />
 
 			<main className="flex flex-1 flex-col gap-6 p-6">
-				{/* role is passed so the delete flow can target the correct account type */}
 				<div className="grid gap-6 md:grid-cols-2">
 					<DeleteAccountCard role="mjakazi" />
 				</div>

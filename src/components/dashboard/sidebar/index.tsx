@@ -223,8 +223,7 @@ const buildSaNavigation = (pendingCount: number): NavigationSection[] => [
 	},
 ];
 
-// returns a small dot indicator next to the verification nav item to communicate status at a glance.
-// pulsing amber = worker needs to take action; solid accent = verified; nothing = passive/terminal state.
+// determines the visual indicator for the verification nav item
 const getVerificationIndicator = (status: string) => {
 	const actionNeeded = [
 		"draft",
@@ -248,7 +247,7 @@ const getVerificationIndicator = (status: string) => {
 		);
 	}
 
-	// pending_review, blacklisted, deactivated — no indicator needed
+	// pending_review, blacklisted, deactivated — no indicator
 	return null;
 };
 
@@ -292,14 +291,12 @@ const DashboardSidebar = ({
 	const dashboardLabel = dashboardLabelMap[role];
 	const roleLabel = roleLabelMap[role];
 
-	// build initials from clerk's name fields; fall back to brand initials if both are absent
 	const initials =
 		[user?.firstName, user?.lastName]
 			.filter(Boolean)
 			.map((n) => n![0].toUpperCase())
 			.join("") || "MC";
 
-	// prefer full name, fall back to email, then generic label
 	const displayName =
 		[user?.firstName, user?.lastName].filter(Boolean).join(" ") ||
 		user?.emailAddresses[0]?.emailAddress ||
@@ -336,7 +333,8 @@ const DashboardSidebar = ({
 							{section.items.map((item) => {
 								const isActive = pathname.startsWith(item.href);
 
-								// only the mjakazi verification item gets the dynamic status dot
+								// verification item gets a dynamic indicator
+								// for mjakazi role only
 								const isVerificationItem =
 									role === "mjakazi" && item.href === "/dashboard/mjakazi/verification";
 

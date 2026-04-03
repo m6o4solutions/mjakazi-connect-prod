@@ -9,8 +9,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getPayload } from "payload";
 
-// any status that means the worker hasn't completed verification yet —
-// used to decide whether to surface the verification CTA on the dashboard
+// statuses where the verification CTA should be shown
 const INCOMPLETE_STATUSES = [
 	"draft",
 	"pending_payment",
@@ -27,11 +26,9 @@ const Page = async () => {
 	const payload = await getPayload({ config });
 	const identity = await resolveIdentity(payload, userId);
 
-	// non-mjakazi users have no business here
 	if (!identity || identity.role !== "mjakazi") redirect("/sign-in");
 
 	const verificationStatus = identity.verificationStatus ?? "draft";
-	// show the CTA card when verification still requires action from the worker
 	const showVerificationCta = INCOMPLETE_STATUSES.includes(verificationStatus);
 
 	return (
@@ -44,7 +41,7 @@ const Page = async () => {
 
 					<VerificationProgressCard status={verificationStatus} />
 
-					{/* activity placeholder — reserved for future feed of recent job/application events */}
+					{/* activity placeholder */}
 					<div className="bg-card border-border flex flex-col gap-4 rounded-xl border p-6">
 						<p className="text-muted-foreground text-sm font-semibold">Activity</p>
 						<p className="font-display text-foreground mt-2 text-2xl font-bold">
