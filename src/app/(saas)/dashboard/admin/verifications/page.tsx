@@ -7,25 +7,22 @@ import { redirect } from "next/navigation";
 import { getPayload } from "payload";
 
 const AdminVerificationsPage = async () => {
-	// guard: unauthenticated users are sent to sign-in
 	const { userId } = await auth();
 
 	if (!userId) redirect("/sign-in");
 
 	const payload = await getPayload({ config });
 
-	// resolve the platform account linked to this Clerk user
 	const identity = await resolveIdentity(payload, userId);
 
 	if (!identity) redirect("/sign-in");
 
-	// only admin and sa roles are permitted to review verifications
+	// enforce role — only admin and sa can access this page
 	if (identity.role !== "admin" && identity.role !== "sa") {
 		redirect("/sign-in");
 	}
 
-	// load all wajokazi profiles that have been submitted and are awaiting review,
-	// sorted by submission time so the oldest requests surface first
+	// fetch all profiles awaiting admin review
 	const pendingProfiles = await payload.find({
 		collection: "wajakaziprofiles",
 		where: { verificationStatus: { equals: "pending_review" } },
@@ -35,8 +32,7 @@ const AdminVerificationsPage = async () => {
 		limit: 100,
 	});
 
-	// attach vault documents to each profile so the table can render them
-	// without a second round-trip on the client
+	// for each profile fetch its vault documents
 	const profilesWithDocuments = await Promise.all(
 		pendingProfiles.docs.map(async (profile) => {
 			const docs = await payload.find({

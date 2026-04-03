@@ -3,19 +3,22 @@
 import { SignUp } from "@clerk/nextjs";
 import { useSearchParams } from "next/navigation";
 
-// facilitates registration while capturing intent-based roles for user classification
 const Page = () => {
 	const params = useSearchParams();
-	const role = params.get("role");
+	const roleParam = params.get("role");
 
-	// ensures user intent is persisted in the session for backend synchronization
-	const unsafeMetadata = role ? { role } : undefined;
+	// only allow "mwajiri" if explicitly passed — all other cases default to "mjakazi"
+	// mwajiri (employer) sign-ups are typically initiated from a dedicated flow that appends ?role=mwajiri
+	const role = roleParam === "mwajiri" ? "mwajiri" : "mjakazi";
 
 	return (
+		// role is stored in unsafeMetadata so the authenticating route can assign
+		// the correct permissions and profile type after Clerk verifies the user
 		<SignUp
 			forceRedirectUrl="/authenticating"
-			unsafeMetadata={unsafeMetadata}
+			unsafeMetadata={{ role }}
 			appearance={{
+				// override Clerk's default styles to match the app's design system
 				elements: {
 					rootBox: "w-full",
 					card: "shadow-none border-none bg-transparent p-0",

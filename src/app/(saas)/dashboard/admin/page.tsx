@@ -6,9 +6,7 @@ import { redirect } from "next/navigation";
 import { getPayload } from "payload";
 
 const Page = async () => {
-	// guard: unauthenticated users are sent to sign-in
 	const { userId } = await auth();
-
 	if (!userId) redirect("/sign-in");
 
 	const payload = await getPayload({ config });
@@ -16,7 +14,6 @@ const Page = async () => {
 
 	if (!identity) redirect("/sign-in");
 
-	// only admin and sa roles may access the admin dashboard
 	if (identity.role !== "admin" && identity.role !== "sa") {
 		redirect("/sign-in");
 	}

@@ -9,22 +9,19 @@ import { redirect } from "next/navigation";
 import { getPayload } from "payload";
 
 const Page = async () => {
-	// guard: unauthenticated users are sent to sign-in
 	const { userId } = await auth();
-
 	if (!userId) redirect("/sign-in");
 
 	const payload = await getPayload({ config });
 
-	// resolve the platform account linked to this Clerk user
 	const identity = await resolveIdentity(payload, userId);
 
 	if (!identity) redirect("/sign-in");
 
-	// the super admin dashboard is exclusively for sa accounts
+	// only sa accounts are permitted on this dashboard
 	if (identity.role !== "sa") redirect("/sign-in");
 
-	// fetch all staff (admin + sa) to populate the table and the summary count card
+	// load all admin and sa accounts to populate the staff table and summary count
 	const staffAccounts = await payload.find({
 		collection: "accounts",
 		where: { role: { in: ["admin", "sa"] } },
@@ -33,7 +30,6 @@ const Page = async () => {
 		limit: 100,
 	});
 
-	// normalise to a plain shape the client components can consume safely
 	const staff = staffAccounts.docs.map((account: any) => ({
 		id: account.id,
 		clerkId: account.clerkId,
