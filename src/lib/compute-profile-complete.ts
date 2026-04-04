@@ -1,37 +1,36 @@
-// a wajakazi profile is considered complete only when every field required
-// for public directory visibility has been filled in — this drives whether
-// the profile appears in search results and listings
+// determines whether a wajakazi profile has all required fields
+// for public directory visibility
+// returns true only when every required field is populated
 
 const computeProfileComplete = (profile: any): boolean => {
-	// nothing to evaluate if the profile doesn't exist yet
 	if (!profile) return false;
 
-	// a photo is required so the profile has a visual presence in the directory
+	// photo must be present
 	if (!profile.photo) return false;
 
-	// legal name is required for identity verification and display purposes
+	// legal name must be filled
 	if (!profile.legalFirstName?.trim()) return false;
 	if (!profile.legalLastName?.trim()) return false;
 
-	// bio tells employers who the worker is — an empty string is treated as absent
+	// bio must be present and non-empty
 	if (!profile.bio?.trim()) return false;
 
-	// at least one job category must be selected so the profile can be matched to relevant listings
+	// at least one job must be selected
 	if (!profile.jobs || profile.jobs.length === 0) return false;
 
-	// location is needed to surface the worker in geographically relevant searches
+	// location must be selected
 	if (!profile.location) return false;
 
-	// work preference (e.g. full-time, part-time) determines which opportunities the worker is eligible for
+	// work preference must be selected
 	if (!profile.workPreference) return false;
 
-	// experience of 0 is valid, but the field must be explicitly set — null/undefined means it was skipped
+	// experience must be a non-negative number
 	if (profile.experience === null || profile.experience === undefined) return false;
 
-	// nationality is required for compliance and eligibility checks
+	// nationality must be selected
 	if (!profile.nationality) return false;
 
-	// at least one language ensures the worker can be matched by communication requirements
+	// at least one language must be selected
 	if (!profile.languages || profile.languages.length === 0) return false;
 
 	return true;

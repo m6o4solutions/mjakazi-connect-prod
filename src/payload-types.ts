@@ -710,10 +710,111 @@ export interface Wajakaziprofile {
   displayName: string;
   legalFirstName?: string | null;
   legalLastName?: string | null;
-  profession: string;
-  bio?: string | null;
-  location?: string | null;
+  dateOfBirth?: string | null;
+  nationality?:
+    | (
+        | 'kenya'
+        | 'uganda'
+        | 'tanzania'
+        | 'rwanda'
+        | 'burundi'
+        | 'drc'
+        | 'ethiopia'
+        | 'somalia'
+        | 'south_sudan'
+        | 'sudan'
+        | 'eritrea'
+        | 'djibouti'
+        | 'other'
+      )
+    | null;
+  maritalStatus?: ('single' | 'married' | 'divorced' | 'widowed' | 'prefer_not_to_say') | null;
+  religion?: ('christian' | 'muslim' | 'hindu' | 'other' | 'prefer_not_to_say') | null;
   photo?: (string | null) | Media;
+  jobs?:
+    | (
+        | 'nanny'
+        | 'housekeeping'
+        | 'chef'
+        | 'driver'
+        | 'gardener'
+        | 'caregiver'
+        | 'laundry'
+        | 'security'
+        | 'personal_assistant'
+        | 'tutor'
+      )[]
+    | null;
+  bio?: string | null;
+  experience?: number | null;
+  educationLevel?: ('primary' | 'secondary' | 'certificate' | 'diploma' | 'degree' | 'postgraduate') | null;
+  languages?:
+    | (
+        | 'english'
+        | 'kiswahili'
+        | 'kikuyu'
+        | 'luo'
+        | 'kamba'
+        | 'luhya'
+        | 'kalenjin'
+        | 'meru'
+        | 'kisii'
+        | 'mijikenda'
+        | 'luganda'
+        | 'kinyarwanda'
+        | 'kirundi'
+        | 'lingala'
+        | 'french'
+        | 'arabic'
+        | 'other'
+      )[]
+    | null;
+  workPreference?: ('live_in' | 'live_out' | 'either') | null;
+  availableFrom?: string | null;
+  salaryMin?: number | null;
+  salaryMax?: number | null;
+  location?:
+    | (
+        | 'nairobi'
+        | 'mombasa'
+        | 'kisumu'
+        | 'nakuru'
+        | 'eldoret'
+        | 'thika'
+        | 'malindi'
+        | 'kitale'
+        | 'garissa'
+        | 'kakamega'
+        | 'nyeri'
+        | 'meru'
+        | 'machakos'
+        | 'kericho'
+        | 'embu'
+        | 'kilifi'
+        | 'lamu'
+        | 'naivasha'
+        | 'nanyuki'
+        | 'isiolo'
+        | 'wajir'
+        | 'mandera'
+        | 'marsabit'
+        | 'lodwar'
+        | 'bungoma'
+        | 'busia'
+        | 'homa_bay'
+        | 'migori'
+        | 'kisii'
+        | 'nyamira'
+        | 'bomet'
+        | 'narok'
+        | 'kajiado'
+        | 'muranga'
+        | 'kiambu'
+        | 'ruiru'
+        | 'limuru'
+        | 'other'
+      )
+    | null;
   availabilityStatus: 'available' | 'hired' | 'on_break';
   verificationStatus:
     | 'draft'
@@ -726,14 +827,8 @@ export interface Wajakaziprofile {
     | 'deactivated';
   verificationSubmittedAt?: string | null;
   verificationReviewedAt?: string | null;
-  /**
-   * Date when verification expires and requires renewal.
-   */
   verificationExpiry?: string | null;
   verificationAttempts?: number | null;
-  /**
-   * Reason provided when verification is rejected.
-   */
   rejectionReason?: string | null;
   blacklistedAt?: string | null;
   deactivatedAt?: string | null;
@@ -742,6 +837,10 @@ export interface Wajakaziprofile {
    */
   verificationNotes?: string | null;
   documents?: (string | Vault)[] | null;
+  /**
+   * Set automatically when all required profile fields are populated.
+   */
+  profileComplete?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1722,10 +1821,21 @@ export interface WajakaziprofilesSelect<T extends boolean = true> {
   displayName?: T;
   legalFirstName?: T;
   legalLastName?: T;
-  profession?: T;
-  bio?: T;
-  location?: T;
+  dateOfBirth?: T;
+  nationality?: T;
+  maritalStatus?: T;
+  religion?: T;
   photo?: T;
+  jobs?: T;
+  bio?: T;
+  experience?: T;
+  educationLevel?: T;
+  languages?: T;
+  workPreference?: T;
+  availableFrom?: T;
+  salaryMin?: T;
+  salaryMax?: T;
+  location?: T;
   availabilityStatus?: T;
   verificationStatus?: T;
   verificationSubmittedAt?: T;
@@ -1737,6 +1847,7 @@ export interface WajakaziprofilesSelect<T extends boolean = true> {
   deactivatedAt?: T;
   verificationNotes?: T;
   documents?: T;
+  profileComplete?: T;
   updatedAt?: T;
   createdAt?: T;
 }
