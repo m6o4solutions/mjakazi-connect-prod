@@ -5,13 +5,9 @@ import config from "@payload-config";
 import { NextResponse } from "next/server";
 import { getPayload } from "payload";
 
-// handles partial updates to a mjakazi worker profile.
-// recalculates profile completeness after every save so the client
-// always gets an up-to-date completion score without a separate request.
 const PATCH = async (req: Request) => {
 	const { userId } = await auth();
 
-	// reject unauthenticated requests before touching the database
 	if (!userId) {
 		return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
 	}
@@ -23,12 +19,10 @@ const PATCH = async (req: Request) => {
 		return NextResponse.json({ error: "Identity not found." }, { status: 404 });
 	}
 
-	// only mjakazi workers own a profile — employers and admins are excluded
 	if (identity.role !== "mjakazi") {
 		return NextResponse.json({ error: "Forbidden." }, { status: 403 });
 	}
 
-	// a mjakazi account should always have a linked profile, but guard anyway
 	if (!identity.wajakaziProfileId) {
 		return NextResponse.json({ error: "Profile not found." }, { status: 404 });
 	}
@@ -54,13 +48,11 @@ const PATCH = async (req: Request) => {
 		religion,
 	} = body;
 
-	// displayName is the only mandatory field — all others are optional profile details
 	if (!displayName?.trim()) {
 		return NextResponse.json({ error: "Display name is required." }, { status: 400 });
 	}
 
-	// start with the required field; conditionally append optional fields so that
-	// omitted keys do not overwrite existing values with undefined
+	// build the update payload — only include fields that were sent
 	const updateData: Record<string, any> = { displayName: displayName.trim() };
 
 	if (photoId) updateData.photo = photoId;
@@ -80,15 +72,15 @@ const PATCH = async (req: Request) => {
 	if (religion !== undefined) updateData.religion = religion;
 
 	try {
-		// fetch the persisted profile so the completeness check reflects the full
-		// document, not just the fields included in this request
+		// fetch current profile to merge with incoming changes
+		// needed to compute profileComplete accurately
 		const currentProfile = await payload.findByID({
 			collection: "wajakaziprofiles",
 			id: identity.wajakaziProfileId,
 			overrideAccess: true,
 		});
 
-		// merge saved state with incoming changes before scoring completeness
+		// merge current state with incoming changes for completeness check
 		const mergedProfile = { ...currentProfile, ...updateData };
 		const profileComplete = computeProfileComplete(mergedProfile);
 
