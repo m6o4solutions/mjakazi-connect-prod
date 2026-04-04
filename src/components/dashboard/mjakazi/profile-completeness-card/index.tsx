@@ -9,7 +9,6 @@ interface CompletenessItem {
 
 interface ProfileCompletenessCardProps {
 	items: CompletenessItem[];
-	// true when all required profile sections are done — card is hidden in that case
 	profileComplete: boolean;
 }
 
@@ -17,11 +16,9 @@ const ProfileCompletenessCard = ({
 	items,
 	profileComplete,
 }: ProfileCompletenessCardProps) => {
-	// no need to nudge the user once their profile is fully complete
 	if (profileComplete) return null;
 
 	const completedCount = items.filter((i) => i.complete).length;
-	// derive percentage from completed steps so the progress bar stays in sync
 	const percentage = Math.round((completedCount / items.length) * 100);
 
 	return (
@@ -38,7 +35,7 @@ const ProfileCompletenessCard = ({
 				<span className="font-display text-primary text-xl font-bold">{percentage}%</span>
 			</div>
 
-			{/* fills proportionally to how many steps are done */}
+			{/* progress bar */}
 			<div className="bg-muted h-1.5 w-full overflow-hidden rounded-full">
 				<div
 					className="bg-primary h-full rounded-full transition-all duration-500"
@@ -46,12 +43,11 @@ const ProfileCompletenessCard = ({
 				/>
 			</div>
 
-			{/* each incomplete step links to the relevant settings section; completed steps are non-interactive */}
+			{/* checklist */}
 			<div className="flex flex-col gap-2">
 				{items.map((item) => (
 					<Link
 						key={item.label}
-						// prevent navigation for already-completed items
 						href={item.complete ? "#" : item.href}
 						className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
 							item.complete ? "cursor-default" : "hover:bg-muted cursor-pointer"
@@ -64,13 +60,11 @@ const ProfileCompletenessCard = ({
 						)}
 						<span
 							className={
-								// strike-through reinforces that the step no longer needs attention
 								item.complete ? "text-muted-foreground line-through" : "text-foreground"
 							}
 						>
 							{item.label}
 						</span>
-						{/* arrow acts as a visual cue that the row is actionable */}
 						{!item.complete && (
 							<ArrowRight className="text-muted-foreground ml-auto size-3.5" />
 						)}
