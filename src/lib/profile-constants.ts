@@ -1,8 +1,7 @@
-// single source of truth for all wajakazi profile select options
-// both payload collection schemas and frontend form components import from here
-// adding or renaming an option in one place updates the entire app
+// centralised option definitions for wajakazi profile fields
+// used by both payload schema definitions and frontend form components
+// to add new options: extend the relevant array and redeploy
 
-// job categories a worker can offer — drives both search filters and profile setup
 export const JOB_OPTIONS = [
 	{ label: "Nanny / Childcare", value: "nanny", icon: "👶" },
 	{ label: "Housekeeping", value: "housekeeping", icon: "🏠" },
@@ -16,7 +15,6 @@ export const JOB_OPTIONS = [
 	{ label: "Tutor / Homework Help", value: "tutor", icon: "📚" },
 ] as const;
 
-// languages a worker can communicate in — used for employer-side filtering
 export const LANGUAGE_OPTIONS = [
 	{ label: "English", value: "english" },
 	{ label: "Kiswahili", value: "kiswahili" },
@@ -37,7 +35,6 @@ export const LANGUAGE_OPTIONS = [
 	{ label: "Other", value: "other" },
 ] as const;
 
-// countries of origin / nationality — scoped to the East and Central Africa region
 export const COUNTRY_OPTIONS = [
 	{ label: "Kenya", value: "kenya" },
 	{ label: "Uganda", value: "uganda" },
@@ -54,7 +51,6 @@ export const COUNTRY_OPTIONS = [
 	{ label: "Other", value: "other" },
 ] as const;
 
-// religion is optional context some employers consider when hiring
 export const RELIGION_OPTIONS = [
 	{ label: "Christian", value: "christian" },
 	{ label: "Muslim", value: "muslim" },
@@ -63,7 +59,6 @@ export const RELIGION_OPTIONS = [
 	{ label: "Prefer not to say", value: "prefer_not_to_say" },
 ] as const;
 
-// marital status is optional personal context on the worker profile
 export const MARITAL_STATUS_OPTIONS = [
 	{ label: "Single", value: "single" },
 	{ label: "Married", value: "married" },
@@ -72,24 +67,21 @@ export const MARITAL_STATUS_OPTIONS = [
 	{ label: "Prefer not to say", value: "prefer_not_to_say" },
 ] as const;
 
-// whether the worker is available to stay at the employer's premises or commute daily
 export const WORK_PREFERENCE_OPTIONS = [
 	{ label: "Live-in", value: "live_in" },
 	{ label: "Live-out", value: "live_out" },
 	{ label: "Either", value: "either" },
 ] as const;
 
-// highest education level attained — helps employers gauge candidate background
 export const EDUCATION_LEVEL_OPTIONS = [
 	{ label: "Primary School", value: "primary" },
-	{ label: "Secondary School", value: "secondary" },
-	{ label: "Post Secondary Certificate", value: "certificate" },
+	{ label: "Secondary School (KCSE)", value: "secondary" },
+	{ label: "Certificate", value: "certificate" },
 	{ label: "Diploma", value: "diploma" },
 	{ label: "Bachelor's Degree", value: "degree" },
 	{ label: "Postgraduate", value: "postgraduate" },
 ] as const;
 
-// Kenyan towns and cities a worker can be based in — drives location-based search
 export const LOCATION_OPTIONS = [
 	{ label: "Nairobi", value: "nairobi" },
 	{ label: "Mombasa", value: "mombasa" },
@@ -131,8 +123,7 @@ export const LOCATION_OPTIONS = [
 	{ label: "Other", value: "other" },
 ] as const;
 
-// narrow TypeScript types inferred from the const arrays above
-// use these instead of plain string to get compile-time safety on option values
+// type helpers for use in typescript throughout the codebase
 export type JobValue = (typeof JOB_OPTIONS)[number]["value"];
 export type LanguageValue = (typeof LANGUAGE_OPTIONS)[number]["value"];
 export type CountryValue = (typeof COUNTRY_OPTIONS)[number]["value"];
@@ -142,8 +133,8 @@ export type WorkPreferenceValue = (typeof WORK_PREFERENCE_OPTIONS)[number]["valu
 export type EducationLevelValue = (typeof EDUCATION_LEVEL_OPTIONS)[number]["value"];
 export type LocationValue = (typeof LOCATION_OPTIONS)[number]["value"];
 
-// fields that must be non-empty for a profile to be considered complete
-// consumed by computeProfileComplete and the onboarding checklist UI
+// fields required for profileComplete = true
+// used by computeProfileComplete utility and the dashboard checklist
 export const PROFILE_REQUIRED_FIELDS = [
 	"photo",
 	"legalFirstName",
