@@ -3,122 +3,200 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CheckCircle2, ImagePlus, UserCheck } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import {
+	COUNTRY_OPTIONS,
+	EDUCATION_LEVEL_OPTIONS,
+	JOB_OPTIONS,
+	LANGUAGE_OPTIONS,
+	LOCATION_OPTIONS,
+	MARITAL_STATUS_OPTIONS,
+	RELIGION_OPTIONS,
+	WORK_PREFERENCE_OPTIONS,
+} from "@/lib/profile-constants";
+import { Camera, CheckCircle2, UserCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
+// all fields mirror what is stored on the worker's profile document in the database
 interface ProfileFormProps {
 	currentDisplayName: string;
 	currentPhotoUrl: string | null;
+	currentBio: string;
+	currentJobs: string[];
+	currentExperience: number | null;
+	currentEducationLevel: string;
+	currentLanguages: string[];
+	currentWorkPreference: string;
+	currentAvailableFrom: string;
+	currentSalaryMin: number | null;
+	currentSalaryMax: number | null;
+	currentLocation: string;
+	currentNationality: string;
+	currentDateOfBirth: string;
+	currentMaritalStatus: string;
+	currentReligion: string;
 }
 
-const ProfileForm = ({ currentDisplayName, currentPhotoUrl }: ProfileFormProps) => {
+// generic multi-select helper — avoids duplicating toggle logic across jobs and languages
+const toggleMultiSelect = (current: string[], value: string): string[] =>
+	current.includes(value) ? current.filter((v) => v !== value) : [...current, value];
+
+// controlled form that lets a worker edit every field on their public profile.
+// state is initialised from server-provided props so the form always reflects
+// the latest persisted values on first render.
+const ProfileForm = ({
+	currentDisplayName,
+	currentPhotoUrl,
+	currentBio,
+	currentJobs,
+	currentExperience,
+	currentEducationLevel,
+	currentLanguages,
+	currentWorkPreference,
+	currentAvailableFrom,
+	currentSalaryMin,
+	currentSalaryMax,
+	currentLocation,
+	currentNationality,
+	currentDateOfBirth,
+	currentMaritalStatus,
+	currentReligion,
+}: ProfileFormProps) => {
 	const router = useRouter();
+	// hidden file input triggered programmatically to keep the UI custom-styled
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
+	// treat the default placeholder name as an empty field so the worker is
+	// prompted to enter their real name on first visit
 	const [displayName, setDisplayName] = useState(
 		currentDisplayName === "New Worker" ? "" : currentDisplayName,
 	);
+	const [bio, setBio] = useState(currentBio ?? "");
+	const [jobs, setJobs] = useState<string[]>(currentJobs ?? []);
+	// experience and salary are stored as numbers but kept as strings here to
+	// allow blank inputs without coercing null to 0 in the controlled input
+	const [experience, setExperience] = useState<string>(
+		currentExperience !== null ? String(currentExperience) : "",
+	);
+	const [educationLevel, setEducationLevel] = useState(currentEducationLevel ?? "");
+	const [languages, setLanguages] = useState<string[]>(currentLanguages ?? []);
+	const [workPreference, setWorkPreference] = useState(currentWorkPreference ?? "");
+	const [availableFrom, setAvailableFrom] = useState(currentAvailableFrom ?? "");
+	const [salaryMin, setSalaryMin] = useState<string>(
+		currentSalaryMin !== null ? String(currentSalaryMin) : "",
+	);
+	const [salaryMax, setSalaryMax] = useState<string>(
+		currentSalaryMax !== null ? String(currentSalaryMax) : "",
+	);
+	const [location, setLocation] = useState(currentLocation ?? "");
+	const [nationality, setNationality] = useState(currentNationality ?? "");
+	const [dateOfBirth, setDateOfBirth] = useState(currentDateOfBirth ?? "");
+	const [maritalStatus, setMaritalStatus] = useState(currentMaritalStatus ?? "");
+	const [religion, setReligion] = useState(currentReligion ?? "");
+	// photoFile holds the pending upload; photoPreview is the blob URL shown in the UI
 	const [photoFile, setPhotoFile] = useState<File | null>(null);
 	const [photoPreview, setPhotoPreview] = useState<string | null>(currentPhotoUrl);
 	const [loading, setLoading] = useState(false);
 	const [success, setSuccess] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
+	// validate size and type before storing the file — gives immediate feedback
+	// rather than waiting for an upload attempt
 	const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0] ?? null;
-
 		if (!file) return;
-
 		if (file.size > 5 * 1024 * 1024) {
 			setError("Photo must be under 5MB.");
 			return;
 		}
-
 		if (!file.type.startsWith("image/")) {
 			setError("Only image files are accepted.");
 			return;
 		}
-
 		setError(null);
 		setPhotoFile(file);
+		// blob URL is only used as a local preview; the real URL comes back after upload
 		setPhotoPreview(URL.createObjectURL(file));
 	};
 
-	// uploads the selected photo to the media collection and returns its ID.
-	// the ID is then passed to the profile update endpoint to link the photo to the worker.
+	// uploads the photo separately and returns the payload media id so it can be
+	// linked to the profile in the main PATCH request
 	const uploadPhoto = async (): Promise<string | null> => {
 		if (!photoFile) return null;
-
 		const formData = new FormData();
 		formData.append("file", photoFile);
-		formData.append("alt", `Profile photo for ${displayName || "Mjakazi"}`);
-
-		// Payload's REST API handles storage and image resizing for the media collection
-		const res = await fetch(`${window.location.origin}/api/media`, {
+		const res = await fetch("/apis/profile/upload-photo", {
 			method: "POST",
 			body: formData,
 		});
-
 		if (!res.ok) {
-			throw new Error("Photo upload failed. Please try again.");
+			const data = await res.json();
+			throw new Error(data.error ?? "Photo upload failed.");
 		}
-
 		const data = await res.json();
-		return data.doc?.id ?? null;
+		return data.photoId ?? null;
 	};
 
 	const handleSave = async () => {
+		// display name is the only mandatory field — everything else is optional
 		if (!displayName.trim()) {
 			setError("Display name is required.");
 			return;
 		}
-
 		setLoading(true);
 		setError(null);
 		setSuccess(false);
 
 		try {
-			// photo is uploaded first so its ID is available when saving the profile
+			// photo is uploaded first so its id can be included in the profile payload
 			let photoId: string | null = null;
-			if (photoFile) {
-				photoId = await uploadPhoto();
-			}
+			if (photoFile) photoId = await uploadPhoto();
 
 			const res = await fetch("/apis/profile/update-mjakazi-profile", {
 				method: "PATCH",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
 					displayName: displayName.trim(),
-					// only include photoId when a new photo was uploaded to avoid overwriting with null
+					bio: bio.trim(),
+					jobs,
+					// convert back to number for the API; null means "not provided"
+					experience: experience !== "" ? Number(experience) : null,
+					educationLevel: educationLevel || undefined,
+					languages,
+					workPreference: workPreference || undefined,
+					availableFrom: availableFrom || undefined,
+					salaryMin: salaryMin !== "" ? Number(salaryMin) : null,
+					salaryMax: salaryMax !== "" ? Number(salaryMax) : null,
+					location: location || undefined,
+					nationality: nationality || undefined,
+					dateOfBirth: dateOfBirth || undefined,
+					maritalStatus: maritalStatus || undefined,
+					religion: religion || undefined,
+					// only include photoId when a new photo was actually uploaded
 					...(photoId ? { photoId } : {}),
 				}),
 			});
 
 			if (res.ok) {
 				setSuccess(true);
+				// clear pending file so re-saving does not re-upload the same photo
 				setPhotoFile(null);
+				// refresh server components so updated data is reflected immediately
 				router.refresh();
 			} else {
 				const data = await res.json();
 				setError(data.error ?? "Failed to save. Please try again.");
 			}
 		} catch (err: any) {
-			setError(err.message ?? "Something went wrong. Please try again.");
+			setError(err.message ?? "Something went wrong.");
 		} finally {
 			setLoading(false);
 		}
 	};
 
 	return (
-		<div className="bg-card border-border flex flex-col gap-6 rounded-xl border p-6">
-			<div>
-				<p className="text-muted-foreground text-sm font-semibold">Public Profile</p>
-				<p className="text-muted-foreground text-sm">
-					This is what Waajiri see when browsing the directory.
-				</p>
-			</div>
-
+		<div className="flex flex-col gap-6">
 			{success && (
 				<div className="bg-accent/10 flex items-center gap-3 rounded-lg px-4 py-3">
 					<CheckCircle2 className="text-accent h-5 w-5 shrink-0" />
@@ -126,74 +204,375 @@ const ProfileForm = ({ currentDisplayName, currentPhotoUrl }: ProfileFormProps) 
 				</div>
 			)}
 
-			{/* photo upload */}
-			<div className="flex flex-col gap-3">
-				<Label className="text-xs">Profile Photo</Label>
-				<div className="flex items-center gap-4">
-					{/* photo preview */}
-					<div
-						onClick={() => fileInputRef.current?.click()}
-						className="border-border bg-muted/40 hover:bg-muted relative flex h-20 w-20 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed transition-colors"
-					>
-						{photoPreview ? (
-							<img
-								src={photoPreview}
-								alt="Profile preview"
-								className="h-full w-full object-cover"
-							/>
-						) : (
-							<ImagePlus className="text-muted-foreground size-6" />
-						)}
+			{error && <p className="text-destructive text-sm">{error}</p>}
+
+			{/* ── section 1: public presentation ── */}
+			<div className="bg-card border-border flex flex-col gap-5 rounded-xl border p-6">
+				<p className="text-foreground text-sm font-semibold">Public Presentation</p>
+
+				{/* photo upload */}
+				<div className="flex flex-col gap-3">
+					<Label className="text-xs">Profile Photo</Label>
+					<div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start">
+						{/* clickable preview area — shows the current photo with a hover
+						    overlay, or a placeholder prompt when no photo is set */}
+						<button
+							type="button"
+							onClick={() => fileInputRef.current?.click()}
+							className="border-border bg-muted/40 hover:bg-muted hover:border-primary/40 group relative flex h-30 w-30 shrink-0 flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed transition-all duration-200"
+						>
+							{photoPreview ? (
+								<>
+									<img
+										src={photoPreview}
+										alt="Profile preview"
+										className="h-full w-full object-cover"
+									/>
+									<div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+										<Camera className="size-6 text-white" />
+										<span className="text-xs font-medium text-white">Change</span>
+									</div>
+								</>
+							) : (
+								<div className="flex flex-col items-center gap-2 px-3 text-center">
+									<div className="bg-primary/10 flex size-10 items-center justify-center rounded-full">
+										<Camera className="text-primary size-5" />
+									</div>
+									<span className="text-muted-foreground text-xs leading-tight">
+										Click to upload
+									</span>
+								</div>
+							)}
+						</button>
+						<div className="flex flex-col gap-2 text-center sm:text-left">
+							<p className="text-foreground text-sm font-medium">Passport-sized photo</p>
+							<ul className="text-muted-foreground space-y-0.5 text-xs">
+								<li>— Face clearly visible, no sunglasses</li>
+								<li>— Plain or neutral background</li>
+								<li>— JPG, PNG or WebP · Max 5MB</li>
+							</ul>
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={() => fileInputRef.current?.click()}
+								className="mt-1 w-fit text-xs"
+							>
+								{photoPreview ? "Change Photo" : "Choose File"}
+							</Button>
+						</div>
+					</div>
+					{/* visually hidden; triggered by the button above */}
+					<input
+						ref={fileInputRef}
+						type="file"
+						accept="image/jpeg,image/png,image/webp"
+						onChange={handlePhotoChange}
+						className="sr-only"
+					/>
+				</div>
+
+				{/* display name */}
+				<div className="flex flex-col gap-1.5">
+					<Label htmlFor="displayName" className="text-xs">
+						Display Name
+					</Label>
+					<Input
+						id="displayName"
+						placeholder="Your professional name"
+						value={displayName}
+						onChange={(e) => setDisplayName(e.target.value)}
+						className="text-sm"
+					/>
+					<p className="text-muted-foreground text-xs">
+						This name appears on your public profile.
+					</p>
+				</div>
+
+				{/* bio */}
+				<div className="flex flex-col gap-1.5">
+					<Label htmlFor="bio" className="text-xs">
+						About Me
+					</Label>
+					<Textarea
+						id="bio"
+						placeholder="Tell potential employers about yourself, your experience, and what makes you a great hire..."
+						value={bio}
+						onChange={(e) => setBio(e.target.value)}
+						className="min-h-30 text-sm"
+					/>
+				</div>
+			</div>
+
+			{/* ── section 2: personal details ── */}
+			<div className="bg-card border-border flex flex-col gap-5 rounded-xl border p-6">
+				<p className="text-foreground text-sm font-semibold">Personal Details</p>
+
+				<div className="grid gap-4 sm:grid-cols-2">
+					<div className="flex flex-col gap-1.5">
+						<Label htmlFor="dateOfBirth" className="text-xs">
+							Date of Birth
+						</Label>
+						<Input
+							id="dateOfBirth"
+							type="date"
+							value={dateOfBirth}
+							onChange={(e) => setDateOfBirth(e.target.value)}
+							className="text-sm"
+						/>
 					</div>
 
-					<div className="flex flex-col gap-1">
-						<Button
-							type="button"
-							variant="outline"
-							size="sm"
-							onClick={() => fileInputRef.current?.click()}
-							className="w-fit text-xs"
+					<div className="flex flex-col gap-1.5">
+						<Label htmlFor="nationality" className="text-xs">
+							Nationality
+						</Label>
+						<select
+							id="nationality"
+							value={nationality}
+							onChange={(e) => setNationality(e.target.value)}
+							className="border-input bg-background text-foreground focus:ring-ring rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
 						>
-							{photoPreview ? "Change Photo" : "Upload Photo"}
-						</Button>
-						<p className="text-muted-foreground text-xs">
-							Passport-sized photo · JPG or PNG · Max 5MB
-						</p>
+							<option value="">Select nationality</option>
+							{COUNTRY_OPTIONS.map((c) => (
+								<option key={c.value} value={c.value}>
+									{c.label}
+								</option>
+							))}
+						</select>
+					</div>
+
+					{/* marital status and religion are optional — workers may prefer not to disclose */}
+					<div className="flex flex-col gap-1.5">
+						<Label htmlFor="maritalStatus" className="text-xs">
+							Marital Status
+							<span className="text-muted-foreground ml-1">(optional)</span>
+						</Label>
+						<select
+							id="maritalStatus"
+							value={maritalStatus}
+							onChange={(e) => setMaritalStatus(e.target.value)}
+							className="border-input bg-background text-foreground focus:ring-ring rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+						>
+							<option value="">Prefer not to say</option>
+							{MARITAL_STATUS_OPTIONS.map((m) => (
+								<option key={m.value} value={m.value}>
+									{m.label}
+								</option>
+							))}
+						</select>
+					</div>
+
+					<div className="flex flex-col gap-1.5">
+						<Label htmlFor="religion" className="text-xs">
+							Religion
+							<span className="text-muted-foreground ml-1">(optional)</span>
+						</Label>
+						<select
+							id="religion"
+							value={religion}
+							onChange={(e) => setReligion(e.target.value)}
+							className="border-input bg-background text-foreground focus:ring-ring rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+						>
+							<option value="">Prefer not to say</option>
+							{RELIGION_OPTIONS.map((r) => (
+								<option key={r.value} value={r.value}>
+									{r.label}
+								</option>
+							))}
+						</select>
 					</div>
 				</div>
 
-				<input
-					ref={fileInputRef}
-					type="file"
-					accept="image/jpeg,image/png,image/webp"
-					onChange={handlePhotoChange}
-					className="sr-only"
-				/>
+				{/* pill-style multi-select — active pills are highlighted with the primary colour */}
+				<div className="flex flex-col gap-2">
+					<Label className="text-xs">
+						Languages Spoken
+						<span className="text-muted-foreground ml-1">(select all that apply)</span>
+					</Label>
+					<div className="flex flex-wrap gap-2">
+						{LANGUAGE_OPTIONS.map((lang) => {
+							const selected = languages.includes(lang.value);
+							return (
+								<button
+									key={lang.value}
+									type="button"
+									onClick={() => setLanguages(toggleMultiSelect(languages, lang.value))}
+									className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+										selected
+											? "bg-primary border-primary text-primary-foreground"
+											: "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+									}`}
+								>
+									{lang.label}
+								</button>
+							);
+						})}
+					</div>
+				</div>
 			</div>
 
-			{/* display name */}
-			<div className="flex flex-col gap-1.5">
-				<Label htmlFor="displayName" className="text-xs">
-					Display Name
-				</Label>
-				<Input
-					id="displayName"
-					placeholder="Your professional name"
-					value={displayName}
-					onChange={(e) => setDisplayName(e.target.value)}
-					className="text-sm"
-				/>
-				<p className="text-muted-foreground text-xs">
-					This name appears on your public profile in the directory.
-				</p>
+			{/* ── section 3: work preferences ── */}
+			<div className="bg-card border-border flex flex-col gap-5 rounded-xl border p-6">
+				<p className="text-foreground text-sm font-semibold">Work Preferences</p>
+
+				{/* job / skill pills — same pattern as languages above */}
+				<div className="flex flex-col gap-2">
+					<Label className="text-xs">
+						What I Can Help With
+						<span className="text-muted-foreground ml-1">(select all that apply)</span>
+					</Label>
+					<div className="flex flex-wrap gap-2">
+						{JOB_OPTIONS.map((job) => {
+							const selected = jobs.includes(job.value);
+							return (
+								<button
+									key={job.value}
+									type="button"
+									onClick={() => setJobs(toggleMultiSelect(jobs, job.value))}
+									className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+										selected
+											? "bg-primary border-primary text-primary-foreground"
+											: "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+									}`}
+								>
+									<span>{job.icon}</span>
+									{job.label}
+								</button>
+							);
+						})}
+					</div>
+				</div>
+
+				<div className="grid gap-4 sm:grid-cols-2">
+					<div className="flex flex-col gap-1.5">
+						<Label htmlFor="workPreference" className="text-xs">
+							Live-in or Live-out
+						</Label>
+						<select
+							id="workPreference"
+							value={workPreference}
+							onChange={(e) => setWorkPreference(e.target.value)}
+							className="border-input bg-background text-foreground focus:ring-ring rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+						>
+							<option value="">Select preference</option>
+							{WORK_PREFERENCE_OPTIONS.map((w) => (
+								<option key={w.value} value={w.value}>
+									{w.label}
+								</option>
+							))}
+						</select>
+					</div>
+
+					<div className="flex flex-col gap-1.5">
+						<Label htmlFor="location" className="text-xs">
+							Location / City Available to Work
+						</Label>
+						<select
+							id="location"
+							value={location}
+							onChange={(e) => setLocation(e.target.value)}
+							className="border-input bg-background text-foreground focus:ring-ring rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+						>
+							<option value="">Select location</option>
+							{LOCATION_OPTIONS.map((l) => (
+								<option key={l.value} value={l.value}>
+									{l.label}
+								</option>
+							))}
+						</select>
+					</div>
+
+					<div className="flex flex-col gap-1.5">
+						<Label htmlFor="availableFrom" className="text-xs">
+							Available From
+						</Label>
+						<Input
+							id="availableFrom"
+							type="date"
+							value={availableFrom}
+							onChange={(e) => setAvailableFrom(e.target.value)}
+							className="text-sm"
+						/>
+					</div>
+
+					<div className="flex flex-col gap-1.5">
+						<Label htmlFor="experience" className="text-xs">
+							Years of Experience
+						</Label>
+						<Input
+							id="experience"
+							type="number"
+							min="0"
+							placeholder="e.g. 3"
+							value={experience}
+							onChange={(e) => setExperience(e.target.value)}
+							className="text-sm"
+						/>
+					</div>
+
+					{/* salary range lets employers filter by budget without the worker
+					    committing to a fixed figure */}
+					<div className="flex flex-col gap-1.5">
+						<Label htmlFor="salaryMin" className="text-xs">
+							Min Expected Salary (KSh / month)
+						</Label>
+						<Input
+							id="salaryMin"
+							type="number"
+							min="0"
+							placeholder="e.g. 15000"
+							value={salaryMin}
+							onChange={(e) => setSalaryMin(e.target.value)}
+							className="text-sm"
+						/>
+					</div>
+
+					<div className="flex flex-col gap-1.5">
+						<Label htmlFor="salaryMax" className="text-xs">
+							Max Expected Salary (KSh / month)
+						</Label>
+						<Input
+							id="salaryMax"
+							type="number"
+							min="0"
+							placeholder="e.g. 25000"
+							value={salaryMax}
+							onChange={(e) => setSalaryMax(e.target.value)}
+							className="text-sm"
+						/>
+					</div>
+				</div>
 			</div>
 
+			{/* ── section 4: education ── */}
+			<div className="bg-card border-border flex flex-col gap-5 rounded-xl border p-6">
+				<p className="text-foreground text-sm font-semibold">Education</p>
+
+				<div className="flex flex-col gap-1.5">
+					<Label htmlFor="educationLevel" className="text-xs">
+						Highest Education Level
+					</Label>
+					<select
+						id="educationLevel"
+						value={educationLevel}
+						onChange={(e) => setEducationLevel(e.target.value)}
+						className="border-input bg-background text-foreground focus:ring-ring rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+					>
+						<option value="">Select education level</option>
+						{EDUCATION_LEVEL_OPTIONS.map((e) => (
+							<option key={e.value} value={e.value}>
+								{e.label}
+							</option>
+						))}
+					</select>
+				</div>
+			</div>
+
+			{/* save button */}
 			<Button onClick={handleSave} disabled={loading} className="w-full gap-2">
-				<UserCheck className="h-4 w-4" />
+				<UserCheck className="size-4" />
 				{loading ? "Saving..." : "Save Profile"}
 			</Button>
-
-			{error && <p className="text-destructive text-sm">{error}</p>}
 		</div>
 	);
 };

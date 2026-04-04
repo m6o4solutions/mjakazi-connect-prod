@@ -10,7 +10,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getPayload } from "payload";
 
-// verification states that still require action from the worker
 const INCOMPLETE_STATUSES = [
 	"draft",
 	"pending_payment",
@@ -22,20 +21,17 @@ const INCOMPLETE_STATUSES = [
 const Page = async () => {
 	const { userId } = await auth();
 
-	// unauthenticated users have no business here
 	if (!userId) redirect("/sign-in");
 
 	const payload = await getPayload({ config });
 	const identity = await resolveIdentity(payload, userId);
 
-	// only mjakazi (worker) accounts are allowed on this dashboard
 	if (!identity || identity.role !== "mjakazi") redirect("/sign-in");
 
 	const verificationStatus = identity.verificationStatus ?? "draft";
-	// drives whether the verification CTA section is rendered
 	const showVerificationCta = INCOMPLETE_STATUSES.includes(verificationStatus);
 
-	// fetch the worker's profile so we can evaluate completeness
+	// fetch full profile for completeness check
 	const profileQuery = await payload.find({
 		collection: "wajakaziprofiles",
 		where: { account: { equals: identity.accountId } },
@@ -45,11 +41,9 @@ const Page = async () => {
 	});
 
 	const profile = profileQuery.docs[0] ?? null;
-	// profileComplete is a persisted flag set by the CMS when all required fields are filled
 	const profileComplete = profile?.profileComplete ?? false;
 
-	// each item maps a profile requirement to the page where the worker can fulfil it;
-	// used by ProfileCompletenessCard to render a checklist with deep links
+	// build completeness checklist — each item links to the page where it can be filled
 	const completenessItems = [
 		{
 			label: "Upload profile photo",
@@ -58,7 +52,6 @@ const Page = async () => {
 		},
 		{
 			label: "Add display name",
-			// "New Worker" is the default placeholder name, so it counts as incomplete
 			complete: !!profile?.displayName && profile.displayName !== "New Worker",
 			href: "/dashboard/mjakazi/profile",
 		},
@@ -89,7 +82,6 @@ const Page = async () => {
 		},
 		{
 			label: "Add years of experience",
-			// explicit null/undefined check because 0 is a valid experience value
 			complete: profile?.experience !== null && profile?.experience !== undefined,
 			href: "/dashboard/mjakazi/profile",
 		},
@@ -109,7 +101,7 @@ const Page = async () => {
 		<>
 			<DashboardTopbar title="My Dashboard" />
 			<main className="flex flex-1 flex-col gap-6 p-6">
-				{/* top row: verification status, progress tracker, and a placeholder activity card */}
+				{/* status overview row */}
 				<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
 					<VerificationStatusCard verificationState={verificationStatus} />
 					<VerificationProgressCard status={verificationStatus} />
@@ -124,7 +116,7 @@ const Page = async () => {
 					</div>
 				</div>
 
-				{/* checklist is suppressed once the worker has completed their profile */}
+				{/* profile completeness checklist — hidden once complete */}
 				{!profileComplete && (
 					<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
 						<ProfileCompletenessCard
@@ -134,7 +126,7 @@ const Page = async () => {
 					</div>
 				)}
 
-				{/* prompt workers to complete verification only while their status is still actionable */}
+				{/* verification CTA — only shown when verification is incomplete */}
 				{showVerificationCta && (
 					<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
 						<div className="bg-card border-border flex flex-col gap-4 rounded-xl border p-6">
