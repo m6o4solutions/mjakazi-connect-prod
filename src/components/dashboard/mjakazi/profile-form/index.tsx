@@ -18,7 +18,6 @@ import { Camera, CheckCircle2, UserCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
-// all fields mirror what is stored on the worker's profile document in the database
 interface ProfileFormProps {
 	currentDisplayName: string;
 	currentPhotoUrl: string | null;
@@ -38,13 +37,10 @@ interface ProfileFormProps {
 	currentReligion: string;
 }
 
-// generic multi-select helper — avoids duplicating toggle logic across jobs and languages
+// toggles a value in a string array — adds if absent, removes if present
 const toggleMultiSelect = (current: string[], value: string): string[] =>
 	current.includes(value) ? current.filter((v) => v !== value) : [...current, value];
 
-// controlled form that lets a worker edit every field on their public profile.
-// state is initialised from server-provided props so the form always reflects
-// the latest persisted values on first render.
 const ProfileForm = ({
 	currentDisplayName,
 	currentPhotoUrl,
@@ -64,18 +60,13 @@ const ProfileForm = ({
 	currentReligion,
 }: ProfileFormProps) => {
 	const router = useRouter();
-	// hidden file input triggered programmatically to keep the UI custom-styled
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
-	// treat the default placeholder name as an empty field so the worker is
-	// prompted to enter their real name on first visit
 	const [displayName, setDisplayName] = useState(
 		currentDisplayName === "New Worker" ? "" : currentDisplayName,
 	);
 	const [bio, setBio] = useState(currentBio ?? "");
 	const [jobs, setJobs] = useState<string[]>(currentJobs ?? []);
-	// experience and salary are stored as numbers but kept as strings here to
-	// allow blank inputs without coercing null to 0 in the controlled input
 	const [experience, setExperience] = useState<string>(
 		currentExperience !== null ? String(currentExperience) : "",
 	);
@@ -94,15 +85,12 @@ const ProfileForm = ({
 	const [dateOfBirth, setDateOfBirth] = useState(currentDateOfBirth ?? "");
 	const [maritalStatus, setMaritalStatus] = useState(currentMaritalStatus ?? "");
 	const [religion, setReligion] = useState(currentReligion ?? "");
-	// photoFile holds the pending upload; photoPreview is the blob URL shown in the UI
 	const [photoFile, setPhotoFile] = useState<File | null>(null);
 	const [photoPreview, setPhotoPreview] = useState<string | null>(currentPhotoUrl);
 	const [loading, setLoading] = useState(false);
 	const [success, setSuccess] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
-	// validate size and type before storing the file — gives immediate feedback
-	// rather than waiting for an upload attempt
 	const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0] ?? null;
 		if (!file) return;
@@ -116,12 +104,9 @@ const ProfileForm = ({
 		}
 		setError(null);
 		setPhotoFile(file);
-		// blob URL is only used as a local preview; the real URL comes back after upload
 		setPhotoPreview(URL.createObjectURL(file));
 	};
 
-	// uploads the photo separately and returns the payload media id so it can be
-	// linked to the profile in the main PATCH request
 	const uploadPhoto = async (): Promise<string | null> => {
 		if (!photoFile) return null;
 		const formData = new FormData();
@@ -139,7 +124,6 @@ const ProfileForm = ({
 	};
 
 	const handleSave = async () => {
-		// display name is the only mandatory field — everything else is optional
 		if (!displayName.trim()) {
 			setError("Display name is required.");
 			return;
@@ -149,7 +133,6 @@ const ProfileForm = ({
 		setSuccess(false);
 
 		try {
-			// photo is uploaded first so its id can be included in the profile payload
 			let photoId: string | null = null;
 			if (photoFile) photoId = await uploadPhoto();
 
@@ -160,7 +143,6 @@ const ProfileForm = ({
 					displayName: displayName.trim(),
 					bio: bio.trim(),
 					jobs,
-					// convert back to number for the API; null means "not provided"
 					experience: experience !== "" ? Number(experience) : null,
 					educationLevel: educationLevel || undefined,
 					languages,
@@ -173,16 +155,13 @@ const ProfileForm = ({
 					dateOfBirth: dateOfBirth || undefined,
 					maritalStatus: maritalStatus || undefined,
 					religion: religion || undefined,
-					// only include photoId when a new photo was actually uploaded
 					...(photoId ? { photoId } : {}),
 				}),
 			});
 
 			if (res.ok) {
 				setSuccess(true);
-				// clear pending file so re-saving does not re-upload the same photo
 				setPhotoFile(null);
-				// refresh server components so updated data is reflected immediately
 				router.refresh();
 			} else {
 				const data = await res.json();
@@ -214,8 +193,6 @@ const ProfileForm = ({
 				<div className="flex flex-col gap-3">
 					<Label className="text-xs">Profile Photo</Label>
 					<div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start">
-						{/* clickable preview area — shows the current photo with a hover
-						    overlay, or a placeholder prompt when no photo is set */}
 						<button
 							type="button"
 							onClick={() => fileInputRef.current?.click()}
@@ -262,7 +239,6 @@ const ProfileForm = ({
 							</Button>
 						</div>
 					</div>
-					{/* visually hidden; triggered by the button above */}
 					<input
 						ref={fileInputRef}
 						type="file"
@@ -341,7 +317,6 @@ const ProfileForm = ({
 						</select>
 					</div>
 
-					{/* marital status and religion are optional — workers may prefer not to disclose */}
 					<div className="flex flex-col gap-1.5">
 						<Label htmlFor="maritalStatus" className="text-xs">
 							Marital Status
@@ -383,7 +358,7 @@ const ProfileForm = ({
 					</div>
 				</div>
 
-				{/* pill-style multi-select — active pills are highlighted with the primary colour */}
+				{/* languages */}
 				<div className="flex flex-col gap-2">
 					<Label className="text-xs">
 						Languages Spoken
@@ -415,7 +390,7 @@ const ProfileForm = ({
 			<div className="bg-card border-border flex flex-col gap-5 rounded-xl border p-6">
 				<p className="text-foreground text-sm font-semibold">Work Preferences</p>
 
-				{/* job / skill pills — same pattern as languages above */}
+				{/* jobs / skills */}
 				<div className="flex flex-col gap-2">
 					<Label className="text-xs">
 						What I Can Help With
@@ -510,8 +485,6 @@ const ProfileForm = ({
 						/>
 					</div>
 
-					{/* salary range lets employers filter by budget without the worker
-					    committing to a fixed figure */}
 					<div className="flex flex-col gap-1.5">
 						<Label htmlFor="salaryMin" className="text-xs">
 							Min Expected Salary (KSh / month)
