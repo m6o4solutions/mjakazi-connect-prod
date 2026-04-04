@@ -59,6 +59,17 @@ const Page = async () => {
 			<DashboardTopbar title="Verification" />
 
 			<main className="flex flex-1 flex-col gap-6 p-6">
+				<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+					<LegalNameForm
+						currentLegalFirstName={legalFirstName}
+						currentLegalLastName={legalLastName}
+						isLocked={isNameLocked}
+					/>
+
+					{/* dev payment bypass — only renders in development */}
+					{showPaymentBypass && <DevPaymentBypassCard />}
+				</div>
+
 				{/* document upload row */}
 				<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
 					<DocumentUploadCard
@@ -75,17 +86,6 @@ const Page = async () => {
 						verificationStatus={verificationStatus}
 						documentsReady={bothUploaded}
 					/>
-				</div>
-
-				<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-					<LegalNameForm
-						currentLegalFirstName={legalFirstName}
-						currentLegalLastName={legalLastName}
-						isLocked={isNameLocked}
-					/>
-
-					{/* dev payment bypass — only renders in development */}
-					{showPaymentBypass && <DevPaymentBypassCard />}
 				</div>
 			</main>
 		</>
