@@ -114,15 +114,6 @@ const DeleteAccountCard = ({ role }: DeleteAccountCardProps) => {
 
 					<div className="flex gap-2">
 						<Button
-							variant="destructive"
-							onClick={handleDelete}
-							disabled={!isConfirmed || loading}
-							className="flex-1 gap-2"
-						>
-							<Trash2 className="size-4" />
-							{loading ? "Deleting..." : "Confirm Deletion"}
-						</Button>
-						<Button
 							variant="outline"
 							onClick={() => {
 								setShowConfirm(false);
@@ -133,6 +124,15 @@ const DeleteAccountCard = ({ role }: DeleteAccountCardProps) => {
 							className="flex-1"
 						>
 							Cancel
+						</Button>
+						<Button
+							variant="destructive"
+							onClick={handleDelete}
+							disabled={!isConfirmed || loading}
+							className="flex-1 gap-2"
+						>
+							<Trash2 className="size-4" />
+							{loading ? "Deleting..." : "Confirm Deletion"}
 						</Button>
 					</div>
 
