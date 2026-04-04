@@ -37,7 +37,6 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-// navigation item structure definition
 interface NavigationItem {
 	title: string;
 	href: string;
@@ -78,7 +77,6 @@ const mjakaziNavigation: NavigationSection[] = [
 				title: "Verification",
 				href: "/dashboard/mjakazi/verification",
 				icon: ShieldCheck,
-				badge: "New",
 			},
 		],
 	},
@@ -132,8 +130,6 @@ const mwajiriNavigation: NavigationSection[] = [
 	},
 ];
 
-// admin and sa navigation are built dynamically to support
-// the live pending verification count badge
 const buildAdminNavigation = (pendingCount: number): NavigationSection[] => [
 	{
 		label: "Main",
@@ -152,7 +148,6 @@ const buildAdminNavigation = (pendingCount: number): NavigationSection[] => [
 				title: "Pending Verifications",
 				href: "/dashboard/admin/verifications",
 				icon: ShieldCheck,
-				// only show badge when there are items to action
 				badge: pendingCount > 0 ? String(pendingCount) : undefined,
 			},
 			{
@@ -220,7 +215,7 @@ const buildSaNavigation = (pendingCount: number): NavigationSection[] => [
 				icon: Users,
 			},
 			{
-				title: "Global Settings",
+				title: "Settings",
 				href: "/dashboard/sa/settings",
 				icon: Settings,
 			},
@@ -228,9 +223,38 @@ const buildSaNavigation = (pendingCount: number): NavigationSection[] => [
 	},
 ];
 
+// determines the visual indicator for the verification nav item
+const getVerificationIndicator = (status: string) => {
+	const actionNeeded = [
+		"draft",
+		"pending_payment",
+		"rejected",
+		"verification_expired",
+	].includes(status);
+
+	if (actionNeeded) {
+		return (
+			<span className="relative ml-auto flex size-2.5">
+				<span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
+				<span className="relative inline-flex size-2.5 rounded-full bg-amber-400" />
+			</span>
+		);
+	}
+
+	if (status === "verified") {
+		return (
+			<span className="bg-accent relative ml-auto inline-flex size-2.5 rounded-full" />
+		);
+	}
+
+	// pending_review, blacklisted, deactivated — no indicator
+	return null;
+};
+
 interface DashboardSidebarProps {
 	role: "mjakazi" | "mwajiri" | "admin" | "sa";
 	pendingVerificationCount?: number;
+	verificationStatus?: string;
 }
 
 const dashboardLabelMap = {
@@ -250,12 +274,11 @@ const roleLabelMap = {
 const DashboardSidebar = ({
 	role,
 	pendingVerificationCount = 0,
+	verificationStatus = "draft",
 }: DashboardSidebarProps) => {
 	const pathname = usePathname();
 	const { user } = useUser();
 
-	// build navigation dynamically for roles that need live counts
-	// static navigation is used for roles that do not need dynamic badges
 	const navigation: NavigationSection[] =
 		role === "admin"
 			? buildAdminNavigation(pendingVerificationCount)
@@ -281,10 +304,9 @@ const DashboardSidebar = ({
 
 	return (
 		<Sidebar>
-			{/* identify the application and current portal context */}
 			<SidebarHeader className="border-sidebar-border border-b px-4 py-4">
 				<div className="flex items-center gap-3">
-					<div className="bg-primary flex size-8 shrink-0 items-center justify-center rounded-lg">
+					<div className="bg-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
 						<span className="font-display text-primary-foreground text-xs font-bold">
 							MC
 						</span>
@@ -300,7 +322,6 @@ const DashboardSidebar = ({
 				</div>
 			</SidebarHeader>
 
-			{/* render role-specific links organized by logical groups */}
 			<SidebarContent className="px-2 py-2">
 				{navigation.map((section, i) => (
 					<SidebarGroup key={section.label}>
@@ -311,6 +332,12 @@ const DashboardSidebar = ({
 						<SidebarMenu>
 							{section.items.map((item) => {
 								const isActive = pathname.startsWith(item.href);
+
+								// verification item gets a dynamic indicator
+								// for mjakazi role only
+								const isVerificationItem =
+									role === "mjakazi" && item.href === "/dashboard/mjakazi/verification";
+
 								return (
 									<SidebarMenuItem key={item.href}>
 										<SidebarMenuButton
@@ -321,7 +348,13 @@ const DashboardSidebar = ({
 											<Link href={item.href}>
 												<item.icon className="size-4 shrink-0" />
 												<span>{item.title}</span>
-												{item.badge && (
+
+												{/* dynamic verification indicator */}
+												{isVerificationItem &&
+													getVerificationIndicator(verificationStatus)}
+
+												{/* standard text badge for admin counts */}
+												{!isVerificationItem && item.badge && (
 													<SidebarMenuBadge className="bg-accent text-accent-foreground ml-auto">
 														{item.badge}
 													</SidebarMenuBadge>
@@ -336,7 +369,6 @@ const DashboardSidebar = ({
 				))}
 			</SidebarContent>
 
-			{/* manage user session and account identity at the bottom */}
 			<SidebarFooter className="border-sidebar-border border-t p-3">
 				<SidebarMenu>
 					<SidebarMenuItem>
@@ -359,7 +391,7 @@ const DashboardSidebar = ({
 							</DropdownMenuTrigger>
 							<DropdownMenuContent side="top" align="start" className="w-52">
 								<SignOutButton>
-									<DropdownMenuItem className="cursor-pointer gap-2 text-black">
+									<DropdownMenuItem className="cursor-pointer gap-2">
 										<LogOut className="size-4" />
 										Sign out
 									</DropdownMenuItem>

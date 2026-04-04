@@ -1,17 +1,31 @@
 import { PendingVerificationTable } from "@/components/dashboard/admin/pending-verification-table";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
+import { resolveIdentity } from "@/services/identity.service";
+import { auth } from "@clerk/nextjs/server";
 import config from "@payload-config";
+import { redirect } from "next/navigation";
 import { getPayload } from "payload";
 
 const AdminVerificationsPage = async () => {
+	const { userId } = await auth();
+
+	if (!userId) redirect("/sign-in");
+
 	const payload = await getPayload({ config });
+
+	const identity = await resolveIdentity(payload, userId);
+
+	if (!identity) redirect("/sign-in");
+
+	// enforce role — only admin and sa can access this page
+	if (identity.role !== "admin" && identity.role !== "sa") {
+		redirect("/sign-in");
+	}
 
 	// fetch all profiles awaiting admin review
 	const pendingProfiles = await payload.find({
 		collection: "wajakaziprofiles",
-		where: {
-			verificationStatus: { equals: "pending_review" },
-		},
+		where: { verificationStatus: { equals: "pending_review" } },
 		overrideAccess: true,
 		depth: 1,
 		sort: "-verificationSubmittedAt",
@@ -23,9 +37,7 @@ const AdminVerificationsPage = async () => {
 		pendingProfiles.docs.map(async (profile) => {
 			const docs = await payload.find({
 				collection: "vault",
-				where: {
-					profile: { equals: profile.id },
-				},
+				where: { profile: { equals: profile.id } },
 				overrideAccess: true,
 				limit: 10,
 			});

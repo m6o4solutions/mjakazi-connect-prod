@@ -3,18 +3,18 @@
 import { SignUp } from "@clerk/nextjs";
 import { useSearchParams } from "next/navigation";
 
-// facilitates registration while capturing intent-based roles for user classification
 const Page = () => {
 	const params = useSearchParams();
-	const role = params.get("role");
+	const roleParam = params.get("role");
 
-	// ensures user intent is persisted in the session for backend synchronization
-	const unsafeMetadata = role ? { role } : undefined;
+	// default to mjakazi if no role is specified
+	// mwajiri accounts are reached via the dedicated employer sign-up flow
+	const role = roleParam === "mwajiri" ? "mwajiri" : "mjakazi";
 
 	return (
 		<SignUp
 			forceRedirectUrl="/authenticating"
-			unsafeMetadata={unsafeMetadata}
+			unsafeMetadata={{ role }}
 			appearance={{
 				elements: {
 					rootBox: "w-full",

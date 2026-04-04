@@ -22,7 +22,10 @@ const RootLayout = (props: { children: ReactNode }) => {
 
 	return (
 		<html lang="en" suppressHydrationWarning>
-			<body className={cn("", grotesk.variable, jakarta.variable)}>
+			<body
+				className={cn("", grotesk.variable, jakarta.variable)}
+				suppressHydrationWarning
+			>
 				<ClerkProvider
 					signInUrl="/sign-in"
 					signUpUrl="/sign-up"
