@@ -1,3 +1,18 @@
+# [1.17.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.16.0...v1.17.0) (2026-04-04)
+
+
+### Bug Fixes
+
+* **layout:** suppress hydration warning on body element ([852c9ea](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/852c9eab72c9a776e18f495d7658ad0c2442c2b7))
+
+
+### Features
+
+* **dashboard:** add server-side role guards to admin and sa pages ([22fa764](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/22fa764340140415036417ca085ff4a1d00a69f5))
+* **mjakazi:** add profile, settings, and verification pages with role guard in layout ([553cb68](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/553cb6878f99487db9799b9a2d123b99e27dd0fb))
+* **mwajiri:** add settings page and delete-account functionality ([5626b97](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/5626b97a89a06b6dcfc1be94642aba61a1e04341))
+* **sa:** add staff management page and replace create-admin form ([36e4187](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/36e4187a2c6d6f17b21381d86cbf6c5a6fa57891))
+
 # [1.16.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.15.0...v1.16.0) (2026-04-01)
 
 ### Features
