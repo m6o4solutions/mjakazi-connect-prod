@@ -1,3 +1,19 @@
+# [1.18.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.17.0...v1.18.0) (2026-04-05)
+
+
+### Bug Fixes
+
+* **dashboard:** conditionally render second row grid and prevent CTA card stretch ([7b2be87](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/7b2be878221d665ac71f85e57584ece64287ca00))
+
+
+### Features
+
+* **auth:** add role assignment api route and persist intended role across oauth redirects ([2aaeaf8](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/2aaeaf8b7efa9a9828377882b9c224c0b619364a))
+* **dashboard:** add profile completeness card component for mjakazi workers ([8900dde](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/8900ddea5e860c449473663e38c7a5a41fb3b890))
+* **profile-form:** expand worker profile form with full field set ([9006322](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/90063222a31ab9c37f684fd71126f1d39f187d8b))
+* **profile:** add profile constants module ([52e6f9b](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/52e6f9b03fe676f8894fa0c3d549a1670a4ca955))
+* **profile:** expand wajakazi profile schema with worker attributes ([43e3062](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/43e3062bfe144226231581ef5bbbe29df53f6598))
+
 # [1.17.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.16.0...v1.17.0) (2026-04-04)
 
 ### Bug Fixes
