@@ -45,7 +45,6 @@ const AdminVerificationsPage = async () => {
 			return {
 				id: profile.id,
 				displayName: profile.displayName,
-				profession: profile.profession,
 				verificationSubmittedAt: profile.verificationSubmittedAt ?? null,
 				verificationAttempts: profile.verificationAttempts ?? 0,
 				documents: docs.docs.map((doc: any) => ({

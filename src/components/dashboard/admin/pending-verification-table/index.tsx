@@ -12,7 +12,6 @@ interface VaultDocument {
 interface PendingProfile {
 	id: string;
 	displayName: string;
-	profession: string;
 	verificationSubmittedAt: string | null;
 	verificationAttempts: number;
 	documents: VaultDocument[];
@@ -78,7 +77,6 @@ const PendingVerificationTable = ({ profiles }: PendingVerificationTableProps) =
 										<p className="text-foreground text-sm font-semibold">
 											{profile.displayName}
 										</p>
-										<p className="text-muted-foreground text-xs">{profile.profession}</p>
 									</div>
 								</div>
 
