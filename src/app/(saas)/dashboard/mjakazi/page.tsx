@@ -116,37 +116,42 @@ const Page = async () => {
 					</div>
 				</div>
 
-				<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-					{/* verification CTA — only shown when verification is incomplete */}
-					{showVerificationCta && (
-						<div className="bg-card border-border flex flex-col gap-4 rounded-xl border p-6">
-							<div>
-								<p className="text-muted-foreground text-sm font-semibold">
-									Complete Your Verification
-								</p>
-								<p className="text-muted-foreground mt-1 text-sm">
-									Upload your documents and submit for admin review to get your verified
-									badge and appear in the directory.
-								</p>
+				{/* second row — verification CTA and profile completeness side by side
+				    items-start prevents the CTA card from stretching to match
+				    the taller profile completeness card */}
+				{(showVerificationCta || !profileComplete) && (
+					<div className="grid items-start gap-6 md:grid-cols-2 xl:grid-cols-3">
+						{/* verification CTA — natural height, does not stretch */}
+						{showVerificationCta && (
+							<div className="bg-card border-border flex flex-col gap-4 self-start rounded-xl border p-6">
+								<div>
+									<p className="text-muted-foreground text-sm font-semibold">
+										Complete Your Verification
+									</p>
+									<p className="text-muted-foreground mt-1 text-sm">
+										Upload your documents and submit for admin review to get your verified
+										badge and appear in the directory.
+									</p>
+								</div>
+								<Link
+									href="/dashboard/mjakazi/verification"
+									className="bg-primary text-primary-foreground hover:bg-brand-primary-light inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors"
+								>
+									Go to Verification
+									<ArrowRight className="size-4" />
+								</Link>
 							</div>
-							<Link
-								href="/dashboard/mjakazi/verification"
-								className="bg-primary text-primary-foreground hover:bg-brand-primary-light inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors"
-							>
-								Go to Verification
-								<ArrowRight className="size-4" />
-							</Link>
-						</div>
-					)}
+						)}
 
-					{/* profile completeness checklist — hidden once complete */}
-					{!profileComplete && (
-						<ProfileCompletenessCard
-							items={completenessItems}
-							profileComplete={profileComplete}
-						/>
-					)}
-				</div>
+						{/* profile completeness checklist — hidden once complete */}
+						{!profileComplete && (
+							<ProfileCompletenessCard
+								items={completenessItems}
+								profileComplete={profileComplete}
+							/>
+						)}
+					</div>
+				)}
 			</main>
 		</>
 	);
