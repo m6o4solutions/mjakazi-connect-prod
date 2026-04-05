@@ -116,19 +116,9 @@ const Page = async () => {
 					</div>
 				</div>
 
-				{/* profile completeness checklist — hidden once complete */}
-				{!profileComplete && (
-					<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-						<ProfileCompletenessCard
-							items={completenessItems}
-							profileComplete={profileComplete}
-						/>
-					</div>
-				)}
-
-				{/* verification CTA — only shown when verification is incomplete */}
-				{showVerificationCta && (
-					<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+				<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+					{/* verification CTA — only shown when verification is incomplete */}
+					{showVerificationCta && (
 						<div className="bg-card border-border flex flex-col gap-4 rounded-xl border p-6">
 							<div>
 								<p className="text-muted-foreground text-sm font-semibold">
@@ -147,8 +137,16 @@ const Page = async () => {
 								<ArrowRight className="size-4" />
 							</Link>
 						</div>
-					</div>
-				)}
+					)}
+
+					{/* profile completeness checklist — hidden once complete */}
+					{!profileComplete && (
+						<ProfileCompletenessCard
+							items={completenessItems}
+							profileComplete={profileComplete}
+						/>
+					)}
+				</div>
 			</main>
 		</>
 	);

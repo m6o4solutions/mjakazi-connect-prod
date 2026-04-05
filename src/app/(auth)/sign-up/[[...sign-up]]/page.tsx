@@ -2,14 +2,21 @@
 
 import { SignUp } from "@clerk/nextjs";
 import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 
 const Page = () => {
 	const params = useSearchParams();
 	const roleParam = params.get("role");
-
-	// default to mjakazi if no role is specified
-	// mwajiri accounts are reached via the dedicated employer sign-up flow
 	const role = roleParam === "mwajiri" ? "mwajiri" : "mjakazi";
+
+	useEffect(() => {
+		// only write to sessionStorage when the role is explicitly present
+		// in the url — this prevents the default "mjakazi" from overwriting
+		// a previously stored "mwajiri" during clerk's internal redirects
+		if (roleParam) {
+			sessionStorage.setItem("intended_role", role);
+		}
+	}, [roleParam, role]);
 
 	return (
 		<SignUp
