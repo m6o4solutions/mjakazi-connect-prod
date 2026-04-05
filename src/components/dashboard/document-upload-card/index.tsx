@@ -67,7 +67,7 @@ const DocumentUploadCard = ({
 					</p>
 				</div>
 				<div className="bg-accent/10 flex items-center gap-3 rounded-lg px-4 py-3">
-					<CheckCircle2 className="text-accent h-5 w-5 shrink-0" />
+					<CheckCircle2 className="text-accent size-5 shrink-0" />
 					<div>
 						<p className="text-accent text-sm font-semibold">Document uploaded</p>
 						<p className="text-muted-foreground text-xs">
@@ -91,12 +91,12 @@ const DocumentUploadCard = ({
 
 			<div className="flex flex-col gap-3">
 				<label className="border-border bg-muted/40 hover:bg-muted/70 flex cursor-pointer flex-col items-center gap-2 rounded-lg border border-dashed px-4 py-5 text-center transition-colors">
-					<UploadCloud className="text-muted-foreground h-6 w-6" />
+					<UploadCloud className="text-muted-foreground size-6" />
 					<span className="text-muted-foreground text-sm">
 						{file ? file.name : "Choose a file or drag and drop"}
 					</span>
 					<span className="text-muted-foreground/60 text-xs">
-						JPG, PNG or PDF · Max 10MB
+						JPG, PNG or PDF · Max 5MB
 					</span>
 					<input
 						type="file"
@@ -104,8 +104,8 @@ const DocumentUploadCard = ({
 						className="sr-only"
 						onChange={(e) => {
 							const selected = e.target.files?.[0] ?? null;
-							if (selected && selected.size > 10 * 1024 * 1024) {
-								setError("File must be under 10MB.");
+							if (selected && selected.size > 5 * 1024 * 1024) {
+								setError("File must be under 5MB.");
 								return;
 							}
 							setError(null);

@@ -16,7 +16,6 @@ const Page = async () => {
 
 	if (!identity || identity.role !== "mjakazi") redirect("/sign-in");
 
-	// fetch full profile to read display name and current photo
 	const profileQuery = await payload.find({
 		collection: "wajakaziprofiles",
 		where: { account: { equals: identity.accountId } },
@@ -26,10 +25,7 @@ const Page = async () => {
 	});
 
 	const profile = profileQuery.docs[0] ?? null;
-	const currentDisplayName = profile?.displayName ?? "New Worker";
 
-	// extract the photo URL — photo is a relationship to media
-	// depth: 1 populates the full media document
 	const photoUrl =
 		profile?.photo && typeof profile.photo === "object" && "url" in profile.photo
 			? (profile.photo as any).url
@@ -41,8 +37,22 @@ const Page = async () => {
 			<main className="flex flex-1 flex-col gap-6 p-6">
 				<div className="grid gap-6 md:grid-cols-2">
 					<ProfileForm
-						currentDisplayName={currentDisplayName}
+						currentDisplayName={profile?.displayName ?? ""}
 						currentPhotoUrl={photoUrl}
+						currentBio={profile?.bio ?? ""}
+						currentJobs={(profile?.jobs as string[]) ?? []}
+						currentExperience={profile?.experience ?? null}
+						currentEducationLevel={profile?.educationLevel ?? ""}
+						currentLanguages={(profile?.languages as string[]) ?? []}
+						currentWorkPreference={profile?.workPreference ?? ""}
+						currentAvailableFrom={profile?.availableFrom ?? ""}
+						currentSalaryMin={profile?.salaryMin ?? null}
+						currentSalaryMax={profile?.salaryMax ?? null}
+						currentLocation={profile?.location ?? ""}
+						currentNationality={profile?.nationality ?? ""}
+						currentDateOfBirth={profile?.dateOfBirth ?? ""}
+						currentMaritalStatus={profile?.maritalStatus ?? ""}
+						currentReligion={profile?.religion ?? ""}
 					/>
 				</div>
 			</main>

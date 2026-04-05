@@ -30,7 +30,8 @@ interface IdentityContext {
 	waajiriProfileId?: string;
 }
 
-// retrieves the full identity context for a user including account and profile references
+// builds a unified identity context for a given clerk user, combining their
+// account record with any role-specific profile data needed by the application
 const resolveIdentity = async (
 	payload: Payload,
 	clerkId: string,
@@ -50,7 +51,8 @@ const resolveIdentity = async (
 		role: account.role,
 	};
 
-	// resolve worker profile and verification state
+	// attach worker profile id and verification status so callers can gate
+	// access to features that require an approved worker account
 	if (account.role === "mjakazi") {
 		const profile = await payload.find({
 			collection: "wajakaziprofiles",
@@ -65,7 +67,8 @@ const resolveIdentity = async (
 		}
 	}
 
-	// resolve employer profile and subscription state
+	// attach employer profile id; subscription state will be added in phase 5
+	// when the subscriptions collection is implemented
 	if (account.role === "mwajiri") {
 		const profile = await payload.find({
 			collection: "waajiriprofiles",
@@ -75,31 +78,32 @@ const resolveIdentity = async (
 
 		if (profile.docs.length > 0) {
 			identity.waajiriProfileId = profile.docs[0].id;
-			// subscriptionState to be added when subscriptions collection
-			// is implemented in Phase 5
 		}
 	}
 
 	return identity;
 };
 
-// roles that can only be assigned via clerk dashboard or seed script
-// prevents privilege escalation through the public sign-up flow
+// privileged roles cannot be requested through the public sign-up flow;
+// they must be set directly in the clerk dashboard or via a seed script
 const PRIVILEGED_ROLES: ClerkRole[] = ["admin", "sa"];
 
-// synchronizes user data from Clerk into the internal accounts collection
+// called by the clerk webhook on user.created and user.updated events
+// writes clerk identity data into the internal accounts collection and
+// ensures role-specific profiles are provisioned
 const syncClerkUser = async (payload: Payload, user: ClerkUser) => {
 	const clerkId = user.id;
 	const email = user.email_addresses?.[0]?.email_address ?? null;
 	const firstName = user.first_name ?? "";
 	const lastName = user.last_name ?? "";
 
+	// publicMetadata is written server-side only; unsafeMetadata is writable
+	// by the client, so privileged roles must only come from publicMetadata
 	const roleFromPublic = user.public_metadata?.role as ClerkRole | undefined;
 	const roleFromUnsafe = user.unsafe_metadata?.role as ClerkRole | undefined;
 
-	// privileged roles must come from publicMetadata only
-	// publicMetadata is server-writable only — unsafeMetadata is user-writable
-	// if a privileged role appears only in unsafeMetadata it is a spoofing attempt
+	// a privileged role in unsafeMetadata without a matching publicMetadata entry
+	// indicates a client-side tampering attempt — reject it outright
 	if (roleFromUnsafe && PRIVILEGED_ROLES.includes(roleFromUnsafe) && !roleFromPublic) {
 		console.error("Privilege escalation attempt blocked:", {
 			clerkId,
@@ -108,6 +112,8 @@ const syncClerkUser = async (payload: Payload, user: ClerkUser) => {
 		throw new Error("Invalid Clerk user payload.");
 	}
 
+	// prefer the server-authoritative publicMetadata; fall back to unsafeMetadata
+	// only for non-privileged roles set during the sign-up flow
 	const role = roleFromPublic ?? roleFromUnsafe ?? null;
 
 	if (!email || !role) {
@@ -129,7 +135,7 @@ const syncClerkUser = async (payload: Payload, user: ClerkUser) => {
 			data: { clerkId, email, firstName, lastName, role },
 		});
 	} catch (error: any) {
-		// duplicate key error → account already exists
+		// create failed — likely a duplicate; attempt an upsert instead
 		const existing = await payload.find({
 			collection: "accounts",
 			where: { clerkId: { equals: clerkId } },
@@ -148,7 +154,8 @@ const syncClerkUser = async (payload: Payload, user: ClerkUser) => {
 	await ensureDomainProfile(payload, account.id, role, firstName, lastName);
 };
 
-// ensures that role-specific profile records exist for the given account
+// idempotently provisions the role-specific profile record for a given account
+// safe to call multiple times — duplicate errors are swallowed intentionally
 const ensureDomainProfile = async (
 	payload: Payload,
 	accountId: string,
@@ -156,8 +163,7 @@ const ensureDomainProfile = async (
 	firstName?: string,
 	lastName?: string,
 ) => {
-	// derive a human display name from clerk identity data
-	// falls back to role-appropriate placeholder if name is unavailable
+	// construct the display name from clerk data; placeholder used if both are absent
 	const derivedName = [firstName, lastName].filter(Boolean).join(" ");
 
 	if (role === "mjakazi") {
@@ -168,7 +174,7 @@ const ensureDomainProfile = async (
 				data: {
 					account: accountId,
 					displayName: derivedName || "New Worker",
-					profession: "Unspecified",
+					// new workers start in draft until they complete verification
 					verificationStatus: "draft",
 					availabilityStatus: "available",
 				},
@@ -186,6 +192,7 @@ const ensureDomainProfile = async (
 				data: {
 					account: accountId,
 					displayName: derivedName || "New Employer",
+					// employer profiles are active immediately upon creation
 					moderationStatus: "active",
 				},
 			});
@@ -193,6 +200,8 @@ const ensureDomainProfile = async (
 			if (!error?.message?.includes("duplicate")) throw error;
 		}
 	}
+
+	// admin and sa accounts operate without domain profiles
 };
 
 // removes an account and associated data when a user is deleted from Clerk

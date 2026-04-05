@@ -1,3 +1,13 @@
+import {
+	COUNTRY_OPTIONS,
+	EDUCATION_LEVEL_OPTIONS,
+	JOB_OPTIONS,
+	LANGUAGE_OPTIONS,
+	LOCATION_OPTIONS,
+	MARITAL_STATUS_OPTIONS,
+	RELIGION_OPTIONS,
+	WORK_PREFERENCE_OPTIONS,
+} from "@/lib/profile-constants";
 import { isAdminOrProfileOwner, isRestricted } from "@/payload/access/access-control";
 import type { CollectionConfig } from "payload";
 
@@ -11,11 +21,18 @@ const WajakaziProfiles: CollectionConfig = {
 	},
 	admin: {
 		useAsTitle: "displayName",
-		defaultColumns: ["displayName", "verificationStatus", "createdAt", "updatedAt"],
+		defaultColumns: [
+			"displayName",
+			"verificationStatus",
+			"profileComplete",
+			"createdAt",
+			"updatedAt",
+		],
 		group: "SaaS",
 	},
 	labels: { singular: "Mjakazi Profile", plural: "Wajakazi Profiles" },
 	fields: [
+		// --- identity ---
 		{
 			name: "account",
 			type: "relationship",
@@ -26,7 +43,6 @@ const WajakaziProfiles: CollectionConfig = {
 			index: true,
 		},
 		{
-			// google profile name or manually set display name
 			name: "displayName",
 			type: "text",
 			label: "Display Name",
@@ -34,44 +50,138 @@ const WajakaziProfiles: CollectionConfig = {
 			index: true,
 		},
 		{
-			// legal first name as it appears on national id
 			name: "legalFirstName",
 			type: "text",
 			label: "Legal First Name",
 		},
 		{
-			// legal last name as it appears on national id
 			name: "legalLastName",
 			type: "text",
 			label: "Legal Last Name",
 		},
 		{
-			name: "profession",
-			type: "text",
-			label: "Profession",
-			required: true,
-			index: true,
+			name: "dateOfBirth",
+			type: "date",
+			label: "Date of Birth",
 		},
 		{
-			name: "bio",
-			type: "textarea",
-			label: "Bio",
+			name: "nationality",
+			type: "select",
+			label: "Nationality",
+			options: COUNTRY_OPTIONS.map((c) => ({
+				label: c.label,
+				value: c.value,
+			})),
 		},
 		{
-			name: "location",
-			type: "text",
-			label: "Location",
-			index: true,
+			name: "maritalStatus",
+			type: "select",
+			label: "Marital Status",
+			options: MARITAL_STATUS_OPTIONS.map((m) => ({
+				label: m.label,
+				value: m.value,
+			})),
 		},
 		{
-			// passport-sized profile photo for marketplace listing
-			// not required at schema level but enforced as a visibility
-			// requirement at the public directory query level in phase 6
+			name: "religion",
+			type: "select",
+			label: "Religion",
+			options: RELIGION_OPTIONS.map((r) => ({
+				label: r.label,
+				value: r.value,
+			})),
+		},
+
+		// --- photo ---
+		{
 			name: "photo",
 			type: "upload",
 			label: "Profile Photo",
 			relationTo: "media",
 		},
+
+		// --- professional ---
+		{
+			name: "jobs",
+			type: "select",
+			label: "Jobs / Skills",
+			hasMany: true,
+			index: true,
+			options: JOB_OPTIONS.map((j) => ({
+				label: j.label,
+				value: j.value,
+			})),
+		},
+		{
+			name: "bio",
+			type: "textarea",
+			label: "About Me",
+		},
+		{
+			name: "experience",
+			type: "number",
+			label: "Years of Experience",
+			min: 0,
+		},
+		{
+			name: "educationLevel",
+			type: "select",
+			label: "Education Level",
+			options: EDUCATION_LEVEL_OPTIONS.map((e) => ({
+				label: e.label,
+				value: e.value,
+			})),
+		},
+		{
+			name: "languages",
+			type: "select",
+			label: "Languages Spoken",
+			hasMany: true,
+			options: LANGUAGE_OPTIONS.map((l) => ({
+				label: l.label,
+				value: l.value,
+			})),
+		},
+
+		// --- work preferences ---
+		{
+			name: "workPreference",
+			type: "select",
+			label: "Work Preference",
+			options: WORK_PREFERENCE_OPTIONS.map((w) => ({
+				label: w.label,
+				value: w.value,
+			})),
+		},
+		{
+			name: "availableFrom",
+			type: "date",
+			label: "Available From",
+		},
+		{
+			name: "salaryMin",
+			type: "number",
+			label: "Minimum Expected Salary (KSh)",
+			min: 0,
+		},
+		{
+			name: "salaryMax",
+			type: "number",
+			label: "Maximum Expected Salary (KSh)",
+			min: 0,
+		},
+		{
+			name: "location",
+			type: "select",
+			label: "Location",
+			index: true,
+			options: LOCATION_OPTIONS.map((l) => ({
+				label: l.label,
+				value: l.value,
+			})),
+		},
+
+		// --- availability ---
 		{
 			name: "availabilityStatus",
 			type: "select",
@@ -85,6 +195,8 @@ const WajakaziProfiles: CollectionConfig = {
 			],
 			defaultValue: "available",
 		},
+
+		// --- verification ---
 		{
 			name: "verificationStatus",
 			type: "select",
@@ -119,9 +231,6 @@ const WajakaziProfiles: CollectionConfig = {
 			name: "verificationExpiry",
 			type: "date",
 			label: "Verification Expiry",
-			admin: {
-				description: "Date when verification expires and requires renewal.",
-			},
 		},
 		{
 			name: "verificationAttempts",
@@ -134,9 +243,6 @@ const WajakaziProfiles: CollectionConfig = {
 			name: "rejectionReason",
 			type: "textarea",
 			label: "Rejection Reason",
-			admin: {
-				description: "Reason provided when verification is rejected.",
-			},
 		},
 		{
 			name: "blacklistedAt",
@@ -162,6 +268,19 @@ const WajakaziProfiles: CollectionConfig = {
 			label: "Verification Documents",
 			relationTo: "vault",
 			hasMany: true,
+		},
+
+		// --- profile completeness ---
+		{
+			// computed server-side — never set directly by the user
+			name: "profileComplete",
+			type: "checkbox",
+			label: "Profile Complete",
+			defaultValue: false,
+			admin: {
+				readOnly: true,
+				description: "Set automatically when all required profile fields are populated.",
+			},
 		},
 	],
 };
