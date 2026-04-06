@@ -7,20 +7,29 @@ import { useEffect } from "react";
 const Page = () => {
 	const params = useSearchParams();
 	const roleParam = params.get("role");
+
+	// default to mjakazi (worker) when no role is specified in the URL
 	const role = roleParam === "mwajiri" ? "mwajiri" : "mjakazi";
 
-	// store the intended role in sessionStorage before clerk initiates
-	// the oauth redirect — the url parameters are lost during the
-	// google oauth round trip so this is the reliable fallback
 	useEffect(() => {
-		sessionStorage.setItem("intended_role", role);
-	}, [role]);
+		// only persist to sessionStorage when the role is explicitly in the URL —
+		// Clerk performs internal redirects during sign-up that re-render this page
+		// without the query param, which would overwrite a previously stored "mwajiri"
+		if (roleParam) {
+			sessionStorage.setItem("intended_role", role);
+		}
+	}, [roleParam, role]);
 
 	return (
+		// forceRedirectUrl bypasses Clerk's default post-sign-up destination so we
+		// can run our own role-assignment logic at /authenticating before routing the user
 		<SignUp
 			forceRedirectUrl="/authenticating"
+			// role is embedded in unsafeMetadata so it's available on the Clerk user
+			// object immediately after sign-up, before our webhook fires
 			unsafeMetadata={{ role }}
 			appearance={{
+				// override Clerk's default card shell so the form blends into the page layout
 				elements: {
 					rootBox: "w-full",
 					card: "shadow-none border-none bg-transparent p-0",
