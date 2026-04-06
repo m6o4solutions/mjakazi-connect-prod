@@ -12,36 +12,34 @@ const Page = () => {
 
 	useEffect(() => {
 		if (!isLoaded || !isSignedIn || !user) return;
-		// guard against double-invocation in strict mode or fast navigation
 		if (hasRun.current) return;
 		hasRun.current = true;
 
 		const processRole = async () => {
 			const currentRole = user.publicMetadata?.role as string | undefined;
 
-			// role already exists in publicMetadata — no action needed
+			// if role is already set in publicMetadata we are done
 			if (currentRole) {
 				router.replace("/post-auth");
 				return;
 			}
 
-			// sessionStorage holds the role the user selected before the oauth
-			// redirect, since query params are not preserved across the round trip
+			// read intended role from sessionStorage — set before oauth redirect
 			const intendedRole = sessionStorage.getItem("intended_role");
 			const role = intendedRole === "mwajiri" ? "mwajiri" : "mjakazi";
 
 			try {
-				// persist role to publicMetadata via the server-side endpoint
+				// promote role to publicMetadata server-side
 				await fetch("/apis/auth/assign-role", {
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify({ role }),
 				});
 
+				// clear sessionStorage after use
 				sessionStorage.removeItem("intended_role");
 			} catch {
-				// non-fatal — continue to post-auth; the clerk webhook will
-				// attempt role resolution when it fires
+				// proceed anyway — webhook will handle what it can
 			}
 
 			router.replace("/post-auth");
@@ -52,11 +50,15 @@ const Page = () => {
 
 	return (
 		<div className="bg-bg-subtle flex min-h-screen flex-col items-center justify-center gap-5 px-6">
-			<Loader2 className="text-primary size-8 animate-spin" />
+			<div className="text-center">
+				<p className="font-display text-foreground text-lg font-bold">Mjakazi Connect</p>
+				<div className="bg-accent mx-auto mt-3 h-px w-10" />
+			</div>
+			<Loader2 className="text-primary h-8 w-8 animate-spin" />
 			<div className="text-center">
 				<p className="text-foreground text-sm font-medium">Preparing your dashboard</p>
 				<p className="text-muted-foreground mt-1 text-xs">
-					This will only take a moment...
+					This will only take a moment.
 				</p>
 			</div>
 		</div>

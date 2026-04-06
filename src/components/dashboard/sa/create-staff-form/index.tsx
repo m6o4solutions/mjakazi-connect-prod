@@ -8,15 +8,18 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 const CreateStaffForm = () => {
+	// last name is optional — only first name and email are required to create an account
 	const [firstName, setFirstName] = useState("");
 	const [lastName, setLastName] = useState("");
 	const [email, setEmail] = useState("");
 	const [loading, setLoading] = useState(false);
+	// success is kept as separate state so the confirmation banner persists after the fields clear
 	const [success, setSuccess] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const router = useRouter();
 
 	const handleSubmit = async () => {
+		// guard against submitting with missing required fields before hitting the network
 		if (!firstName.trim() || !email.trim()) {
 			setError("First name and email are required.");
 			return;
@@ -38,16 +41,19 @@ const CreateStaffForm = () => {
 
 			if (res.ok) {
 				setSuccess(true);
+				// reset fields so the form is immediately ready for another entry
 				setFirstName("");
 				setLastName("");
 				setEmail("");
-				// triggers server component re-fetch
+				// revalidates the server component above so the staff list reflects the new account
 				router.refresh();
 			} else {
+				// surface the API's own error message when available, otherwise fall back to a generic one
 				const data = await res.json();
 				setError(data.error ?? "Failed to create staff account.");
 			}
 		} catch {
+			// covers fetch failures such as loss of connectivity
 			setError("Network error. Please try again.");
 		} finally {
 			setLoading(false);

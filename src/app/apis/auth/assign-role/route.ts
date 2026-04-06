@@ -1,12 +1,9 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-// public sign-up flow only supports these two roles
-// privileged roles (admin, sa) must be assigned outside this endpoint
 const VALID_PUBLIC_ROLES = ["mjakazi", "mwajiri"];
 
 const POST = async (req: Request) => {
-	// require an active clerk session — anonymous requests are rejected
 	const { userId } = await auth();
 
 	if (!userId) {
@@ -16,6 +13,8 @@ const POST = async (req: Request) => {
 	const body = await req.json();
 	const { role } = body;
 
+	// only mjakazi and mwajiri can be assigned via this endpoint
+	// admin and sa are assigned via clerk dashboard or sa dashboard only
 	if (!role || !VALID_PUBLIC_ROLES.includes(role)) {
 		return NextResponse.json({ error: "Invalid role" }, { status: 400 });
 	}
@@ -23,18 +22,15 @@ const POST = async (req: Request) => {
 	try {
 		const client = await clerkClient();
 
-		// fetch the current user to check whether a role is already persisted
+		// check if role is already set — avoid overwriting an existing role
 		const clerkUser = await client.users.getUser(userId);
 		const existingRole = clerkUser.publicMetadata?.role;
 
-		// roles are immutable once set — a second sign-up attempt should not
-		// be able to overwrite an existing role
 		if (existingRole) {
+			// role already assigned — do not overwrite
 			return NextResponse.json({ success: true, role: existingRole });
 		}
 
-		// write role to publicMetadata, which is server-writable only
-		// this prevents the client from spoofing a different role later
 		await client.users.updateUserMetadata(userId, {
 			publicMetadata: { role },
 		});

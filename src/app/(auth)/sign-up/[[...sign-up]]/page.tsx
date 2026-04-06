@@ -9,14 +9,12 @@ const Page = () => {
 	const roleParam = params.get("role");
 	const role = roleParam === "mwajiri" ? "mwajiri" : "mjakazi";
 
+	// store the intended role in sessionStorage before clerk initiates
+	// the oauth redirect — the url parameters are lost during the
+	// google oauth round trip so this is the reliable fallback
 	useEffect(() => {
-		// only write to sessionStorage when the role is explicitly present
-		// in the url — this prevents the default "mjakazi" from overwriting
-		// a previously stored "mwajiri" during clerk's internal redirects
-		if (roleParam) {
-			sessionStorage.setItem("intended_role", role);
-		}
-	}, [roleParam, role]);
+		sessionStorage.setItem("intended_role", role);
+	}, [role]);
 
 	return (
 		<SignUp
