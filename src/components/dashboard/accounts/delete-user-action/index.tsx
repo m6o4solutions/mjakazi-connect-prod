@@ -13,7 +13,6 @@ interface DeleteUserActionProps {
 
 const DeleteUserAction = ({ clerkId, role, displayName }: DeleteUserActionProps) => {
 	const router = useRouter();
-	// two-step confirmation state to prevent accidental deletion
 	const [confirming, setConfirming] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -23,8 +22,6 @@ const DeleteUserAction = ({ clerkId, role, displayName }: DeleteUserActionProps)
 		setError(null);
 
 		try {
-			// send both clerkId and role so the API can remove the user
-			// from the correct collection and revoke their Clerk account
 			const res = await fetch("/apis/admin/delete-user", {
 				method: "DELETE",
 				headers: { "Content-Type": "application/json" },
@@ -32,12 +29,10 @@ const DeleteUserAction = ({ clerkId, role, displayName }: DeleteUserActionProps)
 			});
 
 			if (res.ok) {
-				// refresh the server component to reflect the removed user
 				router.refresh();
 			} else {
 				const data = await res.json();
 				setError(data.error ?? "Deletion failed.");
-				// return to the initial delete button so the admin can retry
 				setConfirming(false);
 			}
 		} catch {
@@ -48,7 +43,6 @@ const DeleteUserAction = ({ clerkId, role, displayName }: DeleteUserActionProps)
 		}
 	};
 
-	// confirmation step: shows the user's name and requires an explicit confirm
 	if (confirming) {
 		return (
 			<div className="flex flex-col gap-1.5">
@@ -80,7 +74,6 @@ const DeleteUserAction = ({ clerkId, role, displayName }: DeleteUserActionProps)
 		);
 	}
 
-	// initial state: a single button that triggers the confirmation prompt
 	return (
 		<Button
 			size="sm"
