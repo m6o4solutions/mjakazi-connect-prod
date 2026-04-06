@@ -1,47 +1,46 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-// privileged roles (admin, sa) are intentionally excluded — they must be granted
-// through the Clerk dashboard or a trusted seed script to prevent self-escalation
+// only these two roles are allowed to be self-assigned by users during onboarding
 const VALID_PUBLIC_ROLES = ["mjakazi", "mwajiri"];
 
-// allows an authenticated user to self-assign one of the permitted public roles
-// called once after sign-up, before the user reaches the main application
 const POST = async (req: Request) => {
-	// reject unauthenticated callers before touching any external service
 	const { userId } = await auth();
 
+	// reject unauthenticated requests — a user must be signed in to claim a role
 	if (!userId) {
-		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
 	}
 
 	const body = await req.json();
 	const { role } = body;
 
-	// reject missing or out-of-allowlist roles early to avoid unnecessary Clerk calls
+	// guard against arbitrary role injection from the client
 	if (!role || !VALID_PUBLIC_ROLES.includes(role)) {
-		return NextResponse.json({ error: "Invalid role" }, { status: 400 });
+		return NextResponse.json({ error: "Invalid role." }, { status: 400 });
 	}
 
 	try {
 		const client = await clerkClient();
 
-		// read the current user before writing to avoid overwriting a role that was
-		// already committed — guards against duplicate requests and UI retries
 		const clerkUser = await client.users.getUser(userId);
 		const existingRole = clerkUser.publicMetadata?.role;
 
 		if (existingRole) {
-			// role already set — return it unchanged rather than re-writing
+			// role is already authoritative in publicMetadata — don't overwrite it,
+			// but still clear any stale role value left in unsafeMetadata from sign-up
+			await client.users.updateUserMetadata(userId, {
+				unsafeMetadata: { role: null },
+			});
 			return NextResponse.json({ success: true, role: existingRole });
 		}
 
-		// promote the role to publicMetadata (server-writable only) and wipe
-		// unsafeMetadata so the webhook handler uses publicMetadata as the single
-		// authoritative source when creating the internal account and domain profile
+		// promote the chosen role to publicMetadata (server-controlled, trusted)
+		// and explicitly null out the unsafeMetadata role so it can't be reused —
+		// passing an empty object would leave the key intact in Clerk
 		await client.users.updateUserMetadata(userId, {
 			publicMetadata: { role },
-			unsafeMetadata: {},
+			unsafeMetadata: { role: null },
 		});
 
 		return NextResponse.json({ success: true, role });
