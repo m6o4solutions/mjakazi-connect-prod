@@ -12,7 +12,6 @@ interface ApproveActionProps {
 const ApproveAction = ({ profileId }: ApproveActionProps) => {
 	const router = useRouter();
 	const [loading, setLoading] = useState(false);
-	// tracks whether approval has already succeeded to swap in a confirmation state
 	const [done, setDone] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
@@ -21,7 +20,6 @@ const ApproveAction = ({ profileId }: ApproveActionProps) => {
 		setError(null);
 
 		try {
-			// hits the verification approval endpoint with the target profile id
 			const res = await fetch("/apis/verification/approve", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
@@ -29,7 +27,6 @@ const ApproveAction = ({ profileId }: ApproveActionProps) => {
 			});
 
 			if (res.ok) {
-				// mark as done and revalidate the current route so the table reflects the change
 				setDone(true);
 				router.refresh();
 			} else {
@@ -43,7 +40,6 @@ const ApproveAction = ({ profileId }: ApproveActionProps) => {
 		}
 	};
 
-	// once approved, replace the button with a lightweight confirmation indicator
 	if (done) {
 		return (
 			<div className="flex items-center gap-1.5">
@@ -64,7 +60,6 @@ const ApproveAction = ({ profileId }: ApproveActionProps) => {
 				<CheckCircle2 className="size-3.5" />
 				{loading ? "Approving..." : "Approve"}
 			</Button>
-			{/* surface any server-side or network error inline beneath the button */}
 			{error && <p className="text-destructive text-xs">{error}</p>}
 		</div>
 	);
