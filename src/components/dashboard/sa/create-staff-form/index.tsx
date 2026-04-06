@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CheckCircle2, UserPlus } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 const CreateStaffForm = () => {
@@ -13,6 +14,7 @@ const CreateStaffForm = () => {
 	const [loading, setLoading] = useState(false);
 	const [success, setSuccess] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const router = useRouter();
 
 	const handleSubmit = async () => {
 		if (!firstName.trim() || !email.trim()) {
@@ -39,6 +41,8 @@ const CreateStaffForm = () => {
 				setFirstName("");
 				setLastName("");
 				setEmail("");
+				// triggers server component re-fetch
+				router.refresh();
 			} else {
 				const data = await res.json();
 				setError(data.error ?? "Failed to create staff account.");
