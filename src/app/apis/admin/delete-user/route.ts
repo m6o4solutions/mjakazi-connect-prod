@@ -5,7 +5,6 @@ import { NextResponse } from "next/server";
 import { getPayload } from "payload";
 
 const DELETE = async (req: Request) => {
-	// ensure the caller is authenticated
 	const { userId } = await auth();
 
 	if (!userId) {
@@ -19,7 +18,6 @@ const DELETE = async (req: Request) => {
 		return NextResponse.json({ error: "Identity not found." }, { status: 404 });
 	}
 
-	// only admins and super-admins may use this endpoint
 	if (identity.role !== "admin" && identity.role !== "sa") {
 		return NextResponse.json({ error: "Forbidden." }, { status: 403 });
 	}
@@ -42,7 +40,7 @@ const DELETE = async (req: Request) => {
 		);
 	}
 
-	// staff accounts require elevated access to delete; block here to avoid accidental removal
+	// prevent admins from deleting other admins or sa accounts
 	if (role === "admin" || role === "sa") {
 		return NextResponse.json(
 			{ error: "Staff accounts must be managed from the SA dashboard." },
@@ -51,7 +49,7 @@ const DELETE = async (req: Request) => {
 	}
 
 	try {
-		// look up the account record so we can reach associated profile data
+		// find the account record to get the profile id
 		const accountQuery = await payload.find({
 			collection: "accounts",
 			where: { clerkId: { equals: clerkId } },
@@ -77,7 +75,7 @@ const DELETE = async (req: Request) => {
 			if (profileQuery.docs.length > 0) {
 				const profile = profileQuery.docs[0];
 
-				// remove all vault documents and their associated s3 objects before deleting the profile
+				// delete vault documents and their s3 objects
 				const vaultDocs = await payload.find({
 					collection: "vault",
 					where: { profile: { equals: profile.id } },
@@ -95,7 +93,7 @@ const DELETE = async (req: Request) => {
 					),
 				);
 
-				// clean up the profile photo from media storage if one was uploaded
+				// delete profile photo from media if present
 				if (profile.photo) {
 					const photoId =
 						typeof profile.photo === "object" ? (profile.photo as any).id : profile.photo;
@@ -107,7 +105,7 @@ const DELETE = async (req: Request) => {
 					});
 				}
 
-				// remove the profile record itself
+				// delete the profile record
 				await payload.delete({
 					collection: "wajakaziprofiles",
 					id: profile.id,
@@ -134,8 +132,8 @@ const DELETE = async (req: Request) => {
 			}
 		}
 
-		// deleting from clerk fires the user.deleted webhook, which in turn removes
-		// the accounts record through the deleteClerkUser handler — no manual cleanup needed here
+		// delete from clerk — triggers user.deleted webhook
+		// which removes the accounts record via deleteClerkUser
 		const client = await clerkClient();
 		await client.users.deleteUser(clerkId);
 
