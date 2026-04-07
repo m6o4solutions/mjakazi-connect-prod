@@ -107,12 +107,12 @@ const PendingVerificationTable = ({ profiles }: PendingVerificationTableProps) =
 										{profile.documents.map((doc) => (
 											<a
 												key={doc.id}
-												href={doc.url}
+												href={`/apis/admin/vault-file?id=${doc.id}`}
 												target="_blank"
 												rel="noopener noreferrer"
 												className="border-border bg-muted/40 hover:bg-muted text-foreground inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors"
 											>
-												<FileText className="h-3 w-3" />
+												<FileText className="size-3" />
 												{documentTypeLabels[doc.documentType] ?? doc.documentType}
 											</a>
 										))}
