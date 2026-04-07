@@ -1,10 +1,12 @@
+import { generateUniqueFilename } from "@/lib/generate-unique-filename";
 import { resolveIdentity } from "@/services/identity.service";
 import { auth } from "@clerk/nextjs/server";
 import config from "@payload-config";
 import { NextResponse } from "next/server";
 import { getPayload } from "payload";
 
-// restrict uploads to these verification document categories
+// defines the accepted verification document categories; anything outside
+// this set is rejected to prevent arbitrary data being stored in the vault
 const VALID_DOCUMENT_TYPES = [
 	"national_id",
 	"good_conduct",
@@ -18,7 +20,8 @@ const isValidDocumentType = (value: string): value is DocumentType => {
 	return VALID_DOCUMENT_TYPES.includes(value as DocumentType);
 };
 
-// fallback to extension-based mime detection when the browser omits file.type
+// some browsers and http clients omit file.type; fall back to the extension
+// so payload always receives a usable mime type
 const resolveMimeType = (file: File): string => {
 	if (file.type) return file.type;
 
@@ -31,20 +34,10 @@ const resolveMimeType = (file: File): string => {
 		pdf: "application/pdf",
 	};
 
+	// octet-stream is the safest generic fallback when the type is truly unknown
 	return mimeMap[ext ?? ""] ?? "application/octet-stream";
 };
 
-// random suffix prevents storage collisions when different users upload same-named files
-const generateUniqueFilename = (originalName: string): string => {
-	const ext = originalName.includes(".")
-		? originalName.slice(originalName.lastIndexOf("."))
-		: "";
-	const base = originalName.slice(0, originalName.lastIndexOf(".")) || originalName;
-	const suffix = Math.random().toString(36).slice(2, 8);
-	return `${base}-${suffix}${ext}`;
-};
-
-// handles verification document uploads for mjakazi profiles
 const POST = async (req: Request) => {
 	const { userId } = await auth();
 
@@ -53,19 +46,18 @@ const POST = async (req: Request) => {
 	}
 
 	const payload = await getPayload({ config });
-
-	// look up the clerk user's identity to get profile and role context
 	const identity = await resolveIdentity(payload, userId);
 
 	if (!identity) {
 		return NextResponse.json({ error: "Identity not found" }, { status: 404 });
 	}
 
-	// only mjakazi role users can upload verification documents
+	// verification documents are only relevant to mjakazi workers
 	if (identity.role !== "mjakazi") {
 		return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 	}
 
+	// a profile must already exist before documents can be attached to it
 	if (!identity.wajakaziProfileId) {
 		return NextResponse.json({ error: "Profile not found" }, { status: 404 });
 	}
@@ -85,7 +77,8 @@ const POST = async (req: Request) => {
 		);
 	}
 
-	// enforce one document per type per profile so users replace rather than duplicate
+	// each document type may only appear once per profile; uploading again
+	// requires the client to delete the existing entry first
 	const existingDoc = await payload.find({
 		collection: "vault",
 		where: {
