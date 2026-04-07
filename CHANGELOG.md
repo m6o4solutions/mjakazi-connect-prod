@@ -1,9 +1,9 @@
 # [1.20.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.19.0...v1.20.0) (2026-04-07)
 
-
 ### Features
 
-* **dashboard:** add page-level metadata titles across all dashboard routes ([6eab212](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/6eab2124c1f12ba9678019be51b0e39337c4db98))
+- **dashboard:** add page-level metadata titles across all dashboard routes
+  ([6eab212](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/6eab2124c1f12ba9678019be51b0e39337c4db98))
 
 # [1.19.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.18.0...v1.19.0) (2026-04-07)
 
