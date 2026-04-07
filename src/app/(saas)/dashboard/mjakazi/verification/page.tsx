@@ -6,8 +6,11 @@ import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { resolveIdentity } from "@/services/identity.service";
 import { auth } from "@clerk/nextjs/server";
 import config from "@payload-config";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getPayload } from "payload";
+
+export const metadata: Metadata = { title: "Verification" };
 
 // env flag lets developers skip the payment step locally without code changes
 const isPaymentBypassEnabled = process.env.ENABLE_PAYMENT_BYPASS === "true";

@@ -20,22 +20,11 @@ const Media: CollectionConfig = {
 	labels: { singular: "Media", plural: "Media" },
 	// ensures all assets have descriptive text for accessibility and seo
 	fields: [{ name: "alt", type: "text", label: "Alt Text", required: true }],
-	// enables file uploads and defines automated image transformations
+	// enables file uploads
 	upload: {
-		adminThumbnail: "thumbnail",
+		adminThumbnail: "filename",
 		focalPoint: true,
-		// generates multiple responsive image sizes and optimized crops
-		imageSizes: [
-			{ name: "thumbnail", width: 300 },
-			{ name: "square", width: 500, height: 500 },
-			{ name: "small", width: 600 },
-			{ name: "medium", width: 900 },
-			{ name: "large", width: 1400 },
-			{ name: "xlarge", width: 1920 },
-			{ name: "og", width: 1200, height: 630, crop: "center" },
-		],
-		// limits accepted file formats to images and documents
-		mimeTypes: ["image/*", "application/pdf"],
+		mimeTypes: ["application/pdf", "image/jpeg", "image/jpg", "image/png", "image/webp"],
 	},
 };
 

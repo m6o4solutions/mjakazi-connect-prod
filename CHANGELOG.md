@@ -1,28 +1,43 @@
 # [1.19.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.18.0...v1.19.0) (2026-04-07)
 
-
 ### Bug Fixes
 
-* **auth:** clear unsafeMetadata on role assignment and purge orphaned profiles ([581823f](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/581823fbab3846af31234c21fd25a5cf03c62d8a))
-* **sa:** refresh router after successful staff creation to sync server data ([f6c86b7](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/f6c86b74cd3f243f129191382caf5dca45da7d37))
-* **sign-up:** prevent role override during Clerk's internal sign-up redirects ([ed762da](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/ed762da1cd8e55f0371e668dd5dd5af1eb8d71fd))
-* **verification/uploads:** support atomic document replacement via existingDocumentId ([f98407a](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/f98407a7f60cfcf7691fececf99b6ff86ec50bb4))
-* **verification:** import shared filename utility and expand inline comments ([a56d8da](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/a56d8da8f3b17d9928ee49fe8c95eaa73babec8f))
-
+- **auth:** clear unsafeMetadata on role assignment and purge orphaned profiles
+  ([581823f](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/581823fbab3846af31234c21fd25a5cf03c62d8a))
+- **sa:** refresh router after successful staff creation to sync server data
+  ([f6c86b7](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/f6c86b74cd3f243f129191382caf5dca45da7d37))
+- **sign-up:** prevent role override during Clerk's internal sign-up redirects
+  ([ed762da](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/ed762da1cd8e55f0371e668dd5dd5af1eb8d71fd))
+- **verification/uploads:** support atomic document replacement via existingDocumentId
+  ([f98407a](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/f98407a7f60cfcf7691fececf99b6ff86ec50bb4))
+- **verification:** import shared filename utility and expand inline comments
+  ([a56d8da](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/a56d8da8f3b17d9928ee49fe8c95eaa73babec8f))
 
 ### Features
 
-* **accounts:** add accounts admin dashboard page ([b8e20ff](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/b8e20ff428d48a0ff3f6dbd05d24395b40dcbee6))
-* **accounts:** add delete-user-action component and clean up approve-action comments ([a7a1456](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/a7a1456089bbd213ff5b189099753bceeaa79acb))
-* **accounts:** add waajiri-accounts-table component ([87aa1be](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/87aa1be6045e1226ef6602b613e549fa3449a048))
-* **accounts:** introduce wajakazi-accounts-table component and strip inline comments from delete-user-action ([d984a1f](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/d984a1fea64c8f6fa23f50714b9c334c776ef2f4))
-* **admin:** add delete-user API endpoint and clean up staff form comments ([ee3f84f](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/ee3f84fd2b6ea728cb275ec5f43868c46db56316))
-* **admin:** add vault file API endpoint and update document links to use presigned URLs ([6fcf988](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/6fcf988165ad66f33ed8dca57b665ea6a2ef0837))
-* **admin:** initialize waajiri accounts route under admin dashboard ([a64f93c](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/a64f93cc441dc64ce731d15c26e83aaa98763b87))
-* **document-upload-card:** add document replacement flow with file preview support ([20f415f](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/20f415fbab11893ccfc5d14d4ff5768805302513))
-* **profile:** add photo replacement with cleanup and fix date input formatting ([1ab0936](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/1ab093692bb329623637a353c35aa010ad6d41b8))
-* **sa:** add pending verification badge and verifications route to super-admin dashboard ([bb67251](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/bb6725108dcb6883c6cee0bbe74de7f5eceb569c))
-* **sa:** add waajiri and wajakazi account route directories under super-admin accounts ([96dbbbc](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/96dbbbcc460528dcd189caa0606eacc5b77f4d3b))
+- **accounts:** add accounts admin dashboard page
+  ([b8e20ff](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/b8e20ff428d48a0ff3f6dbd05d24395b40dcbee6))
+- **accounts:** add delete-user-action component and clean up approve-action comments
+  ([a7a1456](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/a7a1456089bbd213ff5b189099753bceeaa79acb))
+- **accounts:** add waajiri-accounts-table component
+  ([87aa1be](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/87aa1be6045e1226ef6602b613e549fa3449a048))
+- **accounts:** introduce wajakazi-accounts-table component and strip inline comments from
+  delete-user-action
+  ([d984a1f](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/d984a1fea64c8f6fa23f50714b9c334c776ef2f4))
+- **admin:** add delete-user API endpoint and clean up staff form comments
+  ([ee3f84f](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/ee3f84fd2b6ea728cb275ec5f43868c46db56316))
+- **admin:** add vault file API endpoint and update document links to use presigned URLs
+  ([6fcf988](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/6fcf988165ad66f33ed8dca57b665ea6a2ef0837))
+- **admin:** initialize waajiri accounts route under admin dashboard
+  ([a64f93c](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/a64f93cc441dc64ce731d15c26e83aaa98763b87))
+- **document-upload-card:** add document replacement flow with file preview support
+  ([20f415f](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/20f415fbab11893ccfc5d14d4ff5768805302513))
+- **profile:** add photo replacement with cleanup and fix date input formatting
+  ([1ab0936](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/1ab093692bb329623637a353c35aa010ad6d41b8))
+- **sa:** add pending verification badge and verifications route to super-admin dashboard
+  ([bb67251](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/bb6725108dcb6883c6cee0bbe74de7f5eceb569c))
+- **sa:** add waajiri and wajakazi account route directories under super-admin accounts
+  ([96dbbbc](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/96dbbbcc460528dcd189caa0606eacc5b77f4d3b))
 
 # [1.18.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.17.0...v1.18.0) (2026-04-05)
 

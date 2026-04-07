@@ -3,8 +3,11 @@ import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { resolveIdentity } from "@/services/identity.service";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import config from "@payload-config";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getPayload } from "payload";
+
+export const metadata: Metadata = { title: "Settings" };
 
 const Page = async () => {
 	const { userId } = await auth();
