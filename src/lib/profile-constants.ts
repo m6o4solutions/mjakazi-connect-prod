@@ -75,8 +75,8 @@ export const WORK_PREFERENCE_OPTIONS = [
 
 export const EDUCATION_LEVEL_OPTIONS = [
 	{ label: "Primary School", value: "primary" },
-	{ label: "Secondary School (KCSE)", value: "secondary" },
-	{ label: "Certificate", value: "certificate" },
+	{ label: "Secondary School", value: "secondary" },
+	{ label: "Post Secondary Certificate", value: "certificate" },
 	{ label: "Diploma", value: "diploma" },
 	{ label: "Bachelor's Degree", value: "degree" },
 	{ label: "Postgraduate", value: "postgraduate" },
