@@ -66,6 +66,10 @@ const POST = async (req: Request) => {
 	const file = formData.get("file") as File;
 	const documentType = formData.get("documentType") as string;
 
+	// when the client is replacing an existing document it passes its vault id
+	// so the server can delete it before creating the new one
+	const existingDocumentId = formData.get("existingDocumentId") as string | null;
+
 	if (!file) {
 		return NextResponse.json({ error: "File missing" }, { status: 400 });
 	}
@@ -77,25 +81,41 @@ const POST = async (req: Request) => {
 		);
 	}
 
-	// each document type may only appear once per profile; uploading again
-	// requires the client to delete the existing entry first
-	const existingDoc = await payload.find({
-		collection: "vault",
-		where: {
-			and: [
-				{ profile: { equals: identity.wajakaziProfileId } },
-				{ documentType: { equals: documentType } },
-			],
-		},
-		overrideAccess: true,
-		limit: 1,
-	});
+	if (existingDocumentId) {
+		// replacing an existing document — delete the old vault record and
+		// its s3 object before creating the new one
+		try {
+			await payload.delete({
+				collection: "vault",
+				id: existingDocumentId,
+				overrideAccess: true,
+			});
+		} catch {
+			// deletion failure should not block the new upload;
+			// log and continue so the user is not left without a document
+			console.warn("Failed to delete existing vault document:", existingDocumentId);
+		}
+	} else {
+		// fresh upload — enforce one document per type per profile
+		// to prevent accidental duplicates on a new profile
+		const existingDoc = await payload.find({
+			collection: "vault",
+			where: {
+				and: [
+					{ profile: { equals: identity.wajakaziProfileId } },
+					{ documentType: { equals: documentType } },
+				],
+			},
+			overrideAccess: true,
+			limit: 1,
+		});
 
-	if (existingDoc.totalDocs >= 1) {
-		return NextResponse.json(
-			{ error: "A document of this type has already been uploaded." },
-			{ status: 400 },
-		);
+		if (existingDoc.totalDocs >= 1) {
+			return NextResponse.json(
+				{ error: "A document of this type has already been uploaded." },
+				{ status: 400 },
+			);
+		}
 	}
 
 	const mimeType = resolveMimeType(file);
