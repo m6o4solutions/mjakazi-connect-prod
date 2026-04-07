@@ -13,8 +13,7 @@ const getImageURL = (image?: Media | Config["db"]["defaultIDType"] | null) => {
 
 	// if a media object is provided, use its og or base url
 	if (image && typeof image === "object" && "url" in image) {
-		const ogUrl = image.sizes?.og?.url;
-		url = ogUrl ? serverUrl + ogUrl : serverUrl + image.url;
+		url = serverUrl + image.url;
 	}
 
 	return url;
