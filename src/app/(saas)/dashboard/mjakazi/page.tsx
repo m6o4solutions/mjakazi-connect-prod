@@ -6,9 +6,12 @@ import { resolveIdentity } from "@/services/identity.service";
 import { auth } from "@clerk/nextjs/server";
 import config from "@payload-config";
 import { ArrowRight } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getPayload } from "payload";
+
+export const metadata: Metadata = { title: "Dashboard" };
 
 const INCOMPLETE_STATUSES = [
 	"draft",

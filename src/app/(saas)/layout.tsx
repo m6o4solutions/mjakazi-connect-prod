@@ -6,6 +6,10 @@ import "@/styles/globals.css";
 
 // define shared metadata and branding for saas-related pages
 export const metadata: Metadata = {
+	title: {
+		template: "%s | Mjakazi Connect",
+		default: "Mjakazi Connect",
+	},
 	icons: {
 		icon: "/favicon.svg",
 		shortcut: "/favicon.svg",
