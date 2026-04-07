@@ -9,8 +9,11 @@ import config from "@payload-config";
 import { redirect } from "next/navigation";
 import { getPayload } from "payload";
 
+// env flag lets developers skip the payment step locally without code changes
 const isPaymentBypassEnabled = process.env.ENABLE_PAYMENT_BYPASS === "true";
 
+// once a submission is in review or beyond, the legal name must not change
+// as it is tied to the identity documents being assessed
 const LOCKED_STATUSES = ["pending_review", "verified", "blacklisted", "deactivated"];
 
 const Page = async () => {
@@ -23,9 +26,11 @@ const Page = async () => {
 
 	if (!identity || identity.role !== "mjakazi") redirect("/sign-in");
 
+	// default to "draft" so the page renders correctly before a status is set
 	const verificationStatus = identity.verificationStatus ?? "draft";
 
-	// fetch full profile to read legal name fields
+	// profile holds legal name fields which are managed separately from the
+	// clerk account; fetch it to pre-populate the legal name form
 	const profileQuery = await payload.find({
 		collection: "wajakaziprofiles",
 		where: { account: { equals: identity.accountId } },
@@ -38,7 +43,8 @@ const Page = async () => {
 	const legalLastName = profile?.legalLastName ?? null;
 	const isNameLocked = LOCKED_STATUSES.includes(verificationStatus);
 
-	// query vault to determine which required documents have been uploaded
+	// vault documents are fetched server-side so upload cards know which types
+	// are already present and hold the ids needed for the replace flow
 	const existingDocs = await payload.find({
 		collection: "vault",
 		where: { profile: { equals: identity.wajakaziProfileId } },
@@ -49,8 +55,18 @@ const Page = async () => {
 	const uploadedTypes = existingDocs.docs.map((doc: any) => doc.documentType);
 	const hasNationalId = uploadedTypes.includes("national_id");
 	const hasGoodConduct = uploadedTypes.includes("good_conduct");
+	// both mandatory documents must be present before submission is allowed
 	const bothUploaded = hasNationalId && hasGoodConduct;
 
+	// ids are passed down so the replace flow can target the correct vault record
+	const nationalIdDoc = existingDocs.docs.find(
+		(doc: any) => doc.documentType === "national_id",
+	);
+	const goodConductDoc = existingDocs.docs.find(
+		(doc: any) => doc.documentType === "good_conduct",
+	);
+
+	// bypass card is only relevant while payment is pending and the flag is on
 	const showPaymentBypass =
 		isPaymentBypassEnabled && verificationStatus === "pending_payment";
 
@@ -66,21 +82,22 @@ const Page = async () => {
 						isLocked={isNameLocked}
 					/>
 
-					{/* dev payment bypass — only renders in development */}
+					{/* only rendered locally when the payment bypass flag is enabled */}
 					{showPaymentBypass && <DevPaymentBypassCard />}
 				</div>
 
-				{/* document upload row */}
 				<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
 					<DocumentUploadCard
 						documentType="national_id"
 						label="National ID"
 						alreadyUploaded={hasNationalId}
+						existingDocumentId={nationalIdDoc?.id ?? null}
 					/>
 					<DocumentUploadCard
 						documentType="good_conduct"
 						label="Certificate of Good Conduct"
 						alreadyUploaded={hasGoodConduct}
+						existingDocumentId={goodConductDoc?.id ?? null}
 					/>
 					<SubmitVerificationCard
 						verificationStatus={verificationStatus}

@@ -1,42 +1,46 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-// public sign-up flow only supports these two roles
-// privileged roles (admin, sa) must be assigned outside this endpoint
+// only these two roles are allowed to be self-assigned by users during onboarding
 const VALID_PUBLIC_ROLES = ["mjakazi", "mwajiri"];
 
 const POST = async (req: Request) => {
-	// require an active clerk session — anonymous requests are rejected
 	const { userId } = await auth();
 
+	// reject unauthenticated requests — a user must be signed in to claim a role
 	if (!userId) {
-		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
 	}
 
 	const body = await req.json();
 	const { role } = body;
 
+	// guard against arbitrary role injection from the client
 	if (!role || !VALID_PUBLIC_ROLES.includes(role)) {
-		return NextResponse.json({ error: "Invalid role" }, { status: 400 });
+		return NextResponse.json({ error: "Invalid role." }, { status: 400 });
 	}
 
 	try {
 		const client = await clerkClient();
 
-		// fetch the current user to check whether a role is already persisted
 		const clerkUser = await client.users.getUser(userId);
 		const existingRole = clerkUser.publicMetadata?.role;
 
-		// roles are immutable once set — a second sign-up attempt should not
-		// be able to overwrite an existing role
 		if (existingRole) {
+			// role is already authoritative in publicMetadata — don't overwrite it,
+			// but still clear any stale role value left in unsafeMetadata from sign-up
+			await client.users.updateUserMetadata(userId, {
+				unsafeMetadata: { role: null },
+			});
 			return NextResponse.json({ success: true, role: existingRole });
 		}
 
-		// write role to publicMetadata, which is server-writable only
-		// this prevents the client from spoofing a different role later
+		// promote the chosen role to publicMetadata (server-controlled, trusted)
+		// and explicitly null out the unsafeMetadata role so it can't be reused —
+		// passing an empty object would leave the key intact in Clerk
 		await client.users.updateUserMetadata(userId, {
 			publicMetadata: { role },
+			unsafeMetadata: { role: null },
 		});
 
 		return NextResponse.json({ success: true, role });

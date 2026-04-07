@@ -30,8 +30,9 @@ interface IdentityContext {
 	waajiriProfileId?: string;
 }
 
-// builds a unified identity context for a given clerk user, combining their
-// account record with any role-specific profile data needed by the application
+// assembles a single identity context from the account and its linked domain profile
+// used server-side wherever role, profile id, and verification/subscription state
+// are all needed together — avoids repeating the same multi-collection lookup
 const resolveIdentity = async (
 	payload: Payload,
 	clerkId: string,
@@ -51,8 +52,7 @@ const resolveIdentity = async (
 		role: account.role,
 	};
 
-	// attach worker profile id and verification status so callers can gate
-	// access to features that require an approved worker account
+	// verificationStatus controls which paid features a worker can access
 	if (account.role === "mjakazi") {
 		const profile = await payload.find({
 			collection: "wajakaziprofiles",
@@ -67,8 +67,7 @@ const resolveIdentity = async (
 		}
 	}
 
-	// attach employer profile id; subscription state will be added in phase 5
-	// when the subscriptions collection is implemented
+	// subscriptionState is reserved for Phase 5 when employer billing is introduced
 	if (account.role === "mwajiri") {
 		const profile = await payload.find({
 			collection: "waajiriprofiles",
@@ -84,26 +83,66 @@ const resolveIdentity = async (
 	return identity;
 };
 
-// privileged roles cannot be requested through the public sign-up flow;
-// they must be set directly in the clerk dashboard or via a seed script
+// these roles must be granted through a trusted server path — never accepted from user input
 const PRIVILEGED_ROLES: ClerkRole[] = ["admin", "sa"];
 
-// called by the clerk webhook on user.created and user.updated events
-// writes clerk identity data into the internal accounts collection and
-// ensures role-specific profiles are provisioned
+// removes the domain profile that was created under a stale role
+// necessary because user.created fires before assign-role promotes the role to publicMetadata,
+// so the webhook may create a profile under the unsafeMetadata role; when user.updated arrives
+// with the correct publicMetadata role, this cleans up the profile from the first pass
+const cleanupOrphanedProfile = async (
+	payload: Payload,
+	accountId: string,
+	orphanedRole: ClerkRole,
+) => {
+	if (orphanedRole === "mjakazi") {
+		const orphaned = await payload.find({
+			collection: "wajakaziprofiles",
+			where: { account: { equals: accountId } },
+			overrideAccess: true,
+			limit: 1,
+		});
+
+		if (orphaned.docs.length > 0) {
+			await payload.delete({
+				collection: "wajakaziprofiles",
+				id: orphaned.docs[0].id,
+				overrideAccess: true,
+			});
+		}
+	}
+
+	if (orphanedRole === "mwajiri") {
+		const orphaned = await payload.find({
+			collection: "waajiriprofiles",
+			where: { account: { equals: accountId } },
+			overrideAccess: true,
+			limit: 1,
+		});
+
+		if (orphaned.docs.length > 0) {
+			await payload.delete({
+				collection: "waajiriprofiles",
+				id: orphaned.docs[0].id,
+				overrideAccess: true,
+			});
+		}
+	}
+};
+
+// entry point for the Clerk user.created and user.updated webhook events
+// upserts the internal account and keeps the linked domain profile in sync
 const syncClerkUser = async (payload: Payload, user: ClerkUser) => {
 	const clerkId = user.id;
 	const email = user.email_addresses?.[0]?.email_address ?? null;
 	const firstName = user.first_name ?? "";
 	const lastName = user.last_name ?? "";
 
-	// publicMetadata is written server-side only; unsafeMetadata is writable
-	// by the client, so privileged roles must only come from publicMetadata
 	const roleFromPublic = user.public_metadata?.role as ClerkRole | undefined;
 	const roleFromUnsafe = user.unsafe_metadata?.role as ClerkRole | undefined;
 
-	// a privileged role in unsafeMetadata without a matching publicMetadata entry
-	// indicates a client-side tampering attempt — reject it outright
+	// unsafeMetadata is user-writable; if it carries a privileged role without a
+	// matching publicMetadata entry it means the client tampered with the payload
 	if (roleFromUnsafe && PRIVILEGED_ROLES.includes(roleFromUnsafe) && !roleFromPublic) {
 		console.error("Privilege escalation attempt blocked:", {
 			clerkId,
@@ -112,8 +151,9 @@ const syncClerkUser = async (payload: Payload, user: ClerkUser) => {
 		throw new Error("Invalid Clerk user payload.");
 	}
 
-	// prefer the server-authoritative publicMetadata; fall back to unsafeMetadata
-	// only for non-privileged roles set during the sign-up flow
+	// publicMetadata is the authoritative source (server-writable only); unsafeMetadata
+	// is the temporary fallback during the window between user.created firing and
+	// the assign-role endpoint promoting the role to publicMetadata via user.updated
 	const role = roleFromPublic ?? roleFromUnsafe ?? null;
 
 	if (!email || !role) {
@@ -127,6 +167,17 @@ const syncClerkUser = async (payload: Payload, user: ClerkUser) => {
 		throw new Error("Invalid Clerk user payload.");
 	}
 
+	// fetch the existing account up front so we can detect a role change later
+	const existingQuery = await payload.find({
+		collection: "accounts",
+		where: { clerkId: { equals: clerkId } },
+		overrideAccess: true,
+		limit: 1,
+	});
+
+	const existingAccount = existingQuery.docs[0] ?? null;
+	const previousRole = existingAccount?.role ?? null;
+
 	let account;
 
 	try {
@@ -135,27 +186,27 @@ const syncClerkUser = async (payload: Payload, user: ClerkUser) => {
 			data: { clerkId, email, firstName, lastName, role },
 		});
 	} catch (error: any) {
-		// create failed — likely a duplicate; attempt an upsert instead
-		const existing = await payload.find({
-			collection: "accounts",
-			where: { clerkId: { equals: clerkId } },
-			limit: 1,
-		});
-
-		if (existing.docs.length === 0) throw error;
+		// duplicate key means the account exists — fall back to an update
+		if (!existingAccount) throw error;
 
 		account = await payload.update({
 			collection: "accounts",
-			id: existing.docs[0].id,
+			id: existingAccount.id,
 			data: { email, firstName, lastName, role },
 		});
+	}
+
+	// if the role changed (sign-up race resolved), remove the profile that was
+	// created under the old role so the correct one can be created fresh
+	if (previousRole && previousRole !== role) {
+		await cleanupOrphanedProfile(payload, account.id, previousRole);
 	}
 
 	await ensureDomainProfile(payload, account.id, role, firstName, lastName);
 };
 
-// idempotently provisions the role-specific profile record for a given account
-// safe to call multiple times — duplicate errors are swallowed intentionally
+// creates the role-specific domain profile if one does not already exist
+// idempotent — safe to call on every sync; exits early if the profile is already present
 const ensureDomainProfile = async (
 	payload: Payload,
 	accountId: string,
@@ -163,10 +214,18 @@ const ensureDomainProfile = async (
 	firstName?: string,
 	lastName?: string,
 ) => {
-	// construct the display name from clerk data; placeholder used if both are absent
 	const derivedName = [firstName, lastName].filter(Boolean).join(" ");
 
 	if (role === "mjakazi") {
+		const existing = await payload.find({
+			collection: "wajakaziprofiles",
+			where: { account: { equals: accountId } },
+			overrideAccess: true,
+			limit: 1,
+		});
+
+		if (existing.docs.length > 0) return;
+
 		try {
 			await payload.create({
 				collection: "wajakaziprofiles",
@@ -174,17 +233,27 @@ const ensureDomainProfile = async (
 				data: {
 					account: accountId,
 					displayName: derivedName || "New Worker",
-					// new workers start in draft until they complete verification
 					verificationStatus: "draft",
 					availabilityStatus: "available",
 				},
 			});
 		} catch (error: any) {
+			// two concurrent webhook deliveries can race to create the same profile —
+			// swallow the duplicate error since the profile already exists
 			if (!error?.message?.includes("duplicate")) throw error;
 		}
 	}
 
 	if (role === "mwajiri") {
+		const existing = await payload.find({
+			collection: "waajiriprofiles",
+			where: { account: { equals: accountId } },
+			overrideAccess: true,
+			limit: 1,
+		});
+
+		if (existing.docs.length > 0) return;
+
 		try {
 			await payload.create({
 				collection: "waajiriprofiles",
@@ -192,7 +261,6 @@ const ensureDomainProfile = async (
 				data: {
 					account: accountId,
 					displayName: derivedName || "New Employer",
-					// employer profiles are active immediately upon creation
 					moderationStatus: "active",
 				},
 			});
@@ -201,10 +269,11 @@ const ensureDomainProfile = async (
 		}
 	}
 
-	// admin and sa accounts operate without domain profiles
+	// admin and sa are platform-level roles with no associated domain profile
 };
 
-// removes an account and associated data when a user is deleted from Clerk
+// handles the Clerk user.deleted webhook event
+// deletes the internal account; associated domain profiles are cascaded by collection hooks
 const deleteClerkUser = async (payload: Payload, clerkId: string) => {
 	const existing = await payload.find({
 		collection: "accounts",
