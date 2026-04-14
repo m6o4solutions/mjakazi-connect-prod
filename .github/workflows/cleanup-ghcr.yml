@@ -25,7 +25,7 @@ jobs:
         uses: snok/container-retention-policy@v3.0.1
         with:
           account: user
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_PAT }}
           image-names: ${{ steps.image.outputs.name }}
           cut-off: 0
           keep-n-most-recent: 2
