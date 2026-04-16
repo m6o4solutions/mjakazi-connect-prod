@@ -77,6 +77,7 @@ export interface Config {
     waajiriprofiles: Waajiriprofile;
     wajakaziprofiles: Wajakaziprofile;
     vault: Vault;
+    payments: Payment;
     forms: Form;
     'form-submissions': FormSubmission;
     redirects: Redirect;
@@ -99,6 +100,7 @@ export interface Config {
     waajiriprofiles: WaajiriprofilesSelect<false> | WaajiriprofilesSelect<true>;
     wajakaziprofiles: WajakaziprofilesSelect<false> | WajakaziprofilesSelect<true>;
     vault: VaultSelect<false> | VaultSelect<true>;
+    payments: PaymentsSelect<false> | PaymentsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
@@ -809,6 +811,27 @@ export interface Vault {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payments".
+ */
+export interface Payment {
+  id: string;
+  account: string | Account;
+  paymentType: 'registration' | 'subscription';
+  amount: number;
+  currency: 'KES';
+  provider: 'mpesa';
+  status: 'stk_sent' | 'confirmed' | 'failed' | 'expired';
+  phoneNumber: string;
+  checkoutRequestId: string;
+  merchantRequestId: string;
+  mpesaReceiptNumber?: string | null;
+  resultCode?: string | null;
+  resultDesc?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "forms".
  */
 export interface Form {
@@ -1196,6 +1219,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'vault';
         value: string | Vault;
+      } | null)
+    | ({
+        relationTo: 'payments';
+        value: string | Payment;
       } | null)
     | ({
         relationTo: 'forms';
@@ -1738,6 +1765,26 @@ export interface VaultSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payments_select".
+ */
+export interface PaymentsSelect<T extends boolean = true> {
+  account?: T;
+  paymentType?: T;
+  amount?: T;
+  currency?: T;
+  provider?: T;
+  status?: T;
+  phoneNumber?: T;
+  checkoutRequestId?: T;
+  merchantRequestId?: T;
+  mpesaReceiptNumber?: T;
+  resultCode?: T;
+  resultDesc?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
