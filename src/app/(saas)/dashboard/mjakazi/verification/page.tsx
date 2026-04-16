@@ -1,6 +1,6 @@
-import { DevPaymentBypassCard } from "@/components/dashboard/dev-payment-bypass-card";
 import { DocumentUploadCard } from "@/components/dashboard/document-upload-card";
 import { LegalNameForm } from "@/components/dashboard/mjakazi/legal-name-form";
+import { PaymentCard } from "@/components/dashboard/mjakazi/payment-card";
 import { SubmitVerificationCard } from "@/components/dashboard/submit-verification-card";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { resolveIdentity } from "@/services/identity.service";
@@ -11,9 +11,6 @@ import { redirect } from "next/navigation";
 import { getPayload } from "payload";
 
 export const metadata: Metadata = { title: "Verification" };
-
-// env flag lets developers skip the payment step locally without code changes
-const isPaymentBypassEnabled = process.env.ENABLE_PAYMENT_BYPASS === "true";
 
 // once a submission is in review or beyond, the legal name must not change
 // as it is tied to the identity documents being assessed
@@ -69,10 +66,6 @@ const Page = async () => {
 		(doc: any) => doc.documentType === "good_conduct",
 	);
 
-	// bypass card is only relevant while payment is pending and the flag is on
-	const showPaymentBypass =
-		isPaymentBypassEnabled && verificationStatus === "pending_payment";
-
 	return (
 		<>
 			<DashboardTopbar title="Verification" />
@@ -85,8 +78,9 @@ const Page = async () => {
 						isLocked={isNameLocked}
 					/>
 
-					{/* only rendered locally when the payment bypass flag is enabled */}
-					{showPaymentBypass && <DevPaymentBypassCard />}
+					{/* payment card is shown when the mjakazi is awaiting payment
+					    the dev bypass card has been permanently retired */}
+					{verificationStatus === "pending_payment" && <PaymentCard />}
 				</div>
 
 				<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
