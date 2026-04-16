@@ -23,6 +23,17 @@ const isPublic: Access = () => true;
 // denies access to all users and external requests
 const isRestricted: Access = () => false;
 
+// grants read access to admin and sa roles only — no owner fallback
+// used for sensitive collections such as payments where row-level access
+// is enforced at the api route layer rather than the collection layer
+const isAdminOrSA: Access = ({ req: { user } }) => {
+	if (!user) return false;
+
+	const role = (user as any)?.role;
+
+	return role === "admin" || role === "sa";
+};
+
 // for the accounts collection — matches directly on clerkId
 const isAdminOrAccountOwner: Access = ({ req: { user } }) => {
 	if (!user) return false;
@@ -65,6 +76,7 @@ const isAdminOrVaultOwner: Access = ({ req: { user } }) => {
 export {
 	isAdminOrAccountOwner,
 	isAdminOrProfileOwner,
+	isAdminOrSA,
 	isAdminOrVaultOwner,
 	isAuthenticated,
 	isAuthenticatedOrPublished,
