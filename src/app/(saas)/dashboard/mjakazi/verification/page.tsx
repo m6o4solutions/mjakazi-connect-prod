@@ -77,10 +77,6 @@ const Page = async () => {
 						currentLegalLastName={legalLastName}
 						isLocked={isNameLocked}
 					/>
-
-					{/* payment card is shown when the mjakazi is awaiting payment
-					    the dev bypass card has been permanently retired */}
-					{verificationStatus === "pending_payment" && <PaymentCard />}
 				</div>
 
 				<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -100,6 +96,12 @@ const Page = async () => {
 						verificationStatus={verificationStatus}
 						documentsReady={bothUploaded}
 					/>
+				</div>
+
+				<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+					{/* payment card is shown when the mjakazi is awaiting payment
+					    the dev bypass card has been permanently retired */}
+					{verificationStatus === "pending_payment" && <PaymentCard />}
 				</div>
 			</main>
 		</>
