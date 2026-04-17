@@ -8,9 +8,9 @@ const Payments: CollectionConfig = {
 	// all writes are performed server-side via api routes only
 	access: {
 		create: isRestricted,
+		update: isRestricted,
 		delete: isRestricted,
 		read: isAdminOrSA,
-		update: isRestricted,
 	},
 	// configures the admin interface for payment record management
 	admin: {
