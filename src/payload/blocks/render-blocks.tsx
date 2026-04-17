@@ -13,8 +13,7 @@ import { TestimonialsBlock } from "@/payload/blocks/testimonials/component";
 import { WajakaziArchiveBlock } from "@/payload/blocks/wajakazi-archive/component";
 import { ComponentType, Fragment } from "react";
 
-/* defines which payload block types map to which react components.
-   this acts as a registry that drives dynamic page rendering. */
+// maps Payload block type slugs to their React components — add new block types here to make them renderable
 const blockComponents = {
 	callToAction: CallToActionBlock,
 	contentEditor: ContentEditorBlock,
@@ -32,8 +31,7 @@ const blockComponents = {
 
 type BlockKey = keyof typeof blockComponents;
 
-/* sanitizes payload data by recursively replacing null values with undefined.
-   prevents react warnings and maintains predictable prop behavior. */
+// Payload returns null for empty relations; recursively converts nulls to undefined to keep prop contracts predictable
 function normalizeBlock<T>(value: T): T {
 	if (value === null) return undefined as unknown as T;
 
@@ -52,10 +50,7 @@ interface RenderBlocksProps {
 	blocks: NonNullable<Page["layout"]>;
 }
 
-/* dynamically renders blocks defined in payload cms.
-   each block type is matched to its component, normalized, and safely passed as props.
-   casting through 'unknown' is intentional to satisfy typescript's strictness
-   when widening discriminated unions into generic record props. */
+// iterates the page layout, resolves each block to its component, and renders them in order
 export const RenderBlocks = ({ blocks }: RenderBlocksProps) => {
 	if (!Array.isArray(blocks) || blocks.length === 0) return null;
 
@@ -67,10 +62,8 @@ export const RenderBlocks = ({ blocks }: RenderBlocksProps) => {
 
 				const normalized = normalizeBlock(block);
 
-				// acknowledge and explicitly widen block data for runtime-safe prop spreading
+				// casting through unknown widens the discriminated union so TypeScript accepts generic prop spreading
 				const safeProps = normalized as unknown as Record<string, unknown>;
-
-				// safely cast component type to accept the widened props
 				const TypedComponent = Component as unknown as ComponentType<
 					Record<string, unknown>
 				>;

@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import config from "@payload-config";
 import { Activity, Settings, Users } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getPayload } from "payload";
 
@@ -11,15 +12,20 @@ export const metadata: Metadata = { title: "Dashboard" };
 
 const Page = async () => {
 	const { userId } = await auth();
+
+	// unauthenticated users have no business reaching an sa page
 	if (!userId) redirect("/sign-in");
 
 	const payload = await getPayload({ config });
 	const identity = await resolveIdentity(payload, userId);
 
+	// missing identity means the Clerk user has no corresponding Payload account yet
 	if (!identity) redirect("/sign-in");
+
+	// restrict to the sa role — admins and other roles land on their own dashboards
 	if (identity.role !== "sa") redirect("/sign-in");
 
-	// staff count for the overview card
+	// limit: 0 skips document fetching entirely and returns only totalDocs, which is all we need here
 	const staffAccounts = await payload.find({
 		collection: "accounts",
 		where: { role: { in: ["admin", "sa"] } },
@@ -56,16 +62,20 @@ const Page = async () => {
 						</p>
 					</div>
 
-					<div className="bg-card border-border flex flex-col gap-3 rounded-xl border p-6">
+					{/* rendered as a Link so the entire card is a single navigable target */}
+					<Link
+						href="/dashboard/sa/settings"
+						className="bg-card border-border hover:border-primary/50 flex flex-col gap-3 rounded-xl border p-6 transition-colors"
+					>
 						<div className="flex items-center gap-2">
 							<Settings className="text-muted-foreground size-4" />
 							<p className="text-muted-foreground text-sm font-semibold">Settings</p>
 						</div>
-						<p className="font-display text-foreground text-2xl font-bold">Coming Soon</p>
+						<p className="font-display text-foreground text-2xl font-bold">Platform</p>
 						<p className="text-muted-foreground text-sm">
-							Tier pricing, verification fees, and platform toggles.
+							Manage registration fees and platform configuration.
 						</p>
-					</div>
+					</Link>
 				</div>
 			</main>
 		</>

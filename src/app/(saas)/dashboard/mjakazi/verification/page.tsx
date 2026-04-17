@@ -1,6 +1,6 @@
-import { DevPaymentBypassCard } from "@/components/dashboard/dev-payment-bypass-card";
 import { DocumentUploadCard } from "@/components/dashboard/document-upload-card";
 import { LegalNameForm } from "@/components/dashboard/mjakazi/legal-name-form";
+import { PaymentCard } from "@/components/dashboard/mjakazi/payment-card";
 import { SubmitVerificationCard } from "@/components/dashboard/submit-verification-card";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { resolveIdentity } from "@/services/identity.service";
@@ -12,11 +12,8 @@ import { getPayload } from "payload";
 
 export const metadata: Metadata = { title: "Verification" };
 
-// env flag lets developers skip the payment step locally without code changes
-const isPaymentBypassEnabled = process.env.ENABLE_PAYMENT_BYPASS === "true";
-
-// once a submission is in review or beyond, the legal name must not change
-// as it is tied to the identity documents being assessed
+// once a submission is in review or beyond, the legal name is tied to the
+// identity documents under assessment and must not change mid-process
 const LOCKED_STATUSES = ["pending_review", "verified", "blacklisted", "deactivated"];
 
 const Page = async () => {
@@ -29,11 +26,12 @@ const Page = async () => {
 
 	if (!identity || identity.role !== "mjakazi") redirect("/sign-in");
 
-	// default to "draft" so the page renders correctly before a status is set
+	// fall back to "draft" so the page renders correctly before a status is assigned
 	const verificationStatus = identity.verificationStatus ?? "draft";
 
-	// profile holds legal name fields which are managed separately from the
-	// clerk account; fetch it to pre-populate the legal name form
+	// fetch the profile to access legal name fields and rejection feedback
+	// both are needed by child components and are resolved once here to avoid
+	// redundant queries
 	const profileQuery = await payload.find({
 		collection: "wajakaziprofiles",
 		where: { account: { equals: identity.accountId } },
@@ -46,8 +44,13 @@ const Page = async () => {
 	const legalLastName = profile?.legalLastName ?? null;
 	const isNameLocked = LOCKED_STATUSES.includes(verificationStatus);
 
-	// vault documents are fetched server-side so upload cards know which types
-	// are already present and hold the ids needed for the replace flow
+	// rejection feedback is surfaced on the submit card so the mjakazi knows
+	// exactly what to correct before attempting a resubmission
+	const rejectionReason = profile?.rejectionReason ?? null;
+	const verificationAttempts = profile?.verificationAttempts ?? 0;
+
+	// resolve vault documents server-side so upload cards can show current state
+	// and hold the ids required to replace an existing document
 	const existingDocs = await payload.find({
 		collection: "vault",
 		where: { profile: { equals: identity.wajakaziProfileId } },
@@ -58,10 +61,11 @@ const Page = async () => {
 	const uploadedTypes = existingDocs.docs.map((doc: any) => doc.documentType);
 	const hasNationalId = uploadedTypes.includes("national_id");
 	const hasGoodConduct = uploadedTypes.includes("good_conduct");
-	// both mandatory documents must be present before submission is allowed
+	// both mandatory documents must be present before the submit card allows submission
 	const bothUploaded = hasNationalId && hasGoodConduct;
 
-	// ids are passed down so the replace flow can target the correct vault record
+	// document ids are passed to upload cards so the replace flow targets the
+	// correct vault record rather than creating a duplicate
 	const nationalIdDoc = existingDocs.docs.find(
 		(doc: any) => doc.documentType === "national_id",
 	);
@@ -69,27 +73,34 @@ const Page = async () => {
 		(doc: any) => doc.documentType === "good_conduct",
 	);
 
-	// bypass card is only relevant while payment is pending and the flag is on
-	const showPaymentBypass =
-		isPaymentBypassEnabled && verificationStatus === "pending_payment";
+	// live registration fee from platform settings so the payment card always
+	// shows the current amount without a redeploy
+	const platformSettings = await payload.findGlobal({
+		slug: "platform-settings",
+		overrideAccess: true,
+	});
+
+	const registrationFee = platformSettings?.registrationFee ?? 1500;
 
 	return (
 		<>
 			<DashboardTopbar title="Verification" />
 
 			<main className="flex flex-1 flex-col gap-6 p-6">
-				<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+				<div className="grid items-start gap-6 md:grid-cols-2 xl:grid-cols-3">
 					<LegalNameForm
 						currentLegalFirstName={legalFirstName}
 						currentLegalLastName={legalLastName}
 						isLocked={isNameLocked}
 					/>
 
-					{/* only rendered locally when the payment bypass flag is enabled */}
-					{showPaymentBypass && <DevPaymentBypassCard />}
+					{/* payment card is only relevant while the mjakazi is awaiting payment */}
+					{verificationStatus === "pending_payment" && (
+						<PaymentCard registrationFee={registrationFee} />
+					)}
 				</div>
 
-				<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+				<div className="grid items-start gap-6 md:grid-cols-2 xl:grid-cols-3">
 					<DocumentUploadCard
 						documentType="national_id"
 						label="National ID"
@@ -105,6 +116,9 @@ const Page = async () => {
 					<SubmitVerificationCard
 						verificationStatus={verificationStatus}
 						documentsReady={bothUploaded}
+						rejectionReason={rejectionReason}
+						verificationAttempts={verificationAttempts}
+						maxAttempts={3}
 					/>
 				</div>
 			</main>

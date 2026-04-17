@@ -3,12 +3,13 @@ import type { Access, AccessArgs } from "payload";
 
 type IsAuthenticated = (args: AccessArgs<User>) => boolean;
 
-// verifies that a user is logged into the system
+// gate for any action that requires a signed-in user, regardless of role
 const isAuthenticated: IsAuthenticated = ({ req: { user } }) => {
 	return Boolean(user);
 };
 
-// allows full access for logged-in users or restricts to public content for guests
+// used on content collections where guests should only see published entries
+// while authenticated users (editors, previews) can see drafts as well
 const isAuthenticatedOrPublished: Access = ({ req: { user } }) => {
 	if (user) {
 		return true;
@@ -17,13 +18,34 @@ const isAuthenticatedOrPublished: Access = ({ req: { user } }) => {
 	return { _status: { equals: "published" } };
 };
 
-// grants unrestricted access to everyone
+// escape hatch for resources that are intentionally world-readable
 const isPublic: Access = () => true;
 
-// denies access to all users and external requests
+// hard lock — typically paired with server actions or api routes that perform
+// their own authorization, so the collection itself stays sealed
 const isRestricted: Access = () => false;
 
-// for the accounts collection — matches directly on clerkId
+// reserved for the super-admin tier; used for destructive or platform-wide
+// operations that even regular admins should not be able to perform
+const isSA: Access = ({ req: { user } }) => {
+	if (!user) return false;
+
+	return (user as any)?.role === "sa";
+};
+
+// staff-level gate covering both admin and super-admin
+// intentionally omits an owner fallback — collections like payments enforce
+// row-level ownership at the api layer to avoid leaking filters via find queries
+const isAdminOrSA: Access = ({ req: { user } }) => {
+	if (!user) return false;
+
+	const role = (user as any)?.role;
+
+	return role === "admin" || role === "sa";
+};
+
+// accounts are keyed by clerkId rather than the payload document id, so
+// ownership is resolved against the external auth identifier
 const isAdminOrAccountOwner: Access = ({ req: { user } }) => {
 	if (!user) return false;
 
@@ -36,7 +58,8 @@ const isAdminOrAccountOwner: Access = ({ req: { user } }) => {
 	return { clerkId: { equals: clerkId } };
 };
 
-// for profile collections — matches on the account relationship field (MongoDB ObjectId)
+// profiles link back to their owning account document; staff bypass the filter,
+// everyone else is scoped to rows they own via the account relation
 const isAdminOrProfileOwner: Access = ({ req: { user } }) => {
 	if (!user) return false;
 
@@ -49,7 +72,8 @@ const isAdminOrProfileOwner: Access = ({ req: { user } }) => {
 	return { account: { equals: id } };
 };
 
-// for vault collection — matches on the profile relationship field
+// vault entries track their uploader; only the original uploader or staff may
+// access them, preventing cross-tenant exposure of private files
 const isAdminOrVaultOwner: Access = ({ req: { user } }) => {
 	if (!user) return false;
 
@@ -65,9 +89,11 @@ const isAdminOrVaultOwner: Access = ({ req: { user } }) => {
 export {
 	isAdminOrAccountOwner,
 	isAdminOrProfileOwner,
+	isAdminOrSA,
 	isAdminOrVaultOwner,
 	isAuthenticated,
 	isAuthenticatedOrPublished,
 	isPublic,
 	isRestricted,
+	isSA,
 };

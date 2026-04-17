@@ -77,6 +77,7 @@ export interface Config {
     waajiriprofiles: Waajiriprofile;
     wajakaziprofiles: Wajakaziprofile;
     vault: Vault;
+    payments: Payment;
     forms: Form;
     'form-submissions': FormSubmission;
     redirects: Redirect;
@@ -99,6 +100,7 @@ export interface Config {
     waajiriprofiles: WaajiriprofilesSelect<false> | WaajiriprofilesSelect<true>;
     wajakaziprofiles: WajakaziprofilesSelect<false> | WajakaziprofilesSelect<true>;
     vault: VaultSelect<false> | VaultSelect<true>;
+    payments: PaymentsSelect<false> | PaymentsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
@@ -117,11 +119,13 @@ export interface Config {
     header: Header;
     footer: Footer;
     branding: Branding;
+    'platform-settings': PlatformSetting;
   };
   globalsSelect: {
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
     branding: BrandingSelect<false> | BrandingSelect<true>;
+    'platform-settings': PlatformSettingsSelect<false> | PlatformSettingsSelect<true>;
   };
   locale: null;
   widgets: {
@@ -809,6 +813,27 @@ export interface Vault {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payments".
+ */
+export interface Payment {
+  id: string;
+  account: string | Account;
+  paymentType: 'registration' | 'subscription';
+  amount: number;
+  currency: 'KES';
+  provider: 'mpesa';
+  status: 'stk_sent' | 'confirmed' | 'failed' | 'expired';
+  phoneNumber: string;
+  checkoutRequestId: string;
+  merchantRequestId: string;
+  mpesaReceiptNumber?: string | null;
+  resultCode?: string | null;
+  resultDesc?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "forms".
  */
 export interface Form {
@@ -1196,6 +1221,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'vault';
         value: string | Vault;
+      } | null)
+    | ({
+        relationTo: 'payments';
+        value: string | Payment;
       } | null)
     | ({
         relationTo: 'forms';
@@ -1741,6 +1770,26 @@ export interface VaultSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payments_select".
+ */
+export interface PaymentsSelect<T extends boolean = true> {
+  account?: T;
+  paymentType?: T;
+  amount?: T;
+  currency?: T;
+  provider?: T;
+  status?: T;
+  phoneNumber?: T;
+  checkoutRequestId?: T;
+  merchantRequestId?: T;
+  mpesaReceiptNumber?: T;
+  resultCode?: T;
+  resultDesc?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "forms_select".
  */
 export interface FormsSelect<T extends boolean = true> {
@@ -2143,6 +2192,16 @@ export interface Branding {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "platform-settings".
+ */
+export interface PlatformSetting {
+  id: string;
+  registrationFee: number;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header_select".
  */
 export interface HeaderSelect<T extends boolean = true> {
@@ -2269,6 +2328,16 @@ export interface FooterSelect<T extends boolean = true> {
 export interface BrandingSelect<T extends boolean = true> {
   organizationIcon?: T;
   organizationLogo?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "platform-settings_select".
+ */
+export interface PlatformSettingsSelect<T extends boolean = true> {
+  registrationFee?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
