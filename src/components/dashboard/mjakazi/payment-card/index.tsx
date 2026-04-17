@@ -12,16 +12,18 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CheckCircle2, Clock, Loader2, PhoneCall, XCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-// represents every discrete step in the M-Pesa STK push lifecycle so the UI
-// can render the correct panel without boolean flag soup
+// models the full M-Pesa STK push lifecycle as discrete states so each phase
+// renders a dedicated panel — avoids boolean flag combinations that could
+// produce impossible UI states (e.g. submitting + confirmed simultaneously)
 type PaymentState =
-	| "idle" // form is visible and ready for input
+	| "idle" // form is ready for input
 	| "submitting" // STK push request is in flight
-	| "waiting" // prompt sent — polling /apis/me for a status change
+	| "waiting" // prompt delivered — polling /apis/me for a status change
 	| "confirmed" // verificationStatus advanced to pending_review
-	| "failed" // Safaricom returned a non-success result code
+	| "failed" // Safaricom returned an explicit non-success result code
 	| "timeout"; // 2-minute polling window elapsed with no confirmation
 
 interface PaymentCardProps {
@@ -30,21 +32,23 @@ interface PaymentCardProps {
 	registrationFee: number;
 }
 
-// how often to hit /apis/me while waiting for the callback to land
+// how often to hit /apis/me while waiting for the M-Pesa callback to land
 const POLL_INTERVAL_MS = 5000;
-// give up after 2 minutes — covers typical STK prompt expiry
+// give up after 2 minutes — aligns with the typical STK prompt expiry window
 const POLL_TIMEOUT_MS = 120000;
 
 const PaymentCard = ({ registrationFee }: PaymentCardProps) => {
+	const router = useRouter();
+
 	const [phoneNumber, setPhoneNumber] = useState("");
 	const [paymentState, setPaymentState] = useState<PaymentState>("idle");
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-	// held in refs so startPolling can cancel them without stale closure issues
+	// refs so the polling callbacks can cancel timers without stale-closure issues
 	const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 	const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-	// prevents timer leaks if the component unmounts before payment resolves
+	// clears any live timers if the component unmounts before payment resolves
 	useEffect(() => {
 		return () => {
 			if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
@@ -59,7 +63,7 @@ const PaymentCard = ({ registrationFee }: PaymentCardProps) => {
 		if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
 		if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
 
-		// surface a timeout state if the user never acts on the STK prompt
+		// transitions to timeout if the user never acts on the STK prompt
 		pollTimeoutRef.current = setTimeout(() => {
 			if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
 			setPaymentState("timeout");
@@ -67,20 +71,25 @@ const PaymentCard = ({ registrationFee }: PaymentCardProps) => {
 
 		pollIntervalRef.current = setInterval(async () => {
 			try {
-				const res = await fetch("/apis/me");
+				// no-store prevents the browser returning a cached 304 response,
+				// which would mask a real status change on the server
+				const res = await fetch("/apis/me", { cache: "no-store" });
 
-				if (!res.ok) return; // transient server error — keep polling
+				if (!res.ok) return; // transient error — retry on the next tick
 
 				const data = await res.json();
 
-				// pending_review means the payment hook ran and advanced the status
+				// pending_review means the payment callback ran and advanced the status
 				if (data.verificationStatus === "pending_review") {
 					if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
 					if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
 					setPaymentState("confirmed");
+					// re-fetch server component data so the page reflects the new
+					// pending_review state without requiring a manual reload
+					router.refresh();
 				}
 			} catch {
-				// swallow network blips — the next tick will retry automatically
+				// swallow network blips — the interval will retry automatically
 			}
 		}, POLL_INTERVAL_MS);
 	};
@@ -100,7 +109,7 @@ const PaymentCard = ({ registrationFee }: PaymentCardProps) => {
 			const data = await res.json();
 
 			if (!res.ok) {
-				// surface the server's message (e.g. invalid number, Daraja error)
+				// surface the server's message (e.g. invalid number, Daraja rejection)
 				setErrorMessage(data.error ?? "Payment initiation failed. Please try again.");
 				setPaymentState("idle");
 				return;
@@ -109,7 +118,7 @@ const PaymentCard = ({ registrationFee }: PaymentCardProps) => {
 			setPaymentState("waiting");
 			startPolling();
 		} catch {
-			// true network failure — the STK push never left the browser
+			// true network failure — the STK push request never left the browser
 			setErrorMessage(
 				"A network error occurred. Please check your connection and try again.",
 			);
@@ -117,8 +126,8 @@ const PaymentCard = ({ registrationFee }: PaymentCardProps) => {
 		}
 	};
 
-	// lets the user correct a wrong number or recover from failure/timeout
-	// without a full page reload
+	// resets state so the user can correct a wrong number or recover from
+	// failure or timeout without a full page reload
 	const handleRetry = () => {
 		if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
 		if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
@@ -177,9 +186,9 @@ const PaymentCard = ({ registrationFee }: PaymentCardProps) => {
 		);
 	}
 
-	// shown when the 2-minute polling window closes with no confirmation —
-	// distinguishable from "failed" because the transaction may still complete
-	// asynchronously; the user just needs to check their M-Pesa messages
+	// shown when the polling window closes with no confirmation — kept distinct
+	// from "failed" because the transaction may still complete asynchronously;
+	// the user should check their M-Pesa messages before retrying
 	if (paymentState === "timeout") {
 		return (
 			<Card>
@@ -206,7 +215,7 @@ const PaymentCard = ({ registrationFee }: PaymentCardProps) => {
 	}
 
 	// shown when Safaricom explicitly rejects the transaction (wrong PIN,
-	// insufficient funds, user cancellation) — distinct from timeout
+	// insufficient funds, or user cancellation) — distinct from timeout
 	if (paymentState === "failed") {
 		return (
 			<Card>
@@ -230,8 +239,8 @@ const PaymentCard = ({ registrationFee }: PaymentCardProps) => {
 		);
 	}
 
-	// default render covers both idle and submitting — the button state and
-	// input disabled flag communicate progress without a separate loading panel
+	// default render covers both idle and submitting — button state and input
+	// disabled flag communicate progress without needing a separate loading panel
 	return (
 		<Card>
 			<CardHeader>

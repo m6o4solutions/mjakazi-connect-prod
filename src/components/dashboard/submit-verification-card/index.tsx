@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { AlertCircle, CheckCircle2, Clock } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { ReactNode, useState } from "react";
 
 interface SubmitVerificationCardProps {
@@ -9,7 +10,8 @@ interface SubmitVerificationCardProps {
 	documentsReady: boolean;
 }
 
-// states where verification has already been acted on — submission is blocked
+// once verification has been acted on, re-submission must be blocked to
+// prevent duplicate entries and accidental payment triggers
 const nonSubmittableStates = [
 	"pending_payment",
 	"pending_review",
@@ -18,7 +20,8 @@ const nonSubmittableStates = [
 	"deactivated",
 ];
 
-// labels shown on the button when submission is blocked by a non-submittable state
+// each blocked state gets a distinct label so the user understands why
+// the button is inert rather than encountering a generic disabled state
 const buttonLabelMap: Record<string, string> = {
 	pending_payment: "Awaiting Payment",
 	pending_review: "Under Review",
@@ -27,7 +30,9 @@ const buttonLabelMap: Record<string, string> = {
 	deactivated: "Account Deactivated",
 };
 
-// maps each verification state to user-facing feedback shown in the card
+// drives the contextual feedback banner; covers both terminal states
+// (verified, blacklisted) and recoverable ones (rejected, expired) so
+// the user always knows what happened and what action, if any, is needed
 const statusContextMap: Record<
 	string,
 	{ icon: ReactNode; message: string; tone: string }
@@ -75,20 +80,21 @@ const SubmitVerificationCard = ({
 	verificationStatus,
 	documentsReady,
 }: SubmitVerificationCardProps) => {
-	// track submission lifecycle to drive UI feedback
+	const router = useRouter();
+
 	const [loading, setLoading] = useState(false);
 	const [success, setSuccess] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
-	// derive whether submission is possible based on current verification state
 	const alreadySubmitted = nonSubmittableStates.includes(verificationStatus);
 	const blockedLabel = buttonLabelMap[verificationStatus];
 	const statusContext = statusContextMap[verificationStatus];
 
-	// disable button when mid-request, already done, in a terminal state, or docs missing
+	// aggregates every condition that makes submission pointless or harmful
 	const isDisabled = loading || success || alreadySubmitted || !documentsReady;
 
-	// choose button text by priority: terminal state > docs missing > success > loading > default
+	// priority order reflects what the user most needs to see at each stage:
+	// terminal state > missing docs (actionable) > success > loading > default
 	const buttonLabel = alreadySubmitted
 		? blockedLabel
 		: !documentsReady
@@ -99,7 +105,6 @@ const SubmitVerificationCard = ({
 					? "Submitting..."
 					: "Submit Verification";
 
-	// post verification submission — surface server or network errors inline
 	const handleSubmit = async () => {
 		setLoading(true);
 		setError(null);
@@ -111,6 +116,9 @@ const SubmitVerificationCard = ({
 
 			if (res.ok) {
 				setSuccess(true);
+				// re-fetch server component data so the PaymentCard becomes visible
+				// immediately without a manual page reload
+				router.refresh();
 			} else {
 				const data = await res.json();
 				setError(data?.error ?? "Submission failed. Please try again.");
@@ -131,7 +139,7 @@ const SubmitVerificationCard = ({
 				</p>
 			</div>
 
-			{/* shown when state provides actionable feedback to the user */}
+			{/* only rendered when the current state has contextual feedback to show */}
 			{statusContext && (
 				<div
 					className={`flex items-start gap-3 rounded-lg px-4 py-3 ${statusContext.tone}`}
@@ -143,7 +151,8 @@ const SubmitVerificationCard = ({
 				</div>
 			)}
 
-			{/* nudge user to upload required docs before they can submit */}
+			{/* shown when submission is still possible but documents are missing —
+			    gives the user a clear next step rather than a silent disabled button */}
 			{!documentsReady && !alreadySubmitted && (
 				<div className="border-border bg-muted/40 flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed px-4 py-5 text-center">
 					<AlertCircle className="text-muted-foreground size-5" />
