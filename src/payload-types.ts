@@ -119,11 +119,13 @@ export interface Config {
     header: Header;
     footer: Footer;
     branding: Branding;
+    'platform-settings': PlatformSetting;
   };
   globalsSelect: {
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
     branding: BrandingSelect<false> | BrandingSelect<true>;
+    'platform-settings': PlatformSettingsSelect<false> | PlatformSettingsSelect<true>;
   };
   locale: null;
   widgets: {
@@ -2190,6 +2192,16 @@ export interface Branding {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "platform-settings".
+ */
+export interface PlatformSetting {
+  id: string;
+  registrationFee: number;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header_select".
  */
 export interface HeaderSelect<T extends boolean = true> {
@@ -2316,6 +2328,16 @@ export interface FooterSelect<T extends boolean = true> {
 export interface BrandingSelect<T extends boolean = true> {
   organizationIcon?: T;
   organizationLogo?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "platform-settings_select".
+ */
+export interface PlatformSettingsSelect<T extends boolean = true> {
+  registrationFee?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

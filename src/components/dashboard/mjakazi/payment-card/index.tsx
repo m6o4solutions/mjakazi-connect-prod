@@ -14,41 +14,37 @@ import { Label } from "@/components/ui/label";
 import { CheckCircle2, Clock, Loader2, PhoneCall, XCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-// ---------------------------------------------------------------------------
-// types
-// ---------------------------------------------------------------------------
-
-// each value maps to a distinct card view — state drives rendering, not flags
+// represents every discrete step in the M-Pesa STK push lifecycle so the UI
+// can render the correct panel without boolean flag soup
 type PaymentState =
-	| "idle" // form visible, waiting for input
-	| "submitting" // STK push request in flight
-	| "waiting" // STK push sent, polling for confirmation
-	| "confirmed" // payment confirmed, verification advanced to pending_review
-	| "failed" // Safaricom returned a non-zero ResultCode
-	| "timeout"; // 2-minute poll window elapsed with no confirmation
+	| "idle" // form is visible and ready for input
+	| "submitting" // STK push request is in flight
+	| "waiting" // prompt sent — polling /apis/me for a status change
+	| "confirmed" // verificationStatus advanced to pending_review
+	| "failed" // Safaricom returned a non-success result code
+	| "timeout"; // 2-minute polling window elapsed with no confirmation
 
-// ---------------------------------------------------------------------------
-// constants
-// ---------------------------------------------------------------------------
+interface PaymentCardProps {
+	// sourced from a server-side platform setting so the displayed amount always
+	// matches what Daraja will actually charge — never hardcoded on the client
+	registrationFee: number;
+}
 
-const REGISTRATION_FEE = 1500;
-const POLL_INTERVAL_MS = 5000; // how often to check /apis/me for a status change
-const POLL_TIMEOUT_MS = 120000; // mirrors the Inngest timeout — give up after 2 minutes
+// how often to hit /apis/me while waiting for the callback to land
+const POLL_INTERVAL_MS = 5000;
+// give up after 2 minutes — covers typical STK prompt expiry
+const POLL_TIMEOUT_MS = 120000;
 
-// ---------------------------------------------------------------------------
-// component
-// ---------------------------------------------------------------------------
-
-const PaymentCard = () => {
+const PaymentCard = ({ registrationFee }: PaymentCardProps) => {
 	const [phoneNumber, setPhoneNumber] = useState("");
 	const [paymentState, setPaymentState] = useState<PaymentState>("idle");
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-	// refs rather than state — changing these should not trigger a re-render
+	// held in refs so startPolling can cancel them without stale closure issues
 	const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 	const pollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-	// cancel any in-flight timers if the component is removed mid-flow
+	// prevents timer leaks if the component unmounts before payment resolves
 	useEffect(() => {
 		return () => {
 			if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
@@ -56,14 +52,14 @@ const PaymentCard = () => {
 		};
 	}, []);
 
-	// polls /apis/me every 5 seconds looking for verificationStatus === "pending_review"
-	// which signals that the callback handler confirmed the payment and advanced the profile
+	// polls /apis/me on a fixed interval rather than relying on a webhook push,
+	// because the Daraja callback reaches the server — not the browser directly
 	const startPolling = () => {
-		// clear any previous cycle before starting a new one
+		// cancel any previous polling session before starting a fresh one
 		if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
 		if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
 
-		// hard stop at 2 minutes — matches the server-side expiry window
+		// surface a timeout state if the user never acts on the STK prompt
 		pollTimeoutRef.current = setTimeout(() => {
 			if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
 			setPaymentState("timeout");
@@ -73,30 +69,23 @@ const PaymentCard = () => {
 			try {
 				const res = await fetch("/apis/me");
 
-				if (!res.ok) return;
+				if (!res.ok) return; // transient server error — keep polling
 
 				const data = await res.json();
 
+				// pending_review means the payment hook ran and advanced the status
 				if (data.verificationStatus === "pending_review") {
-					// callback handler has confirmed the payment — stop polling and celebrate
 					if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
 					if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
 					setPaymentState("confirmed");
-				} else if (
-					data.verificationStatus === "pending_payment" &&
-					paymentState === "waiting"
-				) {
-					// still waiting — could be that the Inngest timeout already expired
-					// the payment record but the profile hasn't moved yet; stay in waiting
-					// until the poll timeout fires rather than surfacing a false failure
 				}
 			} catch {
-				// transient network error — continue polling, do not abort the flow
+				// swallow network blips — the next tick will retry automatically
 			}
 		}, POLL_INTERVAL_MS);
 	};
 
-	// sends the STK push request; on success hands off to polling
+	// initiates the STK push and transitions to polling if the server accepts it
 	const handleSubmit = async () => {
 		setErrorMessage(null);
 		setPaymentState("submitting");
@@ -111,16 +100,16 @@ const PaymentCard = () => {
 			const data = await res.json();
 
 			if (!res.ok) {
-				// surface the server-side validation or eligibility error directly
+				// surface the server's message (e.g. invalid number, Daraja error)
 				setErrorMessage(data.error ?? "Payment initiation failed. Please try again.");
 				setPaymentState("idle");
 				return;
 			}
 
-			// Safaricom accepted the push — switch to waiting and start the poll cycle
 			setPaymentState("waiting");
 			startPolling();
 		} catch {
+			// true network failure — the STK push never left the browser
 			setErrorMessage(
 				"A network error occurred. Please check your connection and try again.",
 			);
@@ -128,7 +117,8 @@ const PaymentCard = () => {
 		}
 	};
 
-	// clears timers and resets to idle so the Mjakazi can submit a fresh attempt
+	// lets the user correct a wrong number or recover from failure/timeout
+	// without a full page reload
 	const handleRetry = () => {
 		if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
 		if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
@@ -136,6 +126,8 @@ const PaymentCard = () => {
 		setErrorMessage(null);
 	};
 
+	// shown while the STK prompt is live — reassures the user something is
+	// happening without exposing polling internals
 	if (paymentState === "waiting") {
 		return (
 			<Card>
@@ -151,7 +143,7 @@ const PaymentCard = () => {
 				<CardContent>
 					<p className="text-muted-foreground text-sm">
 						Open your phone, enter your M-Pesa PIN to complete the payment of{" "}
-						<strong>KSh {REGISTRATION_FEE.toLocaleString()}</strong>, and this page will
+						<strong>KSh {registrationFee.toLocaleString()}</strong>, and this page will
 						update automatically.
 					</p>
 				</CardContent>
@@ -164,6 +156,7 @@ const PaymentCard = () => {
 		);
 	}
 
+	// terminal success state — no further action required from the user
 	if (paymentState === "confirmed") {
 		return (
 			<Card>
@@ -184,6 +177,9 @@ const PaymentCard = () => {
 		);
 	}
 
+	// shown when the 2-minute polling window closes with no confirmation —
+	// distinguishable from "failed" because the transaction may still complete
+	// asynchronously; the user just needs to check their M-Pesa messages
 	if (paymentState === "timeout") {
 		return (
 			<Card>
@@ -209,6 +205,8 @@ const PaymentCard = () => {
 		);
 	}
 
+	// shown when Safaricom explicitly rejects the transaction (wrong PIN,
+	// insufficient funds, user cancellation) — distinct from timeout
 	if (paymentState === "failed") {
 		return (
 			<Card>
@@ -232,7 +230,8 @@ const PaymentCard = () => {
 		);
 	}
 
-	// idle and submitting both render the form — submitting just locks the inputs
+	// default render covers both idle and submitting — the button state and
+	// input disabled flag communicate progress without a separate loading panel
 	return (
 		<Card>
 			<CardHeader>
@@ -242,7 +241,7 @@ const PaymentCard = () => {
 				</CardTitle>
 				<CardDescription>
 					Pay the one-time registration fee of{" "}
-					<strong>KSh {REGISTRATION_FEE.toLocaleString()}</strong> via M-Pesa to submit
+					<strong>KSh {registrationFee.toLocaleString()}</strong> via M-Pesa to submit
 					your profile for review.
 				</CardDescription>
 			</CardHeader>
@@ -259,8 +258,8 @@ const PaymentCard = () => {
 						disabled={paymentState === "submitting"}
 					/>
 					<p className="text-muted-foreground text-xs">
-						Enter the Safaricom number registered to your M-Pesa account. You will receive
-						a payment prompt on this number.
+						Enter the number registered to your M-Pesa account. You will receive a payment
+						prompt on this number.
 					</p>
 				</div>
 
@@ -276,10 +275,10 @@ const PaymentCard = () => {
 					{paymentState === "submitting" ? (
 						<>
 							<Loader2 className="mr-2 size-4 animate-spin" />
-							Sending M-Pesa Prompt...
+							Sending M-Pesa Details...
 						</>
 					) : (
-						"Pay KSh 1,500 via M-Pesa"
+						`Pay KSh ${registrationFee.toLocaleString()} via M-Pesa`
 					)}
 				</Button>
 			</CardFooter>

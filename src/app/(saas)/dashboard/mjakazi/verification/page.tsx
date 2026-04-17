@@ -12,8 +12,8 @@ import { getPayload } from "payload";
 
 export const metadata: Metadata = { title: "Verification" };
 
-// once a submission is in review or beyond, the legal name must not change
-// as it is tied to the identity documents being assessed
+// once a submission enters review the legal name is tied to the documents
+// being assessed, so it must not change until the cycle is complete
 const LOCKED_STATUSES = ["pending_review", "verified", "blacklisted", "deactivated"];
 
 const Page = async () => {
@@ -24,13 +24,14 @@ const Page = async () => {
 	const payload = await getPayload({ config });
 	const identity = await resolveIdentity(payload, userId);
 
+	// non-mjakazi roles have no verification flow — redirect rather than render
 	if (!identity || identity.role !== "mjakazi") redirect("/sign-in");
 
-	// default to "draft" so the page renders correctly before a status is set
+	// fall back to "draft" so UI state is predictable before a status is assigned
 	const verificationStatus = identity.verificationStatus ?? "draft";
 
-	// profile holds legal name fields which are managed separately from the
-	// clerk account; fetch it to pre-populate the legal name form
+	// legal name lives on the profile, not the Clerk account; fetch it so the
+	// form can be pre-populated on load
 	const profileQuery = await payload.find({
 		collection: "wajakaziprofiles",
 		where: { account: { equals: identity.accountId } },
@@ -43,8 +44,9 @@ const Page = async () => {
 	const legalLastName = profile?.legalLastName ?? null;
 	const isNameLocked = LOCKED_STATUSES.includes(verificationStatus);
 
-	// vault documents are fetched server-side so upload cards know which types
-	// are already present and hold the ids needed for the replace flow
+	// fetching vault docs server-side lets each upload card know whether a
+	// document of that type already exists and supplies the id required to
+	// target the correct record during a replace operation
 	const existingDocs = await payload.find({
 		collection: "vault",
 		where: { profile: { equals: identity.wajakaziProfileId } },
@@ -55,16 +57,24 @@ const Page = async () => {
 	const uploadedTypes = existingDocs.docs.map((doc: any) => doc.documentType);
 	const hasNationalId = uploadedTypes.includes("national_id");
 	const hasGoodConduct = uploadedTypes.includes("good_conduct");
-	// both mandatory documents must be present before submission is allowed
+	// submission is blocked until both mandatory documents are present
 	const bothUploaded = hasNationalId && hasGoodConduct;
 
-	// ids are passed down so the replace flow can target the correct vault record
 	const nationalIdDoc = existingDocs.docs.find(
 		(doc: any) => doc.documentType === "national_id",
 	);
 	const goodConductDoc = existingDocs.docs.find(
 		(doc: any) => doc.documentType === "good_conduct",
 	);
+
+	// read the fee live so the displayed amount reflects any admin change
+	// without requiring a redeploy
+	const platformSettings = await payload.findGlobal({
+		slug: "platform-settings",
+		overrideAccess: true,
+	});
+
+	const registrationFee = platformSettings?.registrationFee ?? 1500;
 
 	return (
 		<>
@@ -99,9 +109,10 @@ const Page = async () => {
 				</div>
 
 				<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-					{/* payment card is shown when the mjakazi is awaiting payment
-					    the dev bypass card has been permanently retired */}
-					{verificationStatus === "pending_payment" && <PaymentCard />}
+					{/* only rendered while the mjakazi is awaiting payment */}
+					{verificationStatus === "pending_payment" && (
+						<PaymentCard registrationFee={registrationFee} />
+					)}
 				</div>
 			</main>
 		</>
