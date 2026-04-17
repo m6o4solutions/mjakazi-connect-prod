@@ -8,10 +8,18 @@ import { ReactNode, useState } from "react";
 interface SubmitVerificationCardProps {
 	verificationStatus: string;
 	documentsReady: boolean;
+	// populated when the mjakazi has been rejected — shown inline so they
+	// know exactly what to correct before resubmitting
+	rejectionReason?: string | null;
+	// how many times the mjakazi has been rejected — used to derive
+	// how many attempts remain before the cap is reached
+	verificationAttempts?: number;
+	// the maximum number of rejections allowed before resubmission is blocked
+	maxAttempts?: number;
 }
 
-// once verification has been acted on, re-submission must be blocked to
-// prevent duplicate entries and accidental payment triggers
+// states where verification has already been acted on — the mjakazi cannot
+// initiate a new submission while in any of these states
 const nonSubmittableStates = [
 	"pending_payment",
 	"pending_review",
@@ -20,8 +28,8 @@ const nonSubmittableStates = [
 	"deactivated",
 ];
 
-// each blocked state gets a distinct label so the user understands why
-// the button is inert rather than encountering a generic disabled state
+// button copy for states where submission is blocked but the user still needs
+// to understand why rather than seeing a generic disabled label
 const buttonLabelMap: Record<string, string> = {
 	pending_payment: "Awaiting Payment",
 	pending_review: "Under Review",
@@ -30,9 +38,8 @@ const buttonLabelMap: Record<string, string> = {
 	deactivated: "Account Deactivated",
 };
 
-// drives the contextual feedback banner; covers both terminal states
-// (verified, blacklisted) and recoverable ones (rejected, expired) so
-// the user always knows what happened and what action, if any, is needed
+// contextual feedback shown in the status banner for each lifecycle state
+// tone drives the background colour so the visual weight matches the severity
 const statusContextMap: Record<
 	string,
 	{ icon: ReactNode; message: string; tone: string }
@@ -55,7 +62,7 @@ const statusContextMap: Record<
 	rejected: {
 		icon: <AlertCircle className="text-destructive size-5 shrink-0" />,
 		message:
-			"Your verification was rejected. Please upload corrected documents and resubmit.",
+			"Your verification was rejected. Please review the reason below, correct your documents, and resubmit.",
 		tone: "bg-destructive/5",
 	},
 	verification_expired: {
@@ -79,9 +86,13 @@ const statusContextMap: Record<
 const SubmitVerificationCard = ({
 	verificationStatus,
 	documentsReady,
+	rejectionReason,
+	verificationAttempts = 0,
+	maxAttempts = 3,
 }: SubmitVerificationCardProps) => {
 	const router = useRouter();
 
+	// local state tracks only the in-flight submission cycle
 	const [loading, setLoading] = useState(false);
 	const [success, setSuccess] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -90,21 +101,32 @@ const SubmitVerificationCard = ({
 	const blockedLabel = buttonLabelMap[verificationStatus];
 	const statusContext = statusContextMap[verificationStatus];
 
-	// aggregates every condition that makes submission pointless or harmful
-	const isDisabled = loading || success || alreadySubmitted || !documentsReady;
+	// mjakazi has hit the attempt cap — contact support is now the only path
+	const attemptsExhausted =
+		verificationStatus === "rejected" && verificationAttempts >= maxAttempts;
 
-	// priority order reflects what the user most needs to see at each stage:
-	// terminal state > missing docs (actionable) > success > loading > default
-	const buttonLabel = alreadySubmitted
-		? blockedLabel
-		: !documentsReady
-			? "Upload Required Documents"
-			: success
-				? "Submitted"
-				: loading
-					? "Submitting..."
-					: "Submit Verification";
+	const attemptsRemaining = maxAttempts - verificationAttempts;
 
+	// button is disabled whenever proceeding would produce an invalid or no-op result
+	const isDisabled =
+		loading || success || alreadySubmitted || !documentsReady || attemptsExhausted;
+
+	// label priority reflects the most actionable state the mjakazi is in
+	const buttonLabel = attemptsExhausted
+		? "No Attempts Remaining"
+		: alreadySubmitted
+			? blockedLabel
+			: !documentsReady
+				? "Upload Required Documents"
+				: success
+					? "Submitted"
+					: loading
+						? "Submitting..."
+						: "Submit Verification";
+
+	// fires a POST to the verification submit route and surfaces any errors inline
+	// on success, router.refresh() re-fetches server component data so the payment
+	// card becomes visible without requiring a manual reload
 	const handleSubmit = async () => {
 		setLoading(true);
 		setError(null);
@@ -116,8 +138,6 @@ const SubmitVerificationCard = ({
 
 			if (res.ok) {
 				setSuccess(true);
-				// re-fetch server component data so the PaymentCard becomes visible
-				// immediately without a manual page reload
 				router.refresh();
 			} else {
 				const data = await res.json();
@@ -139,7 +159,7 @@ const SubmitVerificationCard = ({
 				</p>
 			</div>
 
-			{/* only rendered when the current state has contextual feedback to show */}
+			{/* lifecycle-aware status banner — only shown when the state has feedback to surface */}
 			{statusContext && (
 				<div
 					className={`flex items-start gap-3 rounded-lg px-4 py-3 ${statusContext.tone}`}
@@ -151,9 +171,53 @@ const SubmitVerificationCard = ({
 				</div>
 			)}
 
-			{/* shown when submission is still possible but documents are missing —
-			    gives the user a clear next step rather than a silent disabled button */}
-			{!documentsReady && !alreadySubmitted && (
+			{/* rejection reason — shown so the mjakazi knows exactly what to correct */}
+			{verificationStatus === "rejected" && rejectionReason && (
+				<div className="border-destructive/30 bg-destructive/5 flex flex-col gap-1 rounded-lg border px-4 py-3">
+					<p className="text-destructive text-xs font-semibold tracking-wide uppercase">
+						Reason for Rejection
+					</p>
+					<p className="text-foreground text-sm leading-relaxed">{rejectionReason}</p>
+				</div>
+			)}
+
+			{/* remaining attempts counter — sets the expectation before the cap is hit */}
+			{verificationStatus === "rejected" && !attemptsExhausted && (
+				<p className="text-muted-foreground text-xs">
+					You have{" "}
+					<span className="text-foreground font-medium">
+						{attemptsRemaining} attempt{attemptsRemaining !== 1 ? "s" : ""} remaining
+					</span>{" "}
+					before your account is locked from resubmission.
+				</p>
+			)}
+
+			{/* shown when the cap is reached — contact support is the only remaining option */}
+			{attemptsExhausted && (
+				<div className="border-destructive/30 bg-destructive/5 flex items-start gap-3 rounded-lg border px-4 py-3">
+					<AlertCircle className="text-destructive mt-0.5 size-5 shrink-0" />
+					<p className="text-foreground text-sm leading-relaxed">
+						You have reached the maximum number of verification attempts. Please contact
+						support to discuss your account.
+					</p>
+				</div>
+			)}
+
+			{/* resubmission payment notice — sets the expectation that each submission
+			    triggers a new M-Pesa charge as per the Terms of Service */}
+			{verificationStatus === "rejected" && !attemptsExhausted && documentsReady && (
+				<div className="border-border bg-muted/40 flex items-start gap-3 rounded-lg border px-4 py-3">
+					<AlertCircle className="text-muted-foreground mt-0.5 size-4 shrink-0" />
+					<p className="text-muted-foreground text-xs leading-relaxed">
+						Please note: as outlined in our Terms of Service, each verification submission
+						requires a new registration fee payment. Resubmitting will initiate a new
+						M-Pesa payment.
+					</p>
+				</div>
+			)}
+
+			{/* nudge to upload both documents before the submit button becomes active */}
+			{!documentsReady && !alreadySubmitted && !attemptsExhausted && (
 				<div className="border-border bg-muted/40 flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed px-4 py-5 text-center">
 					<AlertCircle className="text-muted-foreground size-5" />
 					<span className="text-muted-foreground text-sm">
