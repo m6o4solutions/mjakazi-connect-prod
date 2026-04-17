@@ -1,3 +1,17 @@
+# [1.21.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.20.0...v1.21.0) (2026-04-17)
+
+
+### Features
+
+* **api:** implement M-Pesa payment callback endpoint ([8657286](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/865728624955436f1bbb34d1727d61d9ccd41244))
+* **inngest:** add payment timeout background job handler ([0feaa01](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/0feaa013251ca4db82ed4cf01b63293af371024b))
+* **mjakazi:** enforce resubmission attempt cap and surface rejection reason ([f99074b](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/f99074b954d9d7ffe810a7f00941326c3003e264))
+* **mjakazi:** refresh router after submission and improve polling reliability ([f22702a](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/f22702af074b6518db9f2b4d23dbbfb15ec19ade))
+* **mjakazi:** replace dev payment bypass with PaymentCard component ([f9e848c](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/f9e848c0151d18c02e785618acc860f19bf5afc4))
+* **payments:** add M-Pesa integration and payment initiation API ([5f77aac](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/5f77aac183f9d10be65a78f9ebcf75ccc1df2f89))
+* **payments:** add payments collection with admin/SA-only access guard ([51f20cf](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/51f20cf55af2c7c26297bee7992c26de77f916ba))
+* **sa:** add platform-settings global and dynamic registration fee ([75de979](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/75de9797041ea3dea4c1cd2b60364d8d0338952d))
+
 # [1.20.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.19.0...v1.20.0) (2026-04-07)
 
 ### Features
