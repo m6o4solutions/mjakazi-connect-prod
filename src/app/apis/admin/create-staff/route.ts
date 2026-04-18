@@ -1,9 +1,11 @@
+import { writeAuditLog } from "@/lib/audit";
 import { resolveIdentity } from "@/services/identity.service";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import config from "@payload-config";
 import { NextResponse } from "next/server";
 import { getPayload } from "payload";
 
+// creates a new admin account in Clerk — restricted to sa-role users only
 const POST = async (req: Request) => {
 	const { userId } = await auth();
 
@@ -18,7 +20,7 @@ const POST = async (req: Request) => {
 		return NextResponse.json({ error: "Identity not found" }, { status: 404 });
 	}
 
-	// only sa can create admin accounts
+	// only super-admins may create staff accounts
 	if (identity.role !== "sa") {
 		return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 	}
@@ -36,8 +38,8 @@ const POST = async (req: Request) => {
 	try {
 		const client = await clerkClient();
 
-		// create the clerk user with admin role in publicMetadata
-		// no password is set — user must set one on first login via Account Portal
+		// a random temporary password is required by Clerk's API but intentionally
+		// unusable — the new admin should sign in via a password reset or magic link
 		const newUser = await client.users.createUser({
 			emailAddress: [email],
 			firstName,
@@ -48,10 +50,40 @@ const POST = async (req: Request) => {
 			publicMetadata: { role: "admin" },
 		});
 
-		return NextResponse.json({
-			success: true,
-			clerkId: newUser.id,
+		// resolve the sa's account record for a labelled actor entry
+		const saAccount = await payload.find({
+			collection: "accounts",
+			where: { clerkId: { equals: userId } },
+			overrideAccess: true,
+			limit: 1,
 		});
+
+		const sa = saAccount.docs[0] ?? null;
+		const saLabel = sa
+			? [sa.firstName, sa.lastName].filter(Boolean).join(" ").trim() || sa.email
+			: userId;
+
+		const newStaffLabel = [firstName, lastName].filter(Boolean).join(" ").trim() || email;
+
+		// the new admin's Payload account does not exist yet — it is created
+		// when the user.created webhook fires. we log the intent here with the
+		// sa as actor and the email as the target label
+		await writeAuditLog({
+			action: "account_created",
+			actorId: sa?.id ?? null,
+			actorLabel: saLabel,
+			targetId: null,
+			targetLabel: newStaffLabel,
+			metadata: {
+				role: "admin",
+				email,
+				clerkId: newUser.id,
+				createdBySa: true,
+			},
+			source: "user",
+		});
+
+		return NextResponse.json({ success: true, clerkId: newUser.id });
 	} catch (error: any) {
 		return NextResponse.json(
 			{ error: error.errors?.[0]?.message ?? error.message },
