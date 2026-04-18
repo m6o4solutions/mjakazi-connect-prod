@@ -102,16 +102,16 @@ const Page = async () => {
 
 				<div className="grid items-start gap-6 md:grid-cols-2 xl:grid-cols-3">
 					<DocumentUploadCard
-						documentType="national_id"
-						label="National ID"
-						alreadyUploaded={hasNationalId}
-						existingDocumentId={nationalIdDoc?.id ?? null}
-					/>
-					<DocumentUploadCard
 						documentType="good_conduct"
 						label="Certificate of Good Conduct"
 						alreadyUploaded={hasGoodConduct}
 						existingDocumentId={goodConductDoc?.id ?? null}
+					/>
+					<DocumentUploadCard
+						documentType="national_id"
+						label="National ID"
+						alreadyUploaded={hasNationalId}
+						existingDocumentId={nationalIdDoc?.id ?? null}
 					/>
 					<SubmitVerificationCard
 						verificationStatus={verificationStatus}
