@@ -1,4 +1,5 @@
 import { Accounts } from "@/payload/collections/accounts/schema";
+import { AuditLogs } from "@/payload/collections/audit-logs/schema";
 import { CallsToAction } from "@/payload/collections/calls-to-action/schema";
 import { Categories } from "@/payload/collections/categories/schema";
 import { Media } from "@/payload/collections/media/schema";
@@ -23,6 +24,7 @@ const collections = [
 	WajakaziProfiles,
 	Vault,
 	Payments,
+	AuditLogs,
 ];
 
 export { collections };

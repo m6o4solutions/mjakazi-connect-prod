@@ -78,6 +78,7 @@ export interface Config {
     wajakaziprofiles: Wajakaziprofile;
     vault: Vault;
     payments: Payment;
+    'audit-logs': AuditLog;
     forms: Form;
     'form-submissions': FormSubmission;
     redirects: Redirect;
@@ -101,6 +102,7 @@ export interface Config {
     wajakaziprofiles: WajakaziprofilesSelect<false> | WajakaziprofilesSelect<true>;
     vault: VaultSelect<false> | VaultSelect<true>;
     payments: PaymentsSelect<false> | PaymentsSelect<true>;
+    'audit-logs': AuditLogsSelect<false> | AuditLogsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
@@ -834,6 +836,43 @@ export interface Payment {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "audit-logs".
+ */
+export interface AuditLog {
+  id: string;
+  action:
+    | 'account_created'
+    | 'account_updated'
+    | 'account_deleted'
+    | 'verification_submitted'
+    | 'verification_approved'
+    | 'verification_rejected'
+    | 'payment_initiated'
+    | 'payment_confirmed'
+    | 'payment_failed'
+    | 'payment_expired';
+  actor?: (string | null) | Account;
+  actorLabel?: string | null;
+  target?: (string | null) | Account;
+  targetLabel?: string | null;
+  /**
+   * Structured context for the event — rejection reasons, amounts, etc.
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  source: 'user' | 'system';
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "forms".
  */
 export interface Form {
@@ -1225,6 +1264,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'payments';
         value: string | Payment;
+      } | null)
+    | ({
+        relationTo: 'audit-logs';
+        value: string | AuditLog;
       } | null)
     | ({
         relationTo: 'forms';
@@ -1785,6 +1828,21 @@ export interface PaymentsSelect<T extends boolean = true> {
   mpesaReceiptNumber?: T;
   resultCode?: T;
   resultDesc?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "audit-logs_select".
+ */
+export interface AuditLogsSelect<T extends boolean = true> {
+  action?: T;
+  actor?: T;
+  actorLabel?: T;
+  target?: T;
+  targetLabel?: T;
+  metadata?: T;
+  source?: T;
   updatedAt?: T;
   createdAt?: T;
 }
