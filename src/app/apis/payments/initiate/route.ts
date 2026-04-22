@@ -1,4 +1,5 @@
 import { inngest } from "@/inngest/client";
+import { writeAuditLog } from "@/lib/audit";
 import {
 	initiateSTKPush,
 	isValidKenyanMobileNumber,
@@ -9,14 +10,9 @@ import config from "@payload-config";
 import { NextResponse } from "next/server";
 import { getPayload } from "payload";
 
-// POST /apis/payments/initiate
-// triggers an M-Pesa STK push for a mjakazi registration payment
-// expects: { phoneNumber: string }
-// returns: { checkoutRequestId, merchantRequestId, message }
-
+// handles the initiation of m-pesa stk push payments for mjakazi registration fees
 export const POST = async (req: Request) => {
 	try {
-		// reject unauthenticated requests early — nothing below is public
 		const { userId } = await auth();
 
 		if (!userId) {
@@ -25,7 +21,7 @@ export const POST = async (req: Request) => {
 
 		const payload = await getPayload({ config });
 
-		// look up the account so we can check role and link the payment record
+		// verify the account exists and is authorized to pay for registration
 		const accountResult = await payload.find({
 			collection: "accounts",
 			where: { clerkId: { equals: userId } },
@@ -38,8 +34,6 @@ export const POST = async (req: Request) => {
 			return NextResponse.json({ error: "Account not found" }, { status: 404 });
 		}
 
-		// registration payments only apply to mjakazi accounts — guard against
-		// employers or admins accidentally hitting this endpoint
 		if (account.role !== "mjakazi") {
 			return NextResponse.json(
 				{ error: "Only Mjakazi accounts can initiate registration payments" },
@@ -47,8 +41,7 @@ export const POST = async (req: Request) => {
 			);
 		}
 
-		// verificationStatus lives on the wajakaziprofile, not the account,
-		// so we fetch it separately
+		// check that the profile is in the correct state to accept payment
 		const profileResult = await payload.find({
 			collection: "wajakaziprofiles",
 			where: { account: { equals: account.id } },
@@ -61,8 +54,6 @@ export const POST = async (req: Request) => {
 			return NextResponse.json({ error: "Mjakazi profile not found" }, { status: 404 });
 		}
 
-		// prevent duplicate or out-of-order payment attempts — the profile must
-		// have reached pending_payment before a charge is allowed
 		if (profile.verificationStatus !== "pending_payment") {
 			return NextResponse.json(
 				{ error: "Account is not in a payable state" },
@@ -70,8 +61,6 @@ export const POST = async (req: Request) => {
 			);
 		}
 
-		// always read the fee live from the global so any admin change takes
-		// effect immediately without a deploy; fall back to 1500 KES if unset
 		const platformSettings = await payload.findGlobal({
 			slug: "platform-settings",
 			overrideAccess: true,
@@ -79,8 +68,6 @@ export const POST = async (req: Request) => {
 
 		const registrationFee = platformSettings?.registrationFee ?? 1500;
 
-		// parse the body here rather than at the top so we only consume the
-		// stream after all eligibility checks have passed
 		const body = await req.json();
 		const { phoneNumber } = body;
 
@@ -91,8 +78,6 @@ export const POST = async (req: Request) => {
 			);
 		}
 
-		// normalise before validating so the check works regardless of whether
-		// the caller sends 07…, 254…, or +254…
 		const normalised = normaliseMpesaPhone(phoneNumber);
 
 		if (!isValidKenyanMobileNumber(normalised)) {
@@ -102,8 +87,7 @@ export const POST = async (req: Request) => {
 			);
 		}
 
-		// send the STK push — this returns Daraja identifiers we need to store
-		// and later correlate with the callback
+		// trigger the external stk push via the m-pesa provider
 		const stkResponse = await initiateSTKPush({
 			phoneNumber: normalised,
 			amount: registrationFee,
@@ -111,8 +95,7 @@ export const POST = async (req: Request) => {
 			transactionDesc: "Mjakazi Connect Registration Fee",
 		});
 
-		// persist immediately so the callback handler can find this record even
-		// if it arrives before the response below is returned
+		// persist the payment intent to track the transaction status
 		const payment = await payload.create({
 			collection: "payments",
 			data: {
@@ -128,8 +111,7 @@ export const POST = async (req: Request) => {
 			},
 		});
 
-		// schedule the timeout job — if Daraja never calls back within the
-		// window, the job marks the payment as expired and unlocks the profile
+		// schedule a timeout monitor to clean up if the callback is never received
 		await inngest.send({
 			name: "payment/stk.sent",
 			data: {
@@ -137,6 +119,27 @@ export const POST = async (req: Request) => {
 				checkoutRequestId: stkResponse.CheckoutRequestID,
 				accountId: account.id,
 			},
+		});
+
+		const actorLabel =
+			[account.firstName, account.lastName].filter(Boolean).join(" ").trim() ||
+			account.email;
+
+		await writeAuditLog({
+			action: "payment_initiated",
+			actorId: account.id,
+			actorLabel,
+			targetId: account.id,
+			targetLabel: actorLabel,
+			metadata: {
+				paymentId: payment.id,
+				paymentType: "registration",
+				amount: registrationFee,
+				currency: "KES",
+				phoneNumber: normalised,
+				checkoutRequestId: stkResponse.CheckoutRequestID,
+			},
+			source: "user",
 		});
 
 		return NextResponse.json(

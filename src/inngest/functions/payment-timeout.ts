@@ -1,11 +1,9 @@
 import { inngest } from "@/inngest/client";
+import { writeAuditLog } from "@/lib/audit";
 import config from "@payload-config";
 import { getPayload } from "payload";
 
-// triggered by payment/stk.sent — acts as a safety net for unanswered STK prompts
-// if Daraja's callback hasn't arrived within 2 minutes the payment is expired
-// and the profile is reset so the Mjakazi can retry without manual intervention
-
+// background function to handle payments that never receive a callback from safaricom
 export const paymentTimeout = inngest.createFunction(
 	{
 		id: "payment-timeout",
@@ -15,11 +13,10 @@ export const paymentTimeout = inngest.createFunction(
 	async ({ event, step }) => {
 		const { paymentId, checkoutRequestId, accountId } = event.data;
 
-		// give the user the full window to open their phone and enter their PIN
+		// wait for a 2-minute window before checking the transaction status
+		// this aligns with the typical m-pesa stk push timeout on the user's handset
 		await step.sleep("wait-for-stk-response", "2m");
 
-		// re-fetch the record after the sleep — the callback handler may have
-		// already resolved it to confirmed or failed while this function was dormant
 		const currentStatus = await step.run("check-payment-status", async () => {
 			const payload = await getPayload({ config });
 
@@ -31,16 +28,12 @@ export const paymentTimeout = inngest.createFunction(
 
 			const payment = result.docs[0];
 
-			// guard against edge cases where the record was deleted or never written
-			if (!payment) {
-				return null;
-			}
+			if (!payment) return null;
 
 			return payment.status;
 		});
 
-		// callback already won the race — nothing to do
-		// confirmed = user paid, failed = Safaricom rejected, null = record missing
+		// skip expiration if the payment was already confirmed or failed via callback
 		if (!currentStatus || currentStatus !== "stk_sent") {
 			return {
 				outcome: "skipped",
@@ -48,23 +41,49 @@ export const paymentTimeout = inngest.createFunction(
 			};
 		}
 
-		// still stk_sent after 2 minutes — user did not respond, mark it expired
 		await step.run("expire-payment-record", async () => {
 			const payload = await getPayload({ config });
 
+			// mark the payment as expired to prevent late callbacks from being processed
 			await payload.update({
 				collection: "payments",
 				where: { checkoutRequestId: { equals: checkoutRequestId } },
 				data: { status: "expired" },
 			});
+
+			// resolve account label for the audit entry
+			const accountResult = await payload.find({
+				collection: "accounts",
+				where: { id: { equals: accountId } },
+				overrideAccess: true,
+				limit: 1,
+			});
+
+			const account = accountResult.docs[0] ?? null;
+			const actorLabel = account
+				? [account.firstName, account.lastName].filter(Boolean).join(" ").trim() ||
+					account.email
+				: accountId;
+
+			await writeAuditLog({
+				action: "payment_expired",
+				actorId: account?.id ?? null,
+				actorLabel,
+				targetId: account?.id ?? null,
+				targetLabel: actorLabel,
+				metadata: {
+					paymentId,
+					checkoutRequestId,
+					reason: "STK Push not responded to within 2 minutes",
+				},
+				source: "system",
+			});
 		});
 
-		// an unanswered STK prompt is not a payment failure — the Mjakazi should be
-		// able to try again immediately, so we leave verificationStatus as pending_payment
-		// rather than advancing or penalising the verification state
 		await step.run("reset-verification-status", async () => {
 			const payload = await getPayload({ config });
 
+			// ensure the profile remains in pending_payment state so the user can retry
 			const profileResult = await payload.find({
 				collection: "wajakaziprofiles",
 				where: { account: { equals: accountId } },
@@ -75,8 +94,6 @@ export const paymentTimeout = inngest.createFunction(
 
 			if (!profile) return;
 
-			// a concurrent callback could have moved the profile forward between steps —
-			// only reset if the profile is still in the expected state
 			if (profile.verificationStatus !== "pending_payment") return;
 
 			await payload.update({
