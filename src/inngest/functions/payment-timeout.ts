@@ -3,7 +3,7 @@ import { writeAuditLog } from "@/lib/audit";
 import config from "@payload-config";
 import { getPayload } from "payload";
 
-// background function to handle payments that never receive a callback from safaricom
+// monitor and expire STK push requests that do not receive a callback within the expected window
 export const paymentTimeout = inngest.createFunction(
 	{
 		id: "payment-timeout",
@@ -13,8 +13,7 @@ export const paymentTimeout = inngest.createFunction(
 	async ({ event, step }) => {
 		const { paymentId, checkoutRequestId, accountId } = event.data;
 
-		// wait for a 2-minute window before checking the transaction status
-		// this aligns with the typical m-pesa stk push timeout on the user's handset
+		// allow sufficient time for the provider to process the payment and send a callback
 		await step.sleep("wait-for-stk-response", "2m");
 
 		const currentStatus = await step.run("check-payment-status", async () => {
@@ -33,7 +32,7 @@ export const paymentTimeout = inngest.createFunction(
 			return payment.status;
 		});
 
-		// skip expiration if the payment was already confirmed or failed via callback
+		// exit if the payment was already updated by a successful or failed callback
 		if (!currentStatus || currentStatus !== "stk_sent") {
 			return {
 				outcome: "skipped",
@@ -44,27 +43,31 @@ export const paymentTimeout = inngest.createFunction(
 		await step.run("expire-payment-record", async () => {
 			const payload = await getPayload({ config });
 
-			// mark the payment as expired to prevent late callbacks from being processed
+			// mark the payment as expired to prevent late callback processing
 			await payload.update({
 				collection: "payments",
 				where: { checkoutRequestId: { equals: checkoutRequestId } },
 				data: { status: "expired" },
 			});
 
-			// resolve account label for the audit entry
-			const accountResult = await payload.find({
-				collection: "accounts",
-				where: { id: { equals: accountId } },
-				overrideAccess: true,
-				limit: 1,
-			});
+			let account = null;
 
-			const account = accountResult.docs[0] ?? null;
+			try {
+				account = await payload.findByID({
+					collection: "accounts",
+					id: accountId,
+					overrideAccess: true,
+				});
+			} catch {
+				// handle cases where the account might have been removed during the wait period
+			}
+
 			const actorLabel = account
 				? [account.firstName, account.lastName].filter(Boolean).join(" ").trim() ||
 					account.email
 				: accountId;
 
+			// log the system-initiated expiration for auditing and support visibility
 			await writeAuditLog({
 				action: "payment_expired",
 				actorId: account?.id ?? null,
@@ -83,7 +86,6 @@ export const paymentTimeout = inngest.createFunction(
 		await step.run("reset-verification-status", async () => {
 			const payload = await getPayload({ config });
 
-			// ensure the profile remains in pending_payment state so the user can retry
 			const profileResult = await payload.find({
 				collection: "wajakaziprofiles",
 				where: { account: { equals: accountId } },
@@ -94,6 +96,7 @@ export const paymentTimeout = inngest.createFunction(
 
 			if (!profile) return;
 
+			// only proceed if the profile is still waiting for this specific payment
 			if (profile.verificationStatus !== "pending_payment") return;
 
 			await payload.update({
