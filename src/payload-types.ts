@@ -2255,6 +2255,17 @@ export interface Branding {
 export interface PlatformSetting {
   id: string;
   registrationFee: number;
+  subscriptionTiers?:
+    | {
+        tierId: string;
+        name: string;
+        price: number;
+        durationDays: number;
+        description?: string | null;
+        isActive?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -2396,6 +2407,17 @@ export interface BrandingSelect<T extends boolean = true> {
  */
 export interface PlatformSettingsSelect<T extends boolean = true> {
   registrationFee?: T;
+  subscriptionTiers?:
+    | T
+    | {
+        tierId?: T;
+        name?: T;
+        price?: T;
+        durationDays?: T;
+        description?: T;
+        isActive?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
