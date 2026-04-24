@@ -1,3 +1,10 @@
+## [1.22.1](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.22.0...v1.22.1) (2026-04-24)
+
+
+### Bug Fixes
+
+* **email:** implement lazy initialization for resend client ([95bebac](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/95bebac91b102991f6be72a96575a7035a307f07))
+
 # [1.22.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.21.0...v1.22.0) (2026-04-24)
 
 ### Features
