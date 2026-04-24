@@ -10,6 +10,7 @@ import { Users } from "@/payload/collections/users/schema";
 import { Vault } from "@/payload/collections/vault/schema";
 import { WaajiriProfiles } from "@/payload/collections/waajiri-profiles/schema";
 import { WajakaziProfiles } from "@/payload/collections/wajakazi-profiles/schema";
+import { Subscriptions } from "@/payload/collections/subscriptions/schema";
 
 // central registry for all Payload collections used in the application
 const collections = [
@@ -24,6 +25,7 @@ const collections = [
 	WajakaziProfiles,
 	Vault,
 	Payments,
+	Subscriptions,
 	AuditLogs,
 ];
 

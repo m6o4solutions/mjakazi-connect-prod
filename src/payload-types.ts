@@ -78,6 +78,7 @@ export interface Config {
     wajakaziprofiles: Wajakaziprofile;
     vault: Vault;
     payments: Payment;
+    subscriptions: Subscription;
     'audit-logs': AuditLog;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -102,6 +103,7 @@ export interface Config {
     wajakaziprofiles: WajakaziprofilesSelect<false> | WajakaziprofilesSelect<true>;
     vault: VaultSelect<false> | VaultSelect<true>;
     payments: PaymentsSelect<false> | PaymentsSelect<true>;
+    subscriptions: SubscriptionsSelect<false> | SubscriptionsSelect<true>;
     'audit-logs': AuditLogsSelect<false> | AuditLogsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -836,6 +838,31 @@ export interface Payment {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscriptions".
+ */
+export interface Subscription {
+  id: string;
+  account: string | Account;
+  tierId: string;
+  tierName: string;
+  amount: number;
+  currency: string;
+  status: 'stk_sent' | 'active' | 'failed' | 'expired' | 'cancelled';
+  provider: string;
+  phoneNumber: string;
+  checkoutRequestId?: string | null;
+  merchantRequestId?: string | null;
+  mpesaReceiptNumber?: string | null;
+  resultCode?: string | null;
+  resultDesc?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  durationDays: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "audit-logs".
  */
 export interface AuditLog {
@@ -1264,6 +1291,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'payments';
         value: string | Payment;
+      } | null)
+    | ({
+        relationTo: 'subscriptions';
+        value: string | Subscription;
       } | null)
     | ({
         relationTo: 'audit-logs';
@@ -1828,6 +1859,30 @@ export interface PaymentsSelect<T extends boolean = true> {
   mpesaReceiptNumber?: T;
   resultCode?: T;
   resultDesc?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscriptions_select".
+ */
+export interface SubscriptionsSelect<T extends boolean = true> {
+  account?: T;
+  tierId?: T;
+  tierName?: T;
+  amount?: T;
+  currency?: T;
+  status?: T;
+  provider?: T;
+  phoneNumber?: T;
+  checkoutRequestId?: T;
+  merchantRequestId?: T;
+  mpesaReceiptNumber?: T;
+  resultCode?: T;
+  resultDesc?: T;
+  startDate?: T;
+  endDate?: T;
+  durationDays?: T;
   updatedAt?: T;
   createdAt?: T;
 }
