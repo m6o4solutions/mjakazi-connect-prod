@@ -1,21 +1,33 @@
 # [1.22.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.21.0...v1.22.0) (2026-04-24)
 
-
 ### Features
 
-* **api:** add webhook callback endpoint for subscription events ([fa752d0](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/fa752d075af467b3d9dbcc38b239e721e3d94d90))
-* **audit-logs:** implement audit log dashboard views and table component ([cb935bd](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/cb935bda65059446b05afa1c9f194c372d010846))
-* **audit:** add audit logs collection and utility library ([b29fadd](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/b29fadd0d833b8a46a0df7f741d730dd2ad92b8c))
-* **config:** add dynamic subscription tiers to platform settings ([cdc1d0e](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/cdc1d0e6596e5ffa60dea031c0630d5cb9324e67))
-* **db:** denormalize subscription data into waajiri profiles ([a6af54c](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/a6af54cc254722ff0f168cbc851a990100cc14c0))
-* **db:** implement subscriptions collection ([3c95de9](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/3c95de9c35b89bd9d083e65b62b662300e47e9cd))
-* **email:** implement transactional email notification system ([4bdec8e](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/4bdec8e962d5d3d39113996ad5c75585786ba930))
-* **inngest:** implement automated subscription lifecycle management ([8317449](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/831744920c48d98e1bde05c5ef619c6b6e90dbd3))
-* **mjakazi:** add document viewing page with vault API integration ([63e7da3](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/63e7da3a800b0d0ed51bbdda14f5759ac109e5b3))
-* **payments:** instrument payment lifecycle with audit logging ([ddb9cbe](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/ddb9cbe7e0c1794c37ecdfb0f6dc0f993194f786))
-* **ui:** add subscription management interface for mwajiri ([5c874d0](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/5c874d03e35587636f3242d4dbb2290afd2668c9))
-* **verification:** instrument approve and reject routes with audit logging ([14a6266](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/14a62661a1245360ca547c0695a2932fadfea904))
-* **verification:** instrument document uploads with audit logging and dependency updates ([14659f2](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/14659f269e23e937e576956d62525bacc57c6f82))
+- **api:** add webhook callback endpoint for subscription events
+  ([fa752d0](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/fa752d075af467b3d9dbcc38b239e721e3d94d90))
+- **audit-logs:** implement audit log dashboard views and table component
+  ([cb935bd](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/cb935bda65059446b05afa1c9f194c372d010846))
+- **audit:** add audit logs collection and utility library
+  ([b29fadd](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/b29fadd0d833b8a46a0df7f741d730dd2ad92b8c))
+- **config:** add dynamic subscription tiers to platform settings
+  ([cdc1d0e](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/cdc1d0e6596e5ffa60dea031c0630d5cb9324e67))
+- **db:** denormalize subscription data into waajiri profiles
+  ([a6af54c](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/a6af54cc254722ff0f168cbc851a990100cc14c0))
+- **db:** implement subscriptions collection
+  ([3c95de9](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/3c95de9c35b89bd9d083e65b62b662300e47e9cd))
+- **email:** implement transactional email notification system
+  ([4bdec8e](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/4bdec8e962d5d3d39113996ad5c75585786ba930))
+- **inngest:** implement automated subscription lifecycle management
+  ([8317449](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/831744920c48d98e1bde05c5ef619c6b6e90dbd3))
+- **mjakazi:** add document viewing page with vault API integration
+  ([63e7da3](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/63e7da3a800b0d0ed51bbdda14f5759ac109e5b3))
+- **payments:** instrument payment lifecycle with audit logging
+  ([ddb9cbe](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/ddb9cbe7e0c1794c37ecdfb0f6dc0f993194f786))
+- **ui:** add subscription management interface for mwajiri
+  ([5c874d0](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/5c874d03e35587636f3242d4dbb2290afd2668c9))
+- **verification:** instrument approve and reject routes with audit logging
+  ([14a6266](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/14a62661a1245360ca547c0695a2932fadfea904))
+- **verification:** instrument document uploads with audit logging and dependency updates
+  ([14659f2](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/14659f269e23e937e576956d62525bacc57c6f82))
 
 # [1.21.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.20.0...v1.21.0) (2026-04-17)
 
