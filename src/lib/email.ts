@@ -83,7 +83,6 @@ const infoBox = (content: string) =>
 	`<div style="background-color:#f4f4f5;border-radius:8px;padding:16px 20px;margin-bottom:16px;">${content}</div>`;
 
 // transaction email handlers
-
 interface SendPaymentConfirmedParams {
 	to: string;
 	firstName: string;
