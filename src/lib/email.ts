@@ -1,11 +1,14 @@
 import { Resend } from "resend";
 
-// resend client instance for transactional emails
+// single resend instance shared across all saas transactional emails
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM_ADDRESS = "Mjakazi Connect <hello@mjakaziconnect.co.ke>";
+// emails are sent from the verified m6o4 domain but replies route to
+// the mjakazi connect support address for a clean user experience
+const FROM_ADDRESS = "M6O4 Mailer <noreply@updates.m6o4solutions.com>";
+const REPLY_TO = "hello@mjakaziconnect.co.ke";
 
-// base html wrapper to enforce consistent email branding across the platform
+// base html wrapper — inline styles used for maximum email client compatibility
 const baseTemplate = (content: string) => `
 <!DOCTYPE html>
 <html lang="en">
@@ -40,8 +43,8 @@ const baseTemplate = (content: string) => `
           <tr>
             <td style="background-color:#f4f4f5;border-radius:0 0 12px 12px;padding:20px 32px;border:1px solid #e4e4e7;border-top:none;">
               <p style="margin:0;font-size:12px;color:#71717a;line-height:1.5;">
-                This is an automated message from Mjakazi Connect. Please do not reply to this email.
-                If you have questions, contact us at
+                This is an automated message from Mjakazi Connect. To get in touch,
+                reply to this email or contact us at
                 <a href="mailto:hello@mjakaziconnect.co.ke" style="color:#18181b;">hello@mjakaziconnect.co.ke</a>.
               </p>
             </td>
@@ -55,7 +58,7 @@ const baseTemplate = (content: string) => `
 </html>
 `;
 
-// standard typography components to minimize inline style duplication
+// reusable block helpers — keeps template strings readable
 const h1 = (text: string) =>
 	`<h1 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b;letter-spacing:-0.3px;">${text}</h1>`;
 
@@ -80,7 +83,8 @@ interface SendPaymentConfirmedParams {
 	amount: number;
 }
 
-// notifies a wajakazi that their payment was processed and the profile is under review
+// sent to a mjakazi when their registration payment is confirmed and their
+// profile enters the admin review queue
 const sendPaymentConfirmedEmail = async ({
 	to,
 	firstName,
@@ -102,6 +106,7 @@ const sendPaymentConfirmedEmail = async ({
 
 	await resend.emails.send({
 		from: FROM_ADDRESS,
+		replyTo: REPLY_TO,
 		to,
 		subject: "Payment received — your profile is under review",
 		html: baseTemplate(content),
@@ -115,7 +120,8 @@ interface SendVerificationRejectedParams {
 	attemptsRemaining: number;
 }
 
-// notifies a wajakazi of rejection, providing the reason and remaining attempts
+// sent to a mjakazi when an admin rejects their verification submission —
+// includes the rejection reason so they know exactly what to correct
 const sendVerificationRejectedEmail = async ({
 	to,
 	firstName,
@@ -142,6 +148,7 @@ const sendVerificationRejectedEmail = async ({
 
 	await resend.emails.send({
 		from: FROM_ADDRESS,
+		replyTo: REPLY_TO,
 		to,
 		subject: "Action required — verification submission unsuccessful",
 		html: baseTemplate(content),
@@ -157,7 +164,8 @@ interface SendSubscriptionActivatedParams {
 	amount: number;
 }
 
-// confirms subscription activation for a mwajiri, detailing access period and payment
+// sent to a mwajiri when their subscription payment is confirmed and their
+// account is activated — confirms access and shows the expiry date
 const sendSubscriptionActivatedEmail = async ({
 	to,
 	firstName,
@@ -189,6 +197,7 @@ const sendSubscriptionActivatedEmail = async ({
 
 	await resend.emails.send({
 		from: FROM_ADDRESS,
+		replyTo: REPLY_TO,
 		to,
 		subject: `Your ${tierName} subscription is active`,
 		html: baseTemplate(content),
