@@ -647,6 +647,35 @@ export interface Waajiriprofile {
   location?: string | null;
   bio?: string | null;
   moderationStatus: 'active' | 'flagged' | 'suspended';
+  subscriptionStatus?: ('none' | 'pending_payment' | 'active' | 'expired') | null;
+  activeSubscription?: (string | null) | Subscription;
+  subscriptionEndDate?: string | null;
+  subscriptionTierName?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscriptions".
+ */
+export interface Subscription {
+  id: string;
+  account: string | Account;
+  tierId: string;
+  tierName: string;
+  amount: number;
+  currency: string;
+  status: 'stk_sent' | 'active' | 'failed' | 'expired' | 'cancelled';
+  provider: string;
+  phoneNumber: string;
+  checkoutRequestId?: string | null;
+  merchantRequestId?: string | null;
+  mpesaReceiptNumber?: string | null;
+  resultCode?: string | null;
+  resultDesc?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  durationDays: number;
   updatedAt: string;
   createdAt: string;
 }
@@ -833,31 +862,6 @@ export interface Payment {
   mpesaReceiptNumber?: string | null;
   resultCode?: string | null;
   resultDesc?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "subscriptions".
- */
-export interface Subscription {
-  id: string;
-  account: string | Account;
-  tierId: string;
-  tierName: string;
-  amount: number;
-  currency: string;
-  status: 'stk_sent' | 'active' | 'failed' | 'expired' | 'cancelled';
-  provider: string;
-  phoneNumber: string;
-  checkoutRequestId?: string | null;
-  merchantRequestId?: string | null;
-  mpesaReceiptNumber?: string | null;
-  resultCode?: string | null;
-  resultDesc?: string | null;
-  startDate?: string | null;
-  endDate?: string | null;
-  durationDays: number;
   updatedAt: string;
   createdAt: string;
 }
@@ -1780,6 +1784,10 @@ export interface WaajiriprofilesSelect<T extends boolean = true> {
   location?: T;
   bio?: T;
   moderationStatus?: T;
+  subscriptionStatus?: T;
+  activeSubscription?: T;
+  subscriptionEndDate?: T;
+  subscriptionTierName?: T;
   updatedAt?: T;
   createdAt?: T;
 }

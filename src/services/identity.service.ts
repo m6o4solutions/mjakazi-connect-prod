@@ -26,7 +26,7 @@ interface IdentityContext {
 	accountId: string;
 	role: "mjakazi" | "mwajiri" | "admin" | "sa";
 	verificationStatus?: VerificationState;
-	subscriptionState?: string;
+	subscriptionStatus?: string;
 	wajakaziProfileId?: string;
 	waajiriProfileId?: string;
 }
@@ -75,6 +75,8 @@ const resolveIdentity = async (
 
 		if (profile.docs.length > 0) {
 			identity.waajiriProfileId = profile.docs[0].id;
+			// subscriptionStatus drives dashboard gating without a subscriptions query
+			identity.subscriptionStatus = profile.docs[0].subscriptionStatus ?? "none";
 		}
 	}
 
