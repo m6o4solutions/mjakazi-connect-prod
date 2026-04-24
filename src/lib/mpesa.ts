@@ -46,7 +46,8 @@ export interface STKPushOptions {
 // environment resolution
 // ---------------------------------------------------------------------------
 
-// sandbox and production use entirely different base URLs, so we resolve once per call
+// sandbox and production point to entirely different Daraja hosts,
+// so we resolve the base URL at call time rather than hardcoding one
 const getDarajaBaseUrl = (): string => {
 	const env = process.env.MPESA_ENVIRONMENT;
 	return env === "production"
@@ -58,8 +59,8 @@ const getDarajaBaseUrl = (): string => {
 // phone number normalisation
 // ---------------------------------------------------------------------------
 
-// Daraja requires the 254 country code with no leading + or 0
-// covers every common format Kenyan users are likely to enter
+// Daraja requires the 254 country code with no leading + or 0;
+// this covers every common format a Kenyan user is likely to enter
 export const normaliseMpesaPhone = (raw: string): string => {
 	const cleaned = raw.trim().replace(/\s+/g, "");
 
@@ -82,11 +83,9 @@ export const normaliseMpesaPhone = (raw: string): string => {
 	return "254" + cleaned;
 };
 
-// validates that a normalised number is a plausible kenyan mobile number
-// we check format only — 254 country code followed by 9 digits starting with
-// a valid kenyan mobile prefix (7xx or 1xx)
-// network-level validation is left to safaricom — number portability means
-// prefixes no longer reliably identify the operator
+// validates format only — 254 followed by 9 digits starting with 7 or 1
+// network-level validation is intentionally left to Safaricom because number
+// portability means prefixes no longer reliably identify the operator
 export const isValidKenyanMobileNumber = (normalised: string): boolean => {
 	return /^254(7|1)\d{8}$/.test(normalised);
 };
@@ -95,8 +94,8 @@ export const isValidKenyanMobileNumber = (normalised: string): boolean => {
 // oauth token
 // ---------------------------------------------------------------------------
 
-// tokens are short-lived (1 hour); fetching fresh per request keeps things simple
-// and avoids stale-token failures without needing a cache layer
+// tokens are short-lived (1 hour); fetching fresh per request is simpler
+// than maintaining a cache and avoids stale-token failures in production
 export const getDarajaToken = async (): Promise<string> => {
 	const consumerKey = process.env.MPESA_CONSUMER_KEY;
 	const consumerSecret = process.env.MPESA_CONSUMER_SECRET;
@@ -138,7 +137,8 @@ export const getDarajaToken = async (): Promise<string> => {
 // stk push password
 // ---------------------------------------------------------------------------
 
-// Daraja derives request authenticity from this password — it must match exactly
+// Daraja derives request authenticity from this one-time password;
+// it must be recomputed per request because it embeds the current timestamp
 // formula: base64(shortcode + passkey + timestamp)
 const generateStkPassword = (timestamp: string): { password: string } => {
 	const shortCode = process.env.MPESA_SHORTCODE;
@@ -154,7 +154,7 @@ const generateStkPassword = (timestamp: string): { password: string } => {
 	return { password };
 };
 
-// timestamp must be in YYYYMMDDHHmmss — Daraja rejects any other format
+// Daraja rejects any timestamp format other than YYYYMMDDHHmmss
 export const generateTimestamp = (): string => {
 	const now = new Date();
 	const pad = (n: number) => String(n).padStart(2, "0");
@@ -173,8 +173,9 @@ export const generateTimestamp = (): string => {
 // stk push initiation
 // ---------------------------------------------------------------------------
 
-// triggers the STK push prompt on the user's phone via Daraja
-// the caller must persist CheckoutRequestID and MerchantRequestID to correlate the callback
+// triggers the STK push prompt on the user's phone via Daraja;
+// the caller must persist CheckoutRequestID and MerchantRequestID
+// to correlate this request with the eventual payment callback
 export const initiateSTKPush = async (
 	options: STKPushOptions,
 ): Promise<STKPushResponse> => {
@@ -220,7 +221,8 @@ export const initiateSTKPush = async (
 
 	const data = (await response.json()) as STKPushResponse;
 
-	// ResponseCode "0" means Daraja has queued the push — not that the user has paid
+	// ResponseCode "0" means Daraja has queued the push — not that the user has paid;
+	// actual payment confirmation arrives via the callback URL
 	if (data.ResponseCode !== "0") {
 		throw new Error(`STK Push rejected by Daraja: ${data.ResponseDescription}`);
 	}

@@ -1,14 +1,16 @@
+import { writeAuditLog } from "@/lib/audit";
 import { resolveIdentity } from "@/services/identity.service";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import config from "@payload-config";
 import { NextResponse } from "next/server";
 import { getPayload } from "payload";
 
-// only super-admins (sa) may delete staff accounts
+// removes a staff (admin) account from Clerk — restricted to sa-role users only.
+// deleting from Clerk triggers the user.deleted webhook which removes the
+// matching Payload account record via deleteClerkUser
 const DELETE = async (req: Request) => {
 	const { userId } = await auth();
 
-	// reject unauthenticated requests before doing anything else
 	if (!userId) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
@@ -16,12 +18,11 @@ const DELETE = async (req: Request) => {
 	const payload = await getPayload({ config });
 	const identity = await resolveIdentity(payload, userId);
 
-	// identity must exist in our db, not just in Clerk
 	if (!identity) {
 		return NextResponse.json({ error: "Identity not found" }, { status: 404 });
 	}
 
-	// only the sa role is permitted — admins cannot delete other staff
+	// only super-admins may delete staff accounts
 	if (identity.role !== "sa") {
 		return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 	}
@@ -33,7 +34,7 @@ const DELETE = async (req: Request) => {
 		return NextResponse.json({ error: "clerkId is required" }, { status: 400 });
 	}
 
-	// prevent an sa from accidentally removing themselves
+	// prevent an sa from accidentally deleting their own account
 	if (clerkId === userId) {
 		return NextResponse.json(
 			{ error: "You cannot delete your own account." },
@@ -42,10 +43,52 @@ const DELETE = async (req: Request) => {
 	}
 
 	try {
-		const client = await clerkClient();
+		// resolve the target account before deleting so we can label the entry
+		const targetQuery = await payload.find({
+			collection: "accounts",
+			where: { clerkId: { equals: clerkId } },
+			overrideAccess: true,
+			limit: 1,
+		});
 
-		// deleting from Clerk triggers the user.deleted webhook,
-		// which handles removal of the corresponding MongoDB record
+		const targetAccount = targetQuery.docs[0] ?? null;
+		const targetLabel = targetAccount
+			? [targetAccount.firstName, targetAccount.lastName]
+					.filter(Boolean)
+					.join(" ")
+					.trim() || targetAccount.email
+			: clerkId;
+
+		// resolve the sa's account for the actor label
+		const saQuery = await payload.find({
+			collection: "accounts",
+			where: { clerkId: { equals: userId } },
+			overrideAccess: true,
+			limit: 1,
+		});
+
+		const sa = saQuery.docs[0] ?? null;
+		const saLabel = sa
+			? [sa.firstName, sa.lastName].filter(Boolean).join(" ").trim() || sa.email
+			: userId;
+
+		// log before the Clerk delete — the webhook will also fire deleteClerkUser
+		// which writes its own entry; deletedByStaff distinguishes the two
+		await writeAuditLog({
+			action: "account_deleted",
+			actorId: sa?.id ?? null,
+			actorLabel: saLabel,
+			targetId: targetAccount?.id ?? null,
+			targetLabel,
+			metadata: {
+				role: targetAccount?.role ?? "admin",
+				email: targetAccount?.email ?? null,
+				deletedByStaff: true,
+			},
+			source: "user",
+		});
+
+		const client = await clerkClient();
 		await client.users.deleteUser(clerkId);
 
 		return NextResponse.json({ success: true });

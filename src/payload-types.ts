@@ -78,6 +78,8 @@ export interface Config {
     wajakaziprofiles: Wajakaziprofile;
     vault: Vault;
     payments: Payment;
+    subscriptions: Subscription;
+    'audit-logs': AuditLog;
     forms: Form;
     'form-submissions': FormSubmission;
     redirects: Redirect;
@@ -101,6 +103,8 @@ export interface Config {
     wajakaziprofiles: WajakaziprofilesSelect<false> | WajakaziprofilesSelect<true>;
     vault: VaultSelect<false> | VaultSelect<true>;
     payments: PaymentsSelect<false> | PaymentsSelect<true>;
+    subscriptions: SubscriptionsSelect<false> | SubscriptionsSelect<true>;
+    'audit-logs': AuditLogsSelect<false> | AuditLogsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
@@ -643,6 +647,35 @@ export interface Waajiriprofile {
   location?: string | null;
   bio?: string | null;
   moderationStatus: 'active' | 'flagged' | 'suspended';
+  subscriptionStatus?: ('none' | 'pending_payment' | 'active' | 'expired') | null;
+  activeSubscription?: (string | null) | Subscription;
+  subscriptionEndDate?: string | null;
+  subscriptionTierName?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscriptions".
+ */
+export interface Subscription {
+  id: string;
+  account: string | Account;
+  tierId: string;
+  tierName: string;
+  amount: number;
+  currency: string;
+  status: 'stk_sent' | 'active' | 'failed' | 'expired' | 'cancelled';
+  provider: string;
+  phoneNumber: string;
+  checkoutRequestId?: string | null;
+  merchantRequestId?: string | null;
+  mpesaReceiptNumber?: string | null;
+  resultCode?: string | null;
+  resultDesc?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  durationDays: number;
   updatedAt: string;
   createdAt: string;
 }
@@ -829,6 +862,43 @@ export interface Payment {
   mpesaReceiptNumber?: string | null;
   resultCode?: string | null;
   resultDesc?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "audit-logs".
+ */
+export interface AuditLog {
+  id: string;
+  action:
+    | 'account_created'
+    | 'account_updated'
+    | 'account_deleted'
+    | 'verification_submitted'
+    | 'verification_approved'
+    | 'verification_rejected'
+    | 'payment_initiated'
+    | 'payment_confirmed'
+    | 'payment_failed'
+    | 'payment_expired';
+  actor?: (string | null) | Account;
+  actorLabel?: string | null;
+  target?: (string | null) | Account;
+  targetLabel?: string | null;
+  /**
+   * Structured context for the event — rejection reasons, amounts, etc.
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  source: 'user' | 'system';
   updatedAt: string;
   createdAt: string;
 }
@@ -1225,6 +1295,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'payments';
         value: string | Payment;
+      } | null)
+    | ({
+        relationTo: 'subscriptions';
+        value: string | Subscription;
+      } | null)
+    | ({
+        relationTo: 'audit-logs';
+        value: string | AuditLog;
       } | null)
     | ({
         relationTo: 'forms';
@@ -1706,6 +1784,10 @@ export interface WaajiriprofilesSelect<T extends boolean = true> {
   location?: T;
   bio?: T;
   moderationStatus?: T;
+  subscriptionStatus?: T;
+  activeSubscription?: T;
+  subscriptionEndDate?: T;
+  subscriptionTierName?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1785,6 +1867,45 @@ export interface PaymentsSelect<T extends boolean = true> {
   mpesaReceiptNumber?: T;
   resultCode?: T;
   resultDesc?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "subscriptions_select".
+ */
+export interface SubscriptionsSelect<T extends boolean = true> {
+  account?: T;
+  tierId?: T;
+  tierName?: T;
+  amount?: T;
+  currency?: T;
+  status?: T;
+  provider?: T;
+  phoneNumber?: T;
+  checkoutRequestId?: T;
+  merchantRequestId?: T;
+  mpesaReceiptNumber?: T;
+  resultCode?: T;
+  resultDesc?: T;
+  startDate?: T;
+  endDate?: T;
+  durationDays?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "audit-logs_select".
+ */
+export interface AuditLogsSelect<T extends boolean = true> {
+  action?: T;
+  actor?: T;
+  actorLabel?: T;
+  target?: T;
+  targetLabel?: T;
+  metadata?: T;
+  source?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2197,6 +2318,17 @@ export interface Branding {
 export interface PlatformSetting {
   id: string;
   registrationFee: number;
+  subscriptionTiers?:
+    | {
+        tierId: string;
+        name: string;
+        price: number;
+        durationDays: number;
+        description?: string | null;
+        isActive?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -2338,6 +2470,17 @@ export interface BrandingSelect<T extends boolean = true> {
  */
 export interface PlatformSettingsSelect<T extends boolean = true> {
   registrationFee?: T;
+  subscriptionTiers?:
+    | T
+    | {
+        tierId?: T;
+        name?: T;
+        price?: T;
+        durationDays?: T;
+        description?: T;
+        isActive?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

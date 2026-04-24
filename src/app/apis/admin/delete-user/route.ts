@@ -1,9 +1,13 @@
+import { writeAuditLog } from "@/lib/audit";
 import { resolveIdentity } from "@/services/identity.service";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import config from "@payload-config";
 import { NextResponse } from "next/server";
 import { getPayload } from "payload";
 
+// removes a regular user account (mjakazi or mwajiri) — restricted to admin and sa roles.
+// cascades through profile and vault records before hitting Clerk so no orphaned
+// data remains after the webhook fires
 const DELETE = async (req: Request) => {
 	const { userId } = await auth();
 
@@ -18,6 +22,8 @@ const DELETE = async (req: Request) => {
 		return NextResponse.json({ error: "Identity not found." }, { status: 404 });
 	}
 
+	// staff accounts (admin / sa) are intentionally excluded — they must be
+	// managed from the SA dashboard via delete-staff
 	if (identity.role !== "admin" && identity.role !== "sa") {
 		return NextResponse.json({ error: "Forbidden." }, { status: 403 });
 	}
@@ -32,7 +38,7 @@ const DELETE = async (req: Request) => {
 		);
 	}
 
-	// prevent deleting own account via this endpoint
+	// prevent staff from accidentally deleting their own account
 	if (clerkId === userId) {
 		return NextResponse.json(
 			{ error: "You cannot delete your own account." },
@@ -40,7 +46,7 @@ const DELETE = async (req: Request) => {
 		);
 	}
 
-	// prevent admins from deleting other admins or sa accounts
+	// guard against misrouted requests — only user-facing roles belong here
 	if (role === "admin" || role === "sa") {
 		return NextResponse.json(
 			{ error: "Staff accounts must be managed from the SA dashboard." },
@@ -49,7 +55,6 @@ const DELETE = async (req: Request) => {
 	}
 
 	try {
-		// find the account record to get the profile id
 		const accountQuery = await payload.find({
 			collection: "accounts",
 			where: { clerkId: { equals: clerkId } },
@@ -63,7 +68,23 @@ const DELETE = async (req: Request) => {
 
 		const account = accountQuery.docs[0];
 
-		// --- mjakazi cleanup ---
+		// resolve actor label from the staff member performing the deletion
+		const actorAccount = await payload.find({
+			collection: "accounts",
+			where: { clerkId: { equals: userId } },
+			overrideAccess: true,
+			limit: 1,
+		});
+
+		const actor = actorAccount.docs[0] ?? null;
+		const actorLabel = actor
+			? [actor.firstName, actor.lastName].filter(Boolean).join(" ").trim() || actor.email
+			: userId;
+
+		const targetLabel =
+			[account.firstName, account.lastName].filter(Boolean).join(" ").trim() ||
+			account.email;
+
 		if (role === "mjakazi") {
 			const profileQuery = await payload.find({
 				collection: "wajakaziprofiles",
@@ -75,7 +96,7 @@ const DELETE = async (req: Request) => {
 			if (profileQuery.docs.length > 0) {
 				const profile = profileQuery.docs[0];
 
-				// delete vault documents and their s3 objects
+				// remove all vault documents linked to this profile
 				const vaultDocs = await payload.find({
 					collection: "vault",
 					where: { profile: { equals: profile.id } },
@@ -93,7 +114,7 @@ const DELETE = async (req: Request) => {
 					),
 				);
 
-				// delete profile photo from media if present
+				// remove the profile photo from media storage before deleting the profile
 				if (profile.photo) {
 					const photoId =
 						typeof profile.photo === "object" ? (profile.photo as any).id : profile.photo;
@@ -105,7 +126,6 @@ const DELETE = async (req: Request) => {
 					});
 				}
 
-				// delete the profile record
 				await payload.delete({
 					collection: "wajakaziprofiles",
 					id: profile.id,
@@ -114,7 +134,6 @@ const DELETE = async (req: Request) => {
 			}
 		}
 
-		// --- mwajiri cleanup ---
 		if (role === "mwajiri") {
 			const profileQuery = await payload.find({
 				collection: "waajiriprofiles",
@@ -132,8 +151,23 @@ const DELETE = async (req: Request) => {
 			}
 		}
 
-		// delete from clerk — triggers user.deleted webhook
-		// which removes the accounts record via deleteClerkUser
+		// log the staff-initiated deletion before triggering the Clerk delete
+		// the webhook will also fire deleteClerkUser which writes its own entry
+		// metadata.deletedByStaff distinguishes the two in the audit log
+		await writeAuditLog({
+			action: "account_deleted",
+			actorId: actor?.id ?? null,
+			actorLabel,
+			targetId: account.id,
+			targetLabel,
+			metadata: {
+				role,
+				email: account.email,
+				deletedByStaff: true,
+			},
+			source: "user",
+		});
+
 		const client = await clerkClient();
 		await client.users.deleteUser(clerkId);
 

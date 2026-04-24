@@ -1,3 +1,4 @@
+import { writeAuditLog } from "@/lib/audit";
 import { resolveIdentity } from "@/services/identity.service";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import config from "@payload-config";
@@ -5,6 +6,7 @@ import { NextResponse } from "next/server";
 import { getPayload } from "payload";
 
 const DELETE = async () => {
+	// only authenticated users may delete their own account
 	const { userId } = await auth();
 
 	if (!userId) {
@@ -12,24 +14,38 @@ const DELETE = async () => {
 	}
 
 	const payload = await getPayload({ config });
+
+	// fetch the unified identity so we know the role and linked profile ids
 	const identity = await resolveIdentity(payload, userId);
 
 	if (!identity) {
 		return NextResponse.json({ error: "Identity not found" }, { status: 404 });
 	}
 
-	// only mjakazi and mwajiri can self-delete
-	// admin and sa accounts are managed by the sa dashboard
+	// only end-user roles can self-delete; admin and other roles are excluded
 	if (identity.role !== "mjakazi" && identity.role !== "mwajiri") {
 		return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 	}
 
 	try {
+		// resolve the account record upfront so we have a human-readable label
+		// for audit logs even after the records are deleted
+		const accountQuery = await payload.find({
+			collection: "accounts",
+			where: { clerkId: { equals: userId } },
+			overrideAccess: true,
+			limit: 1,
+		});
+
+		const account = accountQuery.docs[0] ?? null;
+		const actorLabel = account
+			? [account.firstName, account.lastName].filter(Boolean).join(" ").trim() ||
+				account.email
+			: userId;
+
 		// --- mjakazi cleanup ---
 		if (identity.role === "mjakazi" && identity.wajakaziProfileId) {
-			// find and delete all vault documents for this profile
-			// payload.delete on an upload collection removes both the
-			// mongodb record and the s3 object in a single operation
+			// remove all vault documents belonging to this profile before deleting the profile itself
 			const vaultDocs = await payload.find({
 				collection: "vault",
 				where: { profile: { equals: identity.wajakaziProfileId } },
@@ -47,13 +63,14 @@ const DELETE = async () => {
 				),
 			);
 
-			// find and delete profile photo from media if one exists
+			// fetch the profile to check for an associated photo before deleting it
 			const profileDoc = await payload.findByID({
 				collection: "wajakaziprofiles",
 				id: identity.wajakaziProfileId,
 				overrideAccess: true,
 			});
 
+			// delete the profile photo from media storage to avoid orphaned files
 			if (profileDoc?.photo) {
 				const photoId =
 					typeof profileDoc.photo === "object" ? profileDoc.photo.id : profileDoc.photo;
@@ -65,7 +82,6 @@ const DELETE = async () => {
 				});
 			}
 
-			// delete the wajakazi profile record
 			await payload.delete({
 				collection: "wajakaziprofiles",
 				id: identity.wajakaziProfileId,
@@ -75,8 +91,6 @@ const DELETE = async () => {
 
 		// --- mwajiri cleanup ---
 		if (identity.role === "mwajiri" && identity.waajiriProfileId) {
-			// delete the mwajiri profile record
-			// no vault documents exist for mwajiri
 			await payload.delete({
 				collection: "waajiriprofiles",
 				id: identity.waajiriProfileId,
@@ -84,8 +98,24 @@ const DELETE = async () => {
 			});
 		}
 
-		// delete from clerk — this triggers the user.deleted webhook
-		// which calls deleteClerkUser and removes the accounts record
+		// audit log is written before the Clerk deletion so the actor id is still
+		// resolvable; the subsequent Clerk webhook (deleteClerkUser) writes its own
+		// system entry, mirroring the two-entry pattern used for staff-initiated deletions
+		await writeAuditLog({
+			action: "account_deleted",
+			actorId: identity.accountId,
+			actorLabel,
+			targetId: identity.accountId,
+			targetLabel: actorLabel,
+			metadata: {
+				role: identity.role,
+				email: account?.email ?? null,
+				selfDeleted: true,
+			},
+			source: "user",
+		});
+
+		// deleting the Clerk user triggers the webhook that removes the Payload account record
 		const client = await clerkClient();
 		await client.users.deleteUser(userId);
 

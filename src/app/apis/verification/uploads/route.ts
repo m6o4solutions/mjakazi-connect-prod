@@ -1,3 +1,4 @@
+import { writeAuditLog } from "@/lib/audit";
 import { generateUniqueFilename } from "@/lib/generate-unique-filename";
 import { resolveIdentity } from "@/services/identity.service";
 import { auth } from "@clerk/nextjs/server";
@@ -5,8 +6,7 @@ import config from "@payload-config";
 import { NextResponse } from "next/server";
 import { getPayload } from "payload";
 
-// defines the accepted verification document categories; anything outside
-// this set is rejected to prevent arbitrary data being stored in the vault
+// restricted set of document types accepted for mjakazi verification
 const VALID_DOCUMENT_TYPES = [
 	"national_id",
 	"good_conduct",
@@ -20,8 +20,7 @@ const isValidDocumentType = (value: string): value is DocumentType => {
 	return VALID_DOCUMENT_TYPES.includes(value as DocumentType);
 };
 
-// some browsers and http clients omit file.type; fall back to the extension
-// so payload always receives a usable mime type
+// ensure correct mime types for storage and rendering, falling back to a generic stream if undetectable
 const resolveMimeType = (file: File): string => {
 	if (file.type) return file.type;
 
@@ -34,7 +33,6 @@ const resolveMimeType = (file: File): string => {
 		pdf: "application/pdf",
 	};
 
-	// octet-stream is the safest generic fallback when the type is truly unknown
 	return mimeMap[ext ?? ""] ?? "application/octet-stream";
 };
 
@@ -48,16 +46,15 @@ const POST = async (req: Request) => {
 	const payload = await getPayload({ config });
 	const identity = await resolveIdentity(payload, userId);
 
+	// gate access to mjakazi users with a valid profile
 	if (!identity) {
 		return NextResponse.json({ error: "Identity not found" }, { status: 404 });
 	}
 
-	// verification documents are only relevant to mjakazi workers
 	if (identity.role !== "mjakazi") {
 		return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 	}
 
-	// a profile must already exist before documents can be attached to it
 	if (!identity.wajakaziProfileId) {
 		return NextResponse.json({ error: "Profile not found" }, { status: 404 });
 	}
@@ -65,9 +62,6 @@ const POST = async (req: Request) => {
 	const formData = await req.formData();
 	const file = formData.get("file") as File;
 	const documentType = formData.get("documentType") as string;
-
-	// when the client is replacing an existing document it passes its vault id
-	// so the server can delete it before creating the new one
 	const existingDocumentId = formData.get("existingDocumentId") as string | null;
 
 	if (!file) {
@@ -81,23 +75,65 @@ const POST = async (req: Request) => {
 		);
 	}
 
+	// retrieve current profile to check verification status and for audit logging
+	const profile = await payload.findByID({
+		collection: "wajakaziprofiles",
+		id: identity.wajakaziProfileId,
+		overrideAccess: true,
+	});
+
 	if (existingDocumentId) {
-		// replacing an existing document — delete the old vault record and
-		// its s3 object before creating the new one
 		try {
+			// clean up previous document version when performing a replacement
 			await payload.delete({
 				collection: "vault",
 				id: existingDocumentId,
 				overrideAccess: true,
 			});
 		} catch {
-			// deletion failure should not block the new upload;
-			// log and continue so the user is not left without a document
 			console.warn("Failed to delete existing vault document:", existingDocumentId);
 		}
+
+		// require re-verification if a verified user modifies their documents to ensure continued trust
+		if (profile?.verificationStatus === "verified") {
+			await payload.update({
+				collection: "wajakaziprofiles",
+				id: identity.wajakaziProfileId,
+				data: { verificationStatus: "pending_review" },
+				overrideAccess: true,
+			});
+
+			const accountQuery = await payload.find({
+				collection: "accounts",
+				where: { clerkId: { equals: userId } },
+				overrideAccess: true,
+				limit: 1,
+			});
+
+			const account = accountQuery.docs[0] ?? null;
+			const actorLabel = account
+				? [account.firstName, account.lastName].filter(Boolean).join(" ").trim() ||
+					account.email
+				: userId;
+
+			await writeAuditLog({
+				action: "verification_submitted",
+				actorId: identity.accountId,
+				actorLabel,
+				targetId: identity.accountId,
+				targetLabel: actorLabel,
+				metadata: {
+					profileId: identity.wajakaziProfileId,
+					fromStatus: "verified",
+					toStatus: "pending_review",
+					trigger: "document_replaced",
+					documentType,
+				},
+				source: "user",
+			});
+		}
 	} else {
-		// fresh upload — enforce one document per type per profile
-		// to prevent accidental duplicates on a new profile
+		// prevent duplicate uploads for the same document type to maintain a clean profile state
 		const existingDoc = await payload.find({
 			collection: "vault",
 			where: {
@@ -123,6 +159,7 @@ const POST = async (req: Request) => {
 	const uniqueFilename = generateUniqueFilename(file.name);
 
 	try {
+		// persist the document to the vault and associate it with the mjakazi profile
 		const vaultDocument = await payload.create({
 			collection: "vault",
 			draft: false,

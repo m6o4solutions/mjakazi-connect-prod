@@ -72,6 +72,43 @@ const WaajiriProfiles: CollectionConfig = {
 			],
 			defaultValue: "active",
 		},
+		// denormalised onto the profile so dashboard renders and access checks
+		// don't need to query the subscriptions collection on every request
+		{
+			name: "subscriptionStatus",
+			type: "select",
+			label: "Subscription Status",
+			index: true,
+			options: [
+				{ label: "None", value: "none" },
+				{ label: "Pending Payment", value: "pending_payment" },
+				{ label: "Active", value: "active" },
+				{ label: "Expired", value: "expired" },
+			],
+			defaultValue: "none",
+		},
+		{
+			// points to the current active subscription record for quick lookup
+			name: "activeSubscription",
+			type: "relationship",
+			label: "Active Subscription",
+			relationTo: "subscriptions",
+			admin: { readOnly: true },
+		},
+		{
+			// cached from the active subscription — avoids a join on every page render
+			name: "subscriptionEndDate",
+			type: "date",
+			label: "Subscription End Date",
+			admin: { readOnly: true },
+		},
+		{
+			// cached tier name for display without querying platform settings
+			name: "subscriptionTierName",
+			type: "text",
+			label: "Subscription Tier",
+			admin: { readOnly: true },
+		},
 	],
 };
 

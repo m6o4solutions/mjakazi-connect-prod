@@ -2,8 +2,9 @@ import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { resolveIdentity } from "@/services/identity.service";
 import { auth } from "@clerk/nextjs/server";
 import config from "@payload-config";
-import { CreditCard } from "lucide-react";
+import { CheckCircle2, CreditCard, Search } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getPayload } from "payload";
 
@@ -19,28 +20,63 @@ const Page = async () => {
 
 	if (!identity || identity.role !== "mwajiri") redirect("/sign-in");
 
+	// fetch the profile to read live subscription state for the dashboard card
+	const profileResult = await payload.find({
+		collection: "waajiriprofiles",
+		where: { account: { equals: identity.accountId } },
+		overrideAccess: true,
+		limit: 1,
+	});
+
+	const profile = profileResult.docs[0] ?? null;
+	const subscriptionStatus = profile?.subscriptionStatus ?? "none";
+	const subscriptionTierName = profile?.subscriptionTierName ?? null;
+	const subscriptionEndDate = profile?.subscriptionEndDate ?? null;
+
+	const isActive = subscriptionStatus === "active";
+
 	return (
 		<>
 			<DashboardTopbar title="My Dashboard" />
-
 			<main className="flex flex-1 flex-col gap-6 p-6">
 				<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-					<div className="bg-card border-border flex flex-col gap-4 rounded-xl border p-6">
+					{/* subscription status card — links to the subscription page */}
+					<Link
+						href="/dashboard/mwajiri/subscription"
+						className="bg-card border-border hover:border-primary/40 flex flex-col gap-4 rounded-xl border p-6 transition-colors"
+					>
 						<p className="text-muted-foreground text-sm font-semibold">
 							Subscription Status
 						</p>
-						<div className="bg-muted/40 flex items-start gap-3 rounded-lg px-4 py-3">
-							<CreditCard className="text-muted-foreground mt-0.5 size-5 shrink-0" />
+						<div
+							className={[
+								"flex items-start gap-3 rounded-lg px-4 py-3",
+								isActive ? "bg-accent/10" : "bg-muted/40",
+							].join(" ")}
+						>
+							{isActive ? (
+								<CheckCircle2 className="text-accent mt-0.5 size-5 shrink-0" />
+							) : (
+								<CreditCard className="text-muted-foreground mt-0.5 size-5 shrink-0" />
+							)}
 							<div>
 								<p className="text-foreground text-sm font-bold">
-									No Active Subscription
+									{isActive
+										? (subscriptionTierName ?? "Active")
+										: subscriptionStatus === "expired"
+											? "Subscription Expired"
+											: subscriptionStatus === "pending_payment"
+												? "Payment Pending"
+												: "No Active Subscription"}
 								</p>
 								<p className="text-muted-foreground mt-0.5 text-xs">
-									Subscription management will be available in a future update.
+									{isActive && subscriptionEndDate
+										? `Active until ${new Date(subscriptionEndDate).toLocaleDateString("en-KE", { day: "2-digit", month: "short", year: "numeric" })}`
+										: "Click to manage your subscription"}
 								</p>
 							</div>
 						</div>
-					</div>
+					</Link>
 
 					<div className="bg-card border-border flex flex-col gap-4 rounded-xl border p-6">
 						<p className="text-muted-foreground text-sm font-semibold">Browse Wajakazi</p>

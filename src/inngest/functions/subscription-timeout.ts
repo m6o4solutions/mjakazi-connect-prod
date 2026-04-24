@@ -3,53 +3,55 @@ import { writeAuditLog } from "@/lib/audit";
 import config from "@payload-config";
 import { getPayload } from "payload";
 
-// monitor and expire STK push requests that do not receive a callback within the expected window
-export const paymentTimeout = inngest.createFunction(
+export const subscriptionTimeout = inngest.createFunction(
 	{
-		id: "payment-timeout",
-		name: "Payment STK Push Timeout",
-		triggers: [{ event: "payment/stk.sent" }],
+		id: "subscription-timeout",
+		name: "Subscription STK Push Timeout",
+		triggers: [{ event: "subscription/stk.sent" }],
 	},
 	async ({ event, step }) => {
-		const { paymentId, checkoutRequestId, accountId } = event.data;
+		const { subscriptionId, checkoutRequestId, accountId, waajiriProfileId } = event.data;
 
-		// allow sufficient time for the provider to process the payment and send a callback
+		// give the mwajiri the full window to respond to the stk prompt
 		await step.sleep("wait-for-stk-response", "2m");
 
-		const currentStatus = await step.run("check-payment-status", async () => {
+		// re-fetch after sleep — the callback handler may have already resolved it
+		const currentStatus = await step.run("check-subscription-status", async () => {
 			const payload = await getPayload({ config });
 
 			const result = await payload.find({
-				collection: "payments",
+				collection: "subscriptions",
 				where: { checkoutRequestId: { equals: checkoutRequestId } },
+				overrideAccess: true,
 				limit: 1,
 			});
 
-			const payment = result.docs[0];
+			const subscription = result.docs[0];
+			if (!subscription) return null;
 
-			if (!payment) return null;
-
-			return payment.status;
+			return subscription.status;
 		});
 
-		// exit if the payment was already updated by a successful or failed callback
+		// callback already resolved this subscription — nothing to do
 		if (!currentStatus || currentStatus !== "stk_sent") {
 			return {
 				outcome: "skipped",
-				reason: `Payment status was already: ${currentStatus}`,
+				reason: `Subscription status was already: ${currentStatus}`,
 			};
 		}
 
-		await step.run("expire-payment-record", async () => {
+		// still stk_sent after 2 minutes — expire it
+		await step.run("expire-subscription-record", async () => {
 			const payload = await getPayload({ config });
 
-			// mark the payment as expired to prevent late callback processing
 			await payload.update({
-				collection: "payments",
+				collection: "subscriptions",
 				where: { checkoutRequestId: { equals: checkoutRequestId } },
 				data: { status: "expired" },
+				overrideAccess: true,
 			});
 
+			// resolve account label for the audit entry
 			let account = null;
 
 			try {
@@ -59,7 +61,7 @@ export const paymentTimeout = inngest.createFunction(
 					overrideAccess: true,
 				});
 			} catch {
-				// handle cases where the account might have been removed during the wait period
+				// account may have been deleted between initiation and timeout
 			}
 
 			const actorLabel = account
@@ -67,7 +69,6 @@ export const paymentTimeout = inngest.createFunction(
 					account.email
 				: accountId;
 
-			// log the system-initiated expiration for auditing and support visibility
 			await writeAuditLog({
 				action: "payment_expired",
 				actorId: account?.id ?? null,
@@ -75,40 +76,44 @@ export const paymentTimeout = inngest.createFunction(
 				targetId: account?.id ?? null,
 				targetLabel: actorLabel,
 				metadata: {
-					paymentId,
+					subscriptionId,
 					checkoutRequestId,
+					paymentType: "subscription",
 					reason: "STK Push not responded to within 2 minutes",
 				},
 				source: "system",
 			});
 		});
 
-		await step.run("reset-verification-status", async () => {
+		// reset profile to none so the mwajiri can initiate a fresh attempt
+		// without manual intervention — an unanswered prompt is not a hard failure
+		await step.run("reset-profile-subscription-status", async () => {
 			const payload = await getPayload({ config });
 
 			const profileResult = await payload.find({
-				collection: "wajakaziprofiles",
+				collection: "waajiriprofiles",
 				where: { account: { equals: accountId } },
+				overrideAccess: true,
 				limit: 1,
 			});
 
 			const profile = profileResult.docs[0];
-
 			if (!profile) return;
 
-			// only proceed if the profile is still waiting for this specific payment
-			if (profile.verificationStatus !== "pending_payment") return;
+			// a concurrent callback could have activated the subscription between steps
+			if (profile.subscriptionStatus !== "pending_payment") return;
 
 			await payload.update({
-				collection: "wajakaziprofiles",
+				collection: "waajiriprofiles",
 				id: profile.id,
-				data: { verificationStatus: "pending_payment" },
+				data: { subscriptionStatus: "none" },
+				overrideAccess: true,
 			});
 		});
 
 		return {
 			outcome: "expired",
-			paymentId,
+			subscriptionId,
 			checkoutRequestId,
 		};
 	},

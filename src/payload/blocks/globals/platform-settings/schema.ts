@@ -17,7 +17,58 @@ const PlatformSettings: GlobalConfig = {
 			label: "Mjakazi Registration Fee (KSh)",
 			required: true,
 			defaultValue: 1500,
-			min: 1, // prevents accidentally zeroing out the fee
+			min: 1,
+		},
+		{
+			// subscription tiers available to waajiri — sa manages these without
+			// a code deploy; the Mwajiri dashboard reads them at runtime
+			name: "subscriptionTiers",
+			type: "array",
+			label: "Mwajiri Subscription Tiers",
+			minRows: 1,
+			fields: [
+				{
+					name: "tierId",
+					type: "text",
+					label: "Tier ID",
+					required: true,
+				},
+				{
+					name: "name",
+					type: "text",
+					label: "Display Name",
+					required: true,
+				},
+				{
+					name: "price",
+					type: "number",
+					label: "Price (KSh)",
+					required: true,
+					min: 1,
+				},
+				{
+					// duration in days keeps the logic simple — 30 = monthly, 365 = annual
+					name: "durationDays",
+					type: "number",
+					label: "Duration (Days)",
+					required: true,
+					min: 1,
+					defaultValue: 30,
+				},
+				{
+					name: "description",
+					type: "textarea",
+					label: "Description",
+				},
+				{
+					// allows sa to temporarily hide a tier without deleting it —
+					// useful for promotional tiers or sunset plans
+					name: "isActive",
+					type: "checkbox",
+					label: "Active",
+					defaultValue: true,
+				},
+			],
 		},
 	],
 };
