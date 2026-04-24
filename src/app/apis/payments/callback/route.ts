@@ -1,6 +1,7 @@
 // src/app/apis/payments/callback/route.ts
 
 import { writeAuditLog } from "@/lib/audit";
+import { sendPaymentConfirmedEmail, sendSubscriptionActivatedEmail } from "@/lib/email";
 import config from "@payload-config";
 import { NextResponse } from "next/server";
 import { getPayload } from "payload";
@@ -87,7 +88,7 @@ export const POST = async (req: Request) => {
 			);
 		}
 
-		// no payment record found — check subscriptions collection
+		// no payment record — check subscriptions collection
 		const subscriptionResult = await payload.find({
 			collection: "subscriptions",
 			where: { checkoutRequestId: { equals: CheckoutRequestID } },
@@ -106,7 +107,6 @@ export const POST = async (req: Request) => {
 			);
 		}
 
-		// unknown checkout request — accept and discard
 		console.error(
 			`[payments/callback] no record found for CheckoutRequestID: ${CheckoutRequestID}`,
 		);
@@ -117,7 +117,6 @@ export const POST = async (req: Request) => {
 	}
 };
 
-// handles registration payment callbacks — advances mjakazi to pending_review on success
 const handleRegistrationCallback = async (
 	payload: Awaited<ReturnType<typeof getPayload>>,
 	payment: any,
@@ -126,7 +125,6 @@ const handleRegistrationCallback = async (
 	ResultCode: number,
 	ResultDesc: string,
 ) => {
-	// idempotency guard — a previous delivery may have already resolved this
 	if (
 		payment.status === "confirmed" ||
 		payment.status === "failed" ||
@@ -170,7 +168,12 @@ const handleRegistrationCallback = async (
 			overrideAccess: true,
 		});
 
-		await handleRegistrationConfirmed(payload, payment.account);
+		await handleRegistrationConfirmed(
+			payload,
+			payment.account,
+			mpesaReceiptNumber,
+			payment.amount,
+		);
 
 		await writeAuditLog({
 			action: "payment_confirmed",
@@ -223,7 +226,6 @@ const handleRegistrationCallback = async (
 	return NextResponse.json({ ResultCode: 0, ResultDesc: "Accepted" }, { status: 200 });
 };
 
-// handles subscription payment callbacks — activates mwajiri subscription on success
 const handleSubscriptionCallback = async (
 	payload: Awaited<ReturnType<typeof getPayload>>,
 	subscription: any,
@@ -232,7 +234,6 @@ const handleSubscriptionCallback = async (
 	ResultCode: number,
 	ResultDesc: string,
 ) => {
-	// idempotency guard
 	if (
 		subscription.status === "active" ||
 		subscription.status === "failed" ||
@@ -285,12 +286,30 @@ const handleSubscriptionCallback = async (
 			overrideAccess: true,
 		});
 
-		// update the mwajiri profile so polling detects activation immediately
 		await activateMwajiriProfile(payload, accountId, {
 			subscriptionId: subscription.id,
 			tierName: subscription.tierName,
 			endDate: endDate.toISOString(),
 		});
+
+		// send subscription activated email — non-fatal if it fails
+		if (accountResult?.email) {
+			try {
+				await sendSubscriptionActivatedEmail({
+					to: accountResult.email,
+					firstName: accountResult.firstName ?? "there",
+					tierName: subscription.tierName,
+					endDate: endDate.toISOString(),
+					mpesaReceiptNumber: mpesaReceiptNumber ?? "N/A",
+					amount: subscription.amount,
+				});
+			} catch (emailError) {
+				console.error(
+					"[payments/callback] failed to send subscription email:",
+					emailError,
+				);
+			}
+		}
 
 		await writeAuditLog({
 			action: "payment_confirmed",
@@ -325,7 +344,6 @@ const handleSubscriptionCallback = async (
 		overrideAccess: true,
 	});
 
-	// reset profile so the mwajiri can retry immediately
 	await resetMwajiriProfileToNone(payload, accountId);
 
 	await writeAuditLog({
@@ -348,10 +366,12 @@ const handleSubscriptionCallback = async (
 	return NextResponse.json({ ResultCode: 0, ResultDesc: "Accepted" }, { status: 200 });
 };
 
-// advances the mjakazi profile to pending_review after registration payment
+// advances mjakazi profile to pending_review and sends payment confirmed email
 const handleRegistrationConfirmed = async (
 	payload: Awaited<ReturnType<typeof getPayload>>,
 	accountRef: string | { id: string } | null | undefined,
+	mpesaReceiptNumber: string | undefined,
+	amount: number,
 ) => {
 	if (!accountRef) return;
 
@@ -384,12 +404,35 @@ const handleRegistrationConfirmed = async (
 		overrideAccess: true,
 	});
 
+	// resolve account email and name for the notification
+	const accountResult = await payload.findByID({
+		collection: "accounts",
+		id: accountId,
+		overrideAccess: true,
+	});
+
+	// email is non-fatal — a failed send should never block profile advancement
+	if (accountResult?.email && mpesaReceiptNumber) {
+		try {
+			await sendPaymentConfirmedEmail({
+				to: accountResult.email,
+				firstName: accountResult.firstName ?? "there",
+				mpesaReceiptNumber,
+				amount,
+			});
+		} catch (emailError) {
+			console.error(
+				"[payments/callback] failed to send payment confirmed email:",
+				emailError,
+			);
+		}
+	}
+
 	console.log(
 		`[payments/callback] mjakazi advanced to pending_review — account: ${accountId}`,
 	);
 };
 
-// denormalises subscription state onto the mwajiri profile for fast dashboard reads
 const activateMwajiriProfile = async (
 	payload: Awaited<ReturnType<typeof getPayload>>,
 	accountId: string,
@@ -420,7 +463,6 @@ const activateMwajiriProfile = async (
 	console.log(`[payments/callback] mwajiri profile activated — account: ${accountId}`);
 };
 
-// resets subscription status to none on payment failure so the mwajiri can retry
 const resetMwajiriProfileToNone = async (
 	payload: Awaited<ReturnType<typeof getPayload>>,
 	accountId: string,
