@@ -1,14 +1,22 @@
 import { Resend } from "resend";
 
-// single resend instance shared across all saas transactional emails
-const resend = new Resend(process.env.RESEND_API_KEY);
+// instantiate per-call to avoid build-time errors when env vars are missing
+const getResend = () => {
+	const apiKey = process.env.RESEND_API_KEY;
+
+	if (!apiKey) {
+		throw new Error("RESEND_API_KEY is not set");
+	}
+
+	return new Resend(apiKey);
+};
 
 // emails are sent from the verified m6o4 domain but replies route to
 // the mjakazi connect support address for a clean user experience
-const FROM_ADDRESS = "M6O4 Mailer <noreply@updates.m6o4solutions.com>";
+const FROM_ADDRESS = "Mjakazi Connect <noreply@updates.m6o4solutions.com>";
 const REPLY_TO = "hello@mjakaziconnect.co.ke";
 
-// base html wrapper — inline styles used for maximum email client compatibility
+// base container with inline styles for cross-client compatibility
 const baseTemplate = (content: string) => `
 <!DOCTYPE html>
 <html lang="en">
@@ -58,7 +66,7 @@ const baseTemplate = (content: string) => `
 </html>
 `;
 
-// reusable block helpers — keeps template strings readable
+// modular helpers to maintain template readability
 const h1 = (text: string) =>
 	`<h1 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b;letter-spacing:-0.3px;">${text}</h1>`;
 
@@ -74,7 +82,7 @@ const divider = () =>
 const infoBox = (content: string) =>
 	`<div style="background-color:#f4f4f5;border-radius:8px;padding:16px 20px;margin-bottom:16px;">${content}</div>`;
 
-// --- email send functions ---
+// transaction email handlers
 
 interface SendPaymentConfirmedParams {
 	to: string;
@@ -83,8 +91,7 @@ interface SendPaymentConfirmedParams {
 	amount: number;
 }
 
-// sent to a mjakazi when their registration payment is confirmed and their
-// profile enters the admin review queue
+// confirm payment and inform about review process
 const sendPaymentConfirmedEmail = async ({
 	to,
 	firstName,
@@ -104,7 +111,7 @@ const sendPaymentConfirmedEmail = async ({
     ${muted("This usually takes 1–2 business days.")}
   `;
 
-	await resend.emails.send({
+	await getResend().emails.send({
 		from: FROM_ADDRESS,
 		replyTo: REPLY_TO,
 		to,
@@ -120,8 +127,7 @@ interface SendVerificationRejectedParams {
 	attemptsRemaining: number;
 }
 
-// sent to a mjakazi when an admin rejects their verification submission —
-// includes the rejection reason so they know exactly what to correct
+// communicate verification rejection and next steps
 const sendVerificationRejectedEmail = async ({
 	to,
 	firstName,
@@ -146,7 +152,7 @@ const sendVerificationRejectedEmail = async ({
     ${muted("Log in to your dashboard to view the full details and take action.")}
   `;
 
-	await resend.emails.send({
+	await getResend().emails.send({
 		from: FROM_ADDRESS,
 		replyTo: REPLY_TO,
 		to,
@@ -164,8 +170,7 @@ interface SendSubscriptionActivatedParams {
 	amount: number;
 }
 
-// sent to a mwajiri when their subscription payment is confirmed and their
-// account is activated — confirms access and shows the expiry date
+// confirm subscription activation and access details
 const sendSubscriptionActivatedEmail = async ({
 	to,
 	firstName,
@@ -195,7 +200,7 @@ const sendSubscriptionActivatedEmail = async ({
     ${muted("You will need to renew your subscription before it expires to maintain uninterrupted access.")}
   `;
 
-	await resend.emails.send({
+	await getResend().emails.send({
 		from: FROM_ADDRESS,
 		replyTo: REPLY_TO,
 		to,
