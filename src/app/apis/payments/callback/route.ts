@@ -1,3 +1,5 @@
+// src/app/apis/payments/callback/route.ts
+
 import { writeAuditLog } from "@/lib/audit";
 import config from "@payload-config";
 import { NextResponse } from "next/server";
@@ -13,9 +15,7 @@ interface STKCallbackSuccess {
 	CheckoutRequestID: string;
 	ResultCode: 0;
 	ResultDesc: string;
-	CallbackMetadata: {
-		Item: CallbackMetadataItem[];
-	};
+	CallbackMetadata: { Item: CallbackMetadataItem[] };
 }
 
 interface STKCallbackFailure {
@@ -28,19 +28,14 @@ interface STKCallbackFailure {
 type STKCallback = STKCallbackSuccess | STKCallbackFailure;
 
 interface SafaricomCallbackPayload {
-	Body: {
-		stkCallback: STKCallback;
-	};
+	Body: { stkCallback: STKCallback };
 }
 
 const getMetadataValue = (
 	items: CallbackMetadataItem[],
 	name: string,
-): string | number | undefined => {
-	return items.find((item) => item.Name === name)?.Value;
-};
+): string | number | undefined => items.find((i) => i.Name === name)?.Value;
 
-// public endpoint for safaricom to deliver m-pesa payment status updates
 export const POST = async (req: Request) => {
 	const payload = await getPayload({ config });
 
@@ -60,7 +55,7 @@ export const POST = async (req: Request) => {
 		const stkCallback = body?.Body?.stkCallback;
 
 		if (!stkCallback?.CheckoutRequestID) {
-			console.error("[payments/callback] missing stkCallback or CheckoutRequestID", body);
+			console.error("[payments/callback] missing CheckoutRequestID", body);
 			return NextResponse.json(
 				{ ResultCode: 0, ResultDesc: "Accepted" },
 				{ status: 200 },
@@ -73,145 +68,48 @@ export const POST = async (req: Request) => {
 			`[payments/callback] received — CheckoutRequestID: ${CheckoutRequestID}, ResultCode: ${ResultCode}`,
 		);
 
+		// check payments collection first — registration payments land here
 		const paymentResult = await payload.find({
 			collection: "payments",
 			where: { checkoutRequestId: { equals: CheckoutRequestID } },
-			limit: 1,
-		});
-
-		const payment = paymentResult.docs[0];
-
-		if (!payment) {
-			console.error(
-				`[payments/callback] no payment record found for CheckoutRequestID: ${CheckoutRequestID}`,
-			);
-			return NextResponse.json(
-				{ ResultCode: 0, ResultDesc: "Accepted" },
-				{ status: 200 },
-			);
-		}
-
-		// prevent re-processing transactions that have already reached a terminal state
-		if (
-			payment.status === "confirmed" ||
-			payment.status === "failed" ||
-			payment.status === "expired"
-		) {
-			console.log(
-				`[payments/callback] already processed — status: ${payment.status}, skipping`,
-			);
-			return NextResponse.json(
-				{ ResultCode: 0, ResultDesc: "Accepted" },
-				{ status: 200 },
-			);
-		}
-
-		// resolve account for audit labelling — payment.account may be a string or object
-		const accountId =
-			typeof payment.account === "object" ? (payment.account as any).id : payment.account;
-
-		const accountResult = await payload.find({
-			collection: "accounts",
-			where: { id: { equals: accountId } },
 			overrideAccess: true,
 			limit: 1,
 		});
 
-		const account = accountResult.docs[0] ?? null;
-		const actorLabel = account
-			? [account.firstName, account.lastName].filter(Boolean).join(" ").trim() ||
-				account.email
-			: accountId;
-
-		if (ResultCode === 0) {
-			const successCallback = stkCallback as STKCallbackSuccess;
-			const items = successCallback.CallbackMetadata?.Item ?? [];
-
-			const mpesaReceiptNumber = getMetadataValue(items, "MpesaReceiptNumber") as
-				| string
-				| undefined;
-
-			// update the payment record with m-pesa receipt details upon successful transaction
-			await payload.update({
-				collection: "payments",
-				where: { checkoutRequestId: { equals: CheckoutRequestID } },
-				data: {
-					status: "confirmed",
-					mpesaReceiptNumber: mpesaReceiptNumber ?? null,
-					resultCode: String(ResultCode),
-					resultDesc: ResultDesc,
-				},
-			});
-
-			console.log(
-				`[payments/callback] payment confirmed — receipt: ${mpesaReceiptNumber}`,
-			);
-
-			await writeAuditLog({
-				action: "payment_confirmed",
-				actorId: account?.id ?? null,
-				actorLabel,
-				targetId: account?.id ?? null,
-				targetLabel: actorLabel,
-				metadata: {
-					paymentId: payment.id,
-					paymentType: payment.paymentType,
-					amount: payment.amount,
-					currency: payment.currency,
-					mpesaReceiptNumber: mpesaReceiptNumber ?? null,
-					checkoutRequestId: CheckoutRequestID,
-				},
-				source: "system",
-			});
-
-			// advance the user's workflow based on the specific payment type
-			if (payment.paymentType === "registration") {
-				await handleRegistrationConfirmed(payload, payment.account);
-			} else if (payment.paymentType === "subscription") {
-				console.log(
-					`[payments/callback] subscription payment confirmed — activation deferred to phase 4`,
-				);
-			}
-
-			return NextResponse.json(
-				{ ResultCode: 0, ResultDesc: "Accepted" },
-				{ status: 200 },
+		if (paymentResult.docs.length > 0) {
+			return await handleRegistrationCallback(
+				payload,
+				paymentResult.docs[0],
+				stkCallback,
+				CheckoutRequestID,
+				ResultCode,
+				ResultDesc,
 			);
 		}
 
-		// record transaction failure details if the user cancelled or the push failed
-		await payload.update({
-			collection: "payments",
+		// no payment record found — check subscriptions collection
+		const subscriptionResult = await payload.find({
+			collection: "subscriptions",
 			where: { checkoutRequestId: { equals: CheckoutRequestID } },
-			data: {
-				status: "failed",
-				resultCode: String(ResultCode),
-				resultDesc: ResultDesc,
-			},
+			overrideAccess: true,
+			limit: 1,
 		});
 
-		console.log(
-			`[payments/callback] payment failed — ResultCode: ${ResultCode}, ResultDesc: ${ResultDesc}`,
+		if (subscriptionResult.docs.length > 0) {
+			return await handleSubscriptionCallback(
+				payload,
+				subscriptionResult.docs[0],
+				stkCallback,
+				CheckoutRequestID,
+				ResultCode,
+				ResultDesc,
+			);
+		}
+
+		// unknown checkout request — accept and discard
+		console.error(
+			`[payments/callback] no record found for CheckoutRequestID: ${CheckoutRequestID}`,
 		);
-
-		await writeAuditLog({
-			action: "payment_failed",
-			actorId: account?.id ?? null,
-			actorLabel,
-			targetId: account?.id ?? null,
-			targetLabel: actorLabel,
-			metadata: {
-				paymentId: payment.id,
-				paymentType: payment.paymentType,
-				amount: payment.amount,
-				currency: payment.currency,
-				resultCode: String(ResultCode),
-				resultDesc: ResultDesc,
-				checkoutRequestId: CheckoutRequestID,
-			},
-			source: "system",
-		});
-
 		return NextResponse.json({ ResultCode: 0, ResultDesc: "Accepted" }, { status: 200 });
 	} catch (error) {
 		console.error("[payments/callback] unhandled error:", error);
@@ -219,38 +117,259 @@ export const POST = async (req: Request) => {
 	}
 };
 
-// promotes a mjakazi profile to review status once the registration fee is settled
+// handles registration payment callbacks — advances mjakazi to pending_review on success
+const handleRegistrationCallback = async (
+	payload: Awaited<ReturnType<typeof getPayload>>,
+	payment: any,
+	stkCallback: STKCallback,
+	CheckoutRequestID: string,
+	ResultCode: number,
+	ResultDesc: string,
+) => {
+	// idempotency guard — a previous delivery may have already resolved this
+	if (
+		payment.status === "confirmed" ||
+		payment.status === "failed" ||
+		payment.status === "expired"
+	) {
+		console.log(`[payments/callback] registration already processed — skipping`);
+		return NextResponse.json({ ResultCode: 0, ResultDesc: "Accepted" }, { status: 200 });
+	}
+
+	const accountId =
+		typeof payment.account === "object" ? payment.account.id : payment.account;
+
+	const accountResult = await payload.findByID({
+		collection: "accounts",
+		id: accountId,
+		overrideAccess: true,
+	});
+
+	const actorLabel = accountResult
+		? [accountResult.firstName, accountResult.lastName]
+				.filter(Boolean)
+				.join(" ")
+				.trim() || accountResult.email
+		: accountId;
+
+	if (ResultCode === 0) {
+		const items = (stkCallback as STKCallbackSuccess).CallbackMetadata?.Item ?? [];
+		const mpesaReceiptNumber = getMetadataValue(items, "MpesaReceiptNumber") as
+			| string
+			| undefined;
+
+		await payload.update({
+			collection: "payments",
+			where: { checkoutRequestId: { equals: CheckoutRequestID } },
+			data: {
+				status: "confirmed",
+				mpesaReceiptNumber: mpesaReceiptNumber ?? null,
+				resultCode: String(ResultCode),
+				resultDesc: ResultDesc,
+			},
+			overrideAccess: true,
+		});
+
+		await handleRegistrationConfirmed(payload, payment.account);
+
+		await writeAuditLog({
+			action: "payment_confirmed",
+			actorId: accountId,
+			actorLabel,
+			targetId: accountId,
+			targetLabel: actorLabel,
+			metadata: {
+				paymentId: payment.id,
+				paymentType: "registration",
+				amount: payment.amount,
+				currency: payment.currency,
+				mpesaReceiptNumber: mpesaReceiptNumber ?? null,
+				checkoutRequestId: CheckoutRequestID,
+			},
+			source: "system",
+		});
+
+		return NextResponse.json({ ResultCode: 0, ResultDesc: "Accepted" }, { status: 200 });
+	}
+
+	await payload.update({
+		collection: "payments",
+		where: { checkoutRequestId: { equals: CheckoutRequestID } },
+		data: {
+			status: "failed",
+			resultCode: String(ResultCode),
+			resultDesc: ResultDesc,
+		},
+		overrideAccess: true,
+	});
+
+	await writeAuditLog({
+		action: "payment_failed",
+		actorId: accountId,
+		actorLabel,
+		targetId: accountId,
+		targetLabel: actorLabel,
+		metadata: {
+			paymentId: payment.id,
+			paymentType: "registration",
+			amount: payment.amount,
+			resultCode: String(ResultCode),
+			resultDesc: ResultDesc,
+			checkoutRequestId: CheckoutRequestID,
+		},
+		source: "system",
+	});
+
+	return NextResponse.json({ ResultCode: 0, ResultDesc: "Accepted" }, { status: 200 });
+};
+
+// handles subscription payment callbacks — activates mwajiri subscription on success
+const handleSubscriptionCallback = async (
+	payload: Awaited<ReturnType<typeof getPayload>>,
+	subscription: any,
+	stkCallback: STKCallback,
+	CheckoutRequestID: string,
+	ResultCode: number,
+	ResultDesc: string,
+) => {
+	// idempotency guard
+	if (
+		subscription.status === "active" ||
+		subscription.status === "failed" ||
+		subscription.status === "expired"
+	) {
+		console.log(`[payments/callback] subscription already processed — skipping`);
+		return NextResponse.json({ ResultCode: 0, ResultDesc: "Accepted" }, { status: 200 });
+	}
+
+	const accountId =
+		typeof subscription.account === "object"
+			? subscription.account.id
+			: subscription.account;
+
+	const accountResult = await payload.findByID({
+		collection: "accounts",
+		id: accountId,
+		overrideAccess: true,
+	});
+
+	const actorLabel = accountResult
+		? [accountResult.firstName, accountResult.lastName]
+				.filter(Boolean)
+				.join(" ")
+				.trim() || accountResult.email
+		: accountId;
+
+	if (ResultCode === 0) {
+		const items = (stkCallback as STKCallbackSuccess).CallbackMetadata?.Item ?? [];
+		const mpesaReceiptNumber = getMetadataValue(items, "MpesaReceiptNumber") as
+			| string
+			| undefined;
+
+		const startDate = new Date();
+		const durationDays =
+			typeof subscription.durationDays === "number" ? subscription.durationDays : 14;
+		const endDate = new Date(startDate.getTime() + durationDays * 24 * 60 * 60 * 1000);
+
+		await payload.update({
+			collection: "subscriptions",
+			id: subscription.id,
+			data: {
+				status: "active",
+				mpesaReceiptNumber: mpesaReceiptNumber ?? null,
+				resultCode: String(ResultCode),
+				resultDesc: ResultDesc,
+				startDate: startDate.toISOString(),
+				endDate: endDate.toISOString(),
+			},
+			overrideAccess: true,
+		});
+
+		// update the mwajiri profile so polling detects activation immediately
+		await activateMwajiriProfile(payload, accountId, {
+			subscriptionId: subscription.id,
+			tierName: subscription.tierName,
+			endDate: endDate.toISOString(),
+		});
+
+		await writeAuditLog({
+			action: "payment_confirmed",
+			actorId: accountId,
+			actorLabel,
+			targetId: accountId,
+			targetLabel: actorLabel,
+			metadata: {
+				subscriptionId: subscription.id,
+				paymentType: "subscription",
+				tierId: subscription.tierId,
+				tierName: subscription.tierName,
+				amount: subscription.amount,
+				currency: subscription.currency,
+				mpesaReceiptNumber: mpesaReceiptNumber ?? null,
+				checkoutRequestId: CheckoutRequestID,
+			},
+			source: "system",
+		});
+
+		return NextResponse.json({ ResultCode: 0, ResultDesc: "Accepted" }, { status: 200 });
+	}
+
+	await payload.update({
+		collection: "subscriptions",
+		id: subscription.id,
+		data: {
+			status: "failed",
+			resultCode: String(ResultCode),
+			resultDesc: ResultDesc,
+		},
+		overrideAccess: true,
+	});
+
+	// reset profile so the mwajiri can retry immediately
+	await resetMwajiriProfileToNone(payload, accountId);
+
+	await writeAuditLog({
+		action: "payment_failed",
+		actorId: accountId,
+		actorLabel,
+		targetId: accountId,
+		targetLabel: actorLabel,
+		metadata: {
+			subscriptionId: subscription.id,
+			paymentType: "subscription",
+			amount: subscription.amount,
+			resultCode: String(ResultCode),
+			resultDesc: ResultDesc,
+			checkoutRequestId: CheckoutRequestID,
+		},
+		source: "system",
+	});
+
+	return NextResponse.json({ ResultCode: 0, ResultDesc: "Accepted" }, { status: 200 });
+};
+
+// advances the mjakazi profile to pending_review after registration payment
 const handleRegistrationConfirmed = async (
 	payload: Awaited<ReturnType<typeof getPayload>>,
 	accountRef: string | { id: string } | null | undefined,
 ) => {
-	if (!accountRef) {
-		console.error(
-			"[payments/callback] handleRegistrationConfirmed — no account reference on payment record",
-		);
-		return;
-	}
+	if (!accountRef) return;
 
 	const accountId = typeof accountRef === "object" ? accountRef.id : accountRef;
 
 	const profileResult = await payload.find({
 		collection: "wajakaziprofiles",
 		where: { account: { equals: accountId } },
+		overrideAccess: true,
 		limit: 1,
 	});
 
 	const profile = profileResult.docs[0];
-
-	if (!profile) {
-		console.error(
-			`[payments/callback] no mjakazi profile found for account: ${accountId}`,
-		);
-		return;
-	}
+	if (!profile) return;
 
 	if (profile.verificationStatus !== "pending_payment") {
 		console.log(
-			`[payments/callback] profile not in pending_payment — current status: ${profile.verificationStatus}, skipping`,
+			`[payments/callback] profile not in pending_payment — status: ${profile.verificationStatus}, skipping`,
 		);
 		return;
 	}
@@ -262,9 +381,64 @@ const handleRegistrationConfirmed = async (
 			verificationStatus: "pending_review",
 			verificationSubmittedAt: new Date().toISOString(),
 		},
+		overrideAccess: true,
 	});
 
 	console.log(
-		`[payments/callback] profile advanced to pending_review — account: ${accountId}`,
+		`[payments/callback] mjakazi advanced to pending_review — account: ${accountId}`,
 	);
+};
+
+// denormalises subscription state onto the mwajiri profile for fast dashboard reads
+const activateMwajiriProfile = async (
+	payload: Awaited<ReturnType<typeof getPayload>>,
+	accountId: string,
+	data: { subscriptionId: string; tierName: string; endDate: string },
+) => {
+	const profileResult = await payload.find({
+		collection: "waajiriprofiles",
+		where: { account: { equals: accountId } },
+		overrideAccess: true,
+		limit: 1,
+	});
+
+	const profile = profileResult.docs[0];
+	if (!profile) return;
+
+	await payload.update({
+		collection: "waajiriprofiles",
+		id: profile.id,
+		data: {
+			subscriptionStatus: "active",
+			activeSubscription: data.subscriptionId,
+			subscriptionEndDate: data.endDate,
+			subscriptionTierName: data.tierName,
+		},
+		overrideAccess: true,
+	});
+
+	console.log(`[payments/callback] mwajiri profile activated — account: ${accountId}`);
+};
+
+// resets subscription status to none on payment failure so the mwajiri can retry
+const resetMwajiriProfileToNone = async (
+	payload: Awaited<ReturnType<typeof getPayload>>,
+	accountId: string,
+) => {
+	const profileResult = await payload.find({
+		collection: "waajiriprofiles",
+		where: { account: { equals: accountId } },
+		overrideAccess: true,
+		limit: 1,
+	});
+
+	const profile = profileResult.docs[0];
+	if (!profile) return;
+
+	await payload.update({
+		collection: "waajiriprofiles",
+		id: profile.id,
+		data: { subscriptionStatus: "none" },
+		overrideAccess: true,
+	});
 };
