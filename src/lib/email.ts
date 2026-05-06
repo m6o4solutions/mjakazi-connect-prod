@@ -33,7 +33,7 @@ const baseTemplate = (content: string) => `
 
           <!-- header -->
           <tr>
-            <td style="background-color:#18181b;border-radius:12px 12px 0 0;padding:24px 32px;">
+            <td style="background-color:#004d99;border-radius:12px 12px 0 0;padding:24px 32px;">
               <p style="margin:0;font-size:18px;font-weight:700;color:#ffffff;letter-spacing:-0.3px;">
                 Mjakazi Connect
               </p>
