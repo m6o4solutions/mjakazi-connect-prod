@@ -169,7 +169,8 @@ const ProfileForm = ({
 		}
 		setLoading(true);
 		setError(null);
-		setSuccess(false);
+		// clear success state after delay
+		setTimeout(() => setSuccess(false), 3000);
 
 		try {
 			// upload photo first if a new file was staged; the returned id

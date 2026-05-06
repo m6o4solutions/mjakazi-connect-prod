@@ -33,7 +33,8 @@ const LegalNameForm = ({
 
 		setLoading(true);
 		setError(null);
-		setSuccess(false);
+		// clear success state after delay
+		setTimeout(() => setSuccess(false), 3000);
 
 		try {
 			const res = await fetch("/apis/profile/update-mjakazi", {
