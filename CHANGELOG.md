@@ -1,3 +1,12 @@
+# [1.23.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.22.1...v1.23.0) (2026-05-06)
+
+
+### Features
+
+* **docs:** add admin dashboard home screenshot ([8ae1395](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/8ae13953623d03afe72b6a14309a59ea36f214a1))
+* **inngest:** implement payment and subscription timeout recovery ([07a5c19](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/07a5c1928e42da738ce527b7db086cf434e93650))
+* **media:** add svg support to mime types ([a6b5eb8](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/a6b5eb882e4c1524849c2e478224313df891e191))
+
 ## [1.22.1](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.22.0...v1.22.1) (2026-04-24)
 
 ### Bug Fixes
