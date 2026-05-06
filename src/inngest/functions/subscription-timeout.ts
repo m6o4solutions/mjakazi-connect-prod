@@ -3,6 +3,7 @@ import { writeAuditLog } from "@/lib/audit";
 import config from "@payload-config";
 import { getPayload } from "payload";
 
+// handle subscription stk push timeouts
 export const subscriptionTimeout = inngest.createFunction(
 	{
 		id: "subscription-timeout",
@@ -12,10 +13,10 @@ export const subscriptionTimeout = inngest.createFunction(
 	async ({ event, step }) => {
 		const { subscriptionId, checkoutRequestId, accountId, waajiriProfileId } = event.data;
 
-		// give the mwajiri the full window to respond to the stk prompt
+		// give user time to respond to stk prompt
 		await step.sleep("wait-for-stk-response", "2m");
 
-		// re-fetch after sleep — the callback handler may have already resolved it
+		// re-fetch to see if callback already resolved the transaction
 		const currentStatus = await step.run("check-subscription-status", async () => {
 			const payload = await getPayload({ config });
 
@@ -32,7 +33,7 @@ export const subscriptionTimeout = inngest.createFunction(
 			return subscription.status;
 		});
 
-		// callback already resolved this subscription — nothing to do
+		// exit if already handled
 		if (!currentStatus || currentStatus !== "stk_sent") {
 			return {
 				outcome: "skipped",
@@ -40,7 +41,7 @@ export const subscriptionTimeout = inngest.createFunction(
 			};
 		}
 
-		// still stk_sent after 2 minutes — expire it
+		// mark subscription as expired
 		await step.run("expire-subscription-record", async () => {
 			const payload = await getPayload({ config });
 
@@ -50,8 +51,37 @@ export const subscriptionTimeout = inngest.createFunction(
 				data: { status: "expired" },
 				overrideAccess: true,
 			});
+		});
 
-			// resolve account label for the audit entry
+		// reset profile if still pending
+		await step.run("reset-profile-subscription-status", async () => {
+			const payload = await getPayload({ config });
+
+			const profileResult = await payload.find({
+				collection: "waajiriprofiles",
+				where: { account: { equals: accountId } },
+				overrideAccess: true,
+				limit: 1,
+			});
+
+			const profile = profileResult.docs[0];
+			if (!profile) return;
+
+			// skip if profile status changed
+			if (profile.subscriptionStatus !== "pending_payment") return;
+
+			await payload.update({
+				collection: "waajiriprofiles",
+				id: profile.id,
+				data: { subscriptionStatus: "none" },
+				overrideAccess: true,
+			});
+		});
+
+		// log expiration for audit
+		await step.run("write-audit-log", async () => {
+			const payload = await getPayload({ config });
+
 			let account = null;
 
 			try {
@@ -61,7 +91,7 @@ export const subscriptionTimeout = inngest.createFunction(
 					overrideAccess: true,
 				});
 			} catch {
-				// account may have been deleted between initiation and timeout
+				// account may have been deleted
 			}
 
 			const actorLabel = account
@@ -82,32 +112,6 @@ export const subscriptionTimeout = inngest.createFunction(
 					reason: "STK Push not responded to within 2 minutes",
 				},
 				source: "system",
-			});
-		});
-
-		// reset profile to none so the mwajiri can initiate a fresh attempt
-		// without manual intervention — an unanswered prompt is not a hard failure
-		await step.run("reset-profile-subscription-status", async () => {
-			const payload = await getPayload({ config });
-
-			const profileResult = await payload.find({
-				collection: "waajiriprofiles",
-				where: { account: { equals: accountId } },
-				overrideAccess: true,
-				limit: 1,
-			});
-
-			const profile = profileResult.docs[0];
-			if (!profile) return;
-
-			// a concurrent callback could have activated the subscription between steps
-			if (profile.subscriptionStatus !== "pending_payment") return;
-
-			await payload.update({
-				collection: "waajiriprofiles",
-				id: profile.id,
-				data: { subscriptionStatus: "none" },
-				overrideAccess: true,
 			});
 		});
 

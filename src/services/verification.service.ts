@@ -12,17 +12,23 @@ type VerificationState =
 	| "blacklisted"
 	| "deactivated";
 
-// validates state transitions; throws if movement is illegal to prevent state corruption
+// validate state transitions to prevent invalid workflows
 const assertTransition = (current: VerificationState, next: VerificationState) => {
 	const allowed: Record<VerificationState, VerificationState[]> = {
 		draft: ["pending_payment"],
 		pending_payment: ["pending_review"],
 		pending_review: ["verified", "rejected", "blacklisted"],
-		verified: ["verification_expired", "pending_review", "deactivated", "blacklisted"],
+		verified: [
+			"pending_payment",
+			"verification_expired",
+			"pending_review",
+			"deactivated",
+			"blacklisted",
+		],
 		rejected: ["pending_payment", "blacklisted"],
 		verification_expired: ["pending_review", "deactivated"],
 		deactivated: ["verified", "blacklisted"],
-		// blacklisted is a terminal state — no further transitions are permitted
+		// blacklisted is terminal
 		blacklisted: [],
 	};
 
@@ -31,7 +37,7 @@ const assertTransition = (current: VerificationState, next: VerificationState) =
 	}
 };
 
-// fetches account details linked to a profile for logging; returns null if lookup fails
+// fetch account metadata associated with a profile
 const resolveProfileAccount = async (payload: Payload, profileId: string) => {
 	try {
 		const profile = await payload.findByID({
@@ -65,7 +71,7 @@ const resolveProfileAccount = async (payload: Payload, profileId: string) => {
 	}
 };
 
-// initiates new verification; blocks if max rejection attempts exceeded
+// start verification process, restricted if max rejections reached
 const submitVerification = async (payload: Payload, profileId: string) => {
 	const profile = await payload.findByID({
 		collection: "wajakaziprofiles",
@@ -114,7 +120,7 @@ const submitVerification = async (payload: Payload, profileId: string) => {
 	return updated;
 };
 
-// moves profile to review queue after payment receipt
+// progress profile to review queue upon payment
 const markPaymentCompleted = async (payload: Payload, profileId: string) => {
 	const profile = await payload.findByID({
 		collection: "wajakaziprofiles",
@@ -154,7 +160,7 @@ const markPaymentCompleted = async (payload: Payload, profileId: string) => {
 	return updated;
 };
 
-// approves profile; sets expiry 1 year out
+// set profile to verified and set expiry date
 const approveVerification = async (
 	payload: Payload,
 	profileId: string,
@@ -200,7 +206,7 @@ const approveVerification = async (
 	return updated;
 };
 
-// rejects profile and increments failure count to track abuse
+// reject verification and track attempt count
 const rejectVerification = async (
 	payload: Payload,
 	profileId: string,

@@ -14,6 +14,7 @@ const resolveMimeType = (file: File): string => {
 		jpg: "image/jpeg",
 		jpeg: "image/jpeg",
 		png: "image/png",
+		svg: "image/svg+xml",
 		webp: "image/webp",
 	};
 	// default to jpeg — the most common photo format — when the extension is unrecognised

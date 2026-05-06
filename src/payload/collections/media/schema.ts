@@ -24,7 +24,14 @@ const Media: CollectionConfig = {
 	upload: {
 		adminThumbnail: "filename",
 		focalPoint: true,
-		mimeTypes: ["application/pdf", "image/jpeg", "image/jpg", "image/png", "image/webp"],
+		mimeTypes: [
+			"application/pdf",
+			"image/jpeg",
+			"image/jpg",
+			"image/png",
+			"image/svg+xml",
+			"image/webp",
+		],
 	},
 };
 

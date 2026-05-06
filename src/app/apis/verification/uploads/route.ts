@@ -6,7 +6,7 @@ import config from "@payload-config";
 import { NextResponse } from "next/server";
 import { getPayload } from "payload";
 
-// restricted set of document types accepted for mjakazi verification
+// whitelist of allowed document types
 const VALID_DOCUMENT_TYPES = [
 	"national_id",
 	"good_conduct",
@@ -20,7 +20,7 @@ const isValidDocumentType = (value: string): value is DocumentType => {
 	return VALID_DOCUMENT_TYPES.includes(value as DocumentType);
 };
 
-// ensure correct mime types for storage and rendering, falling back to a generic stream if undetectable
+// infer mime type from file metadata or extension
 const resolveMimeType = (file: File): string => {
 	if (file.type) return file.type;
 
@@ -29,6 +29,7 @@ const resolveMimeType = (file: File): string => {
 		jpg: "image/jpeg",
 		jpeg: "image/jpeg",
 		png: "image/png",
+		svg: "image/svg+xml",
 		webp: "image/webp",
 		pdf: "application/pdf",
 	};
@@ -36,6 +37,7 @@ const resolveMimeType = (file: File): string => {
 	return mimeMap[ext ?? ""] ?? "application/octet-stream";
 };
 
+// handle document upload, including replacing existing versions
 const POST = async (req: Request) => {
 	const { userId } = await auth();
 
@@ -46,7 +48,7 @@ const POST = async (req: Request) => {
 	const payload = await getPayload({ config });
 	const identity = await resolveIdentity(payload, userId);
 
-	// gate access to mjakazi users with a valid profile
+	// ensure caller is an authorized mjakazi
 	if (!identity) {
 		return NextResponse.json({ error: "Identity not found" }, { status: 404 });
 	}
@@ -75,7 +77,7 @@ const POST = async (req: Request) => {
 		);
 	}
 
-	// retrieve current profile to check verification status and for audit logging
+	// fetch profile to check current state and logging
 	const profile = await payload.findByID({
 		collection: "wajakaziprofiles",
 		id: identity.wajakaziProfileId,
@@ -84,7 +86,7 @@ const POST = async (req: Request) => {
 
 	if (existingDocumentId) {
 		try {
-			// clean up previous document version when performing a replacement
+			// remove previous version if replacing
 			await payload.delete({
 				collection: "vault",
 				id: existingDocumentId,
@@ -94,12 +96,12 @@ const POST = async (req: Request) => {
 			console.warn("Failed to delete existing vault document:", existingDocumentId);
 		}
 
-		// require re-verification if a verified user modifies their documents to ensure continued trust
+		// downgrade verified status if replacing a document, requiring new payment/review
 		if (profile?.verificationStatus === "verified") {
 			await payload.update({
 				collection: "wajakaziprofiles",
 				id: identity.wajakaziProfileId,
-				data: { verificationStatus: "pending_review" },
+				data: { verificationStatus: "pending_payment" },
 				overrideAccess: true,
 			});
 
@@ -125,7 +127,7 @@ const POST = async (req: Request) => {
 				metadata: {
 					profileId: identity.wajakaziProfileId,
 					fromStatus: "verified",
-					toStatus: "pending_review",
+					toStatus: "pending_payment",
 					trigger: "document_replaced",
 					documentType,
 				},
@@ -133,7 +135,7 @@ const POST = async (req: Request) => {
 			});
 		}
 	} else {
-		// prevent duplicate uploads for the same document type to maintain a clean profile state
+		// prevent multiple uploads of the same type
 		const existingDoc = await payload.find({
 			collection: "vault",
 			where: {
@@ -159,7 +161,7 @@ const POST = async (req: Request) => {
 	const uniqueFilename = generateUniqueFilename(file.name);
 
 	try {
-		// persist the document to the vault and associate it with the mjakazi profile
+		// store document and associate with profile
 		const vaultDocument = await payload.create({
 			collection: "vault",
 			draft: false,

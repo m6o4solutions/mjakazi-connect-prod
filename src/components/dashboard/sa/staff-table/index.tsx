@@ -22,17 +22,18 @@ interface StaffTableProps {
 	currentUserClerkId: string;
 }
 
-// human-readable labels for each internal role value
+// mapping for internal role codes to display labels
 const roleLabels: Record<string, string> = {
 	admin: "Admin",
 	sa: "Super Admin",
 };
 
+// table display and management for staff members
 const StaffTable = ({ staff, currentUserClerkId }: StaffTableProps) => {
 	const router = useRouter();
-	// tracks which row is mid-deletion to show a loading state
+	// tracks loading state during deletion
 	const [deletingId, setDeletingId] = useState<string | null>(null);
-	// tracks which row is in the inline confirm step before committing a delete
+	// tracks row currently in confirm-delete state
 	const [confirmId, setConfirmId] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
 
@@ -41,6 +42,7 @@ const StaffTable = ({ staff, currentUserClerkId }: StaffTableProps) => {
 		setError(null);
 
 		try {
+			// request to internal admin api
 			const res = await fetch("/apis/admin/delete-staff", {
 				method: "DELETE",
 				headers: { "Content-Type": "application/json" },
@@ -48,7 +50,7 @@ const StaffTable = ({ staff, currentUserClerkId }: StaffTableProps) => {
 			});
 
 			if (res.ok) {
-				// dismiss confirm state and re-fetch the server component to reflect removal
+				// clear confirmation and refresh for updated list
 				setConfirmId(null);
 				router.refresh();
 			} else {
