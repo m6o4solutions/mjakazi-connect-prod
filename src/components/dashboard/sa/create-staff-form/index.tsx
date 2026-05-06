@@ -7,6 +7,7 @@ import { CheckCircle2, UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+// component for creating new staff accounts
 const CreateStaffForm = () => {
 	const [firstName, setFirstName] = useState("");
 	const [lastName, setLastName] = useState("");
@@ -17,6 +18,7 @@ const CreateStaffForm = () => {
 	const router = useRouter();
 
 	const handleSubmit = async () => {
+		// client-side validation for required fields
 		if (!firstName.trim() || !email.trim()) {
 			setError("First name and email are required.");
 			return;
@@ -26,6 +28,7 @@ const CreateStaffForm = () => {
 		setError(null);
 
 		try {
+			// request to internal admin api
 			const res = await fetch("/apis/admin/create-staff", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
@@ -41,8 +44,10 @@ const CreateStaffForm = () => {
 				setFirstName("");
 				setLastName("");
 				setEmail("");
-				// triggers server component re-fetch
+				// refresh to update staff list
 				router.refresh();
+				// clear success state after delay
+				setTimeout(() => setSuccess(false), 3000);
 			} else {
 				const data = await res.json();
 				setError(data.error ?? "Failed to create staff account.");

@@ -8,8 +8,13 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getPayload } from "payload";
 
+// force server-side render on every request so router.refresh() always
+// receives fresh data after create and delete operations.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = { title: "Staff" };
 
+// main staff management dashboard page for super admins
 const Page = async () => {
 	const { userId } = await auth();
 
@@ -18,9 +23,11 @@ const Page = async () => {
 	const payload = await getPayload({ config });
 	const identity = await resolveIdentity(payload, userId);
 
+	// security checks for access
 	if (!identity) redirect("/sign-in");
 	if (identity.role !== "sa") redirect("/sign-in");
 
+	// fetch staff accounts from cms
 	const staffAccounts = await payload.find({
 		collection: "accounts",
 		where: { role: { in: ["admin", "sa"] } },
@@ -29,6 +36,7 @@ const Page = async () => {
 		limit: 100,
 	});
 
+	// map cms format to component-friendly props
 	const staff = staffAccounts.docs.map((account: any) => ({
 		id: account.id,
 		clerkId: account.clerkId,
