@@ -33,6 +33,9 @@ const computeProfileComplete = (profile: any): boolean => {
 	// at least one language must be selected
 	if (!profile.languages || profile.languages.length === 0) return false;
 
+	// phone number must be provided for contact purposes
+	if (!profile.phoneNumber?.trim()) return false;
+
 	return true;
 };
 

@@ -713,6 +713,7 @@ export interface Wajakaziprofile {
     | null;
   maritalStatus?: ('single' | 'married' | 'divorced' | 'widowed' | 'prefer_not_to_say') | null;
   religion?: ('christian' | 'muslim' | 'hindu' | 'other' | 'prefer_not_to_say') | null;
+  phoneNumber?: string | null;
   photo?: (string | null) | Media;
   jobs?:
     | (
@@ -1812,6 +1813,7 @@ export interface WajakaziprofilesSelect<T extends boolean = true> {
   nationality?: T;
   maritalStatus?: T;
   religion?: T;
+  phoneNumber?: T;
   photo?: T;
   jobs?: T;
   bio?: T;

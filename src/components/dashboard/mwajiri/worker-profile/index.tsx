@@ -2,11 +2,12 @@ import {
 	BookOpen,
 	Briefcase,
 	Calendar,
-	Globe,
-	MapPin,
-	Wallet,
 	CheckCircle,
 	Clock,
+	Globe,
+	MapPin,
+	Phone,
+	Wallet,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -28,6 +29,7 @@ interface WorkerProfileProps {
 	salaryDisplay: string | null;
 	educationLevel: string | null;
 	availabilityStatus: string;
+	phoneNumber: string | null;
 }
 
 const workPreferenceLabel: Record<string, string> = {
@@ -73,6 +75,7 @@ const WorkerProfile = ({
 	salaryDisplay,
 	educationLevel,
 	availabilityStatus,
+	phoneNumber,
 }: WorkerProfileProps) => {
 	const firstName = displayName.split(" ")[0];
 	const availability =
@@ -80,7 +83,6 @@ const WorkerProfile = ({
 
 	return (
 		<div className="mx-auto w-full max-w-3xl">
-			{/* back link */}
 			<Link
 				href="/dashboard/mwajiri/browse"
 				className="text-muted-foreground hover:text-foreground mb-6 inline-flex items-center gap-1.5 text-sm transition-colors"
@@ -89,9 +91,8 @@ const WorkerProfile = ({
 			</Link>
 
 			<div className="bg-card border-border flex flex-col gap-8 rounded-2xl border p-6 sm:p-8">
-				{/* header — photo, name, availability, key stats */}
+				{/* header */}
 				<div className="flex flex-col gap-6 sm:flex-row sm:items-start">
-					{/* photo */}
 					<div className="bg-muted relative aspect-square w-32 shrink-0 overflow-hidden rounded-2xl">
 						{photoUrl ? (
 							<img
@@ -108,20 +109,17 @@ const WorkerProfile = ({
 						)}
 					</div>
 
-					{/* name and meta */}
 					<div className="flex flex-1 flex-col gap-3">
 						<div className="flex flex-wrap items-center gap-3">
 							<h1 className="font-display text-foreground text-2xl font-bold">
 								{displayName}
 							</h1>
-							{/* verified badge */}
 							<span className="bg-accent text-accent-foreground inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold">
 								<CheckCircle className="size-3" />
 								Verified
 							</span>
 						</div>
 
-						{/* availability status */}
 						<span
 							className={`inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${availability.className}`}
 						>
@@ -129,7 +127,6 @@ const WorkerProfile = ({
 							{availability.label}
 						</span>
 
-						{/* key stats */}
 						<div className="flex flex-col gap-1.5">
 							{workPreference && (
 								<div className="text-muted-foreground flex items-center gap-1.5 text-sm">
@@ -159,6 +156,15 @@ const WorkerProfile = ({
 								<div className="text-muted-foreground flex items-center gap-1.5 text-sm">
 									<Wallet className="size-4 shrink-0" />
 									{salaryDisplay}
+								</div>
+							)}
+							{phoneNumber && (
+								<div className="text-muted-foreground flex items-center gap-1.5 text-sm">
+									<Phone className="size-4 shrink-0" />
+
+									<a href={`tel:${phoneNumber}`} className="text-primary hover:underline">
+										{phoneNumber}
+									</a>
 								</div>
 							)}
 						</div>
@@ -209,7 +215,7 @@ const WorkerProfile = ({
 					</div>
 				)}
 
-				{/* EOI button — stubbed for Task 5.6 */}
+				{/* EOI button — stubbed, wired in Task 5.6 */}
 				<div className="border-border border-t pt-6">
 					<div className="flex flex-col gap-2">
 						<p className="text-foreground text-sm font-semibold">
@@ -220,7 +226,7 @@ const WorkerProfile = ({
 						</p>
 						<button
 							disabled
-							className="bg-primary text-primary-foreground mt-2 w-full rounded-lg px-4 py-3 text-sm font-semibold opacity-50 sm:w-auto"
+							className="bg-primary text-primary-foreground mt-2 w-full cursor-not-allowed rounded-lg px-4 py-3 text-sm font-semibold opacity-50 sm:w-auto"
 						>
 							Send Expression of Interest — Coming Soon
 						</button>

@@ -46,13 +46,13 @@ const PATCH = async (req: Request) => {
 		dateOfBirth,
 		maritalStatus,
 		religion,
+		phoneNumber,
 	} = body;
 
 	if (!displayName?.trim()) {
 		return NextResponse.json({ error: "Display name is required." }, { status: 400 });
 	}
 
-	// build the update payload — only include fields that were sent
 	const updateData: Record<string, any> = { displayName: displayName.trim() };
 
 	if (photoId) updateData.photo = photoId;
@@ -70,17 +70,15 @@ const PATCH = async (req: Request) => {
 	if (dateOfBirth !== undefined) updateData.dateOfBirth = dateOfBirth;
 	if (maritalStatus !== undefined) updateData.maritalStatus = maritalStatus;
 	if (religion !== undefined) updateData.religion = religion;
+	if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber;
 
 	try {
-		// fetch current profile to merge with incoming changes
-		// needed to compute profileComplete accurately
 		const currentProfile = await payload.findByID({
 			collection: "wajakaziprofiles",
 			id: identity.wajakaziProfileId,
 			overrideAccess: true,
 		});
 
-		// merge current state with incoming changes for completeness check
 		const mergedProfile = { ...currentProfile, ...updateData };
 		const profileComplete = computeProfileComplete(mergedProfile);
 

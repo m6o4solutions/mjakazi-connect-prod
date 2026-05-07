@@ -13,6 +13,7 @@ export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ id: string }> };
 
+// server-side page for displaying a worker's detailed profile to a verified, subscribed employer
 const Page = async ({ params }: Props) => {
 	const { userId } = await auth();
 	if (!userId) redirect("/sign-in");
@@ -20,6 +21,7 @@ const Page = async ({ params }: Props) => {
 	const payload = await getPayload({ config });
 	const identity = await resolveIdentity(payload, userId);
 
+	// ensure only employers can access this route
 	if (!identity || identity.role !== "mwajiri") redirect("/sign-in");
 
 	// verify subscription status before exposing any profile data
@@ -33,13 +35,12 @@ const Page = async ({ params }: Props) => {
 	const mwajiriProfile = profileResult.docs[0] ?? null;
 	const isSubscribed = mwajiriProfile?.subscriptionStatus === "active";
 
-	// unsubscribed mwajiri cannot view full profiles — send them to subscribe
+	// redirect non-subscribed employers to the subscription page
 	if (!isSubscribed) redirect("/dashboard/mwajiri/subscription");
 
 	const { id } = await params;
 
-	// findByID throws rather than returning null for missing documents
-	// in some Payload versions — catch and treat as not found
+	// fetch worker profile by id; handle potential retrieval errors
 	let profile: any = null;
 
 	try {
@@ -55,11 +56,12 @@ const Page = async ({ params }: Props) => {
 
 	if (!profile) notFound();
 
-	// only verified, complete profiles are accessible to Waajiri
+	// only display complete and verified worker profiles
 	if (profile.verificationStatus !== "verified" || !profile.profileComplete) {
 		notFound();
 	}
 
+	// map raw data to display-ready formats and labels
 	const photoUrl =
 		profile.photo && typeof profile.photo === "object" && "url" in profile.photo
 			? (profile.photo as any).url
@@ -96,6 +98,7 @@ const Page = async ({ params }: Props) => {
 		<>
 			<DashboardTopbar title="Worker Profile" />
 			<main className="flex flex-1 flex-col gap-6 p-6">
+				{/* render the worker profile details component */}
 				<WorkerProfile
 					profileId={id}
 					displayName={profile.displayName ?? ""}
@@ -109,6 +112,7 @@ const Page = async ({ params }: Props) => {
 					salaryDisplay={salaryDisplay}
 					educationLevel={profile.educationLevel ?? null}
 					availabilityStatus={profile.availabilityStatus ?? "available"}
+					phoneNumber={profile.phoneNumber ?? null}
 				/>
 			</main>
 		</>

@@ -11,8 +11,10 @@ import {
 import { isAdminOrProfileOwner, isRestricted } from "@/payload/access/access-control";
 import type { CollectionConfig } from "payload";
 
+// payload collection definition for worker profiles
 const WajakaziProfiles: CollectionConfig = {
 	slug: "wajakaziprofiles",
+	// restrict data access to admins or the owner of the profile
 	access: {
 		create: isRestricted,
 		update: isRestricted,
@@ -33,6 +35,7 @@ const WajakaziProfiles: CollectionConfig = {
 	labels: { singular: "Mjakazi Profile", plural: "Wajakazi Profiles" },
 	fields: [
 		// --- identity ---
+		// link profile to a specific user account
 		{
 			name: "account",
 			type: "relationship",
@@ -90,6 +93,13 @@ const WajakaziProfiles: CollectionConfig = {
 				label: r.label,
 				value: r.value,
 			})),
+		},
+
+		// --- contact ---
+		{
+			name: "phoneNumber",
+			type: "text",
+			label: "Mobile Phone Number",
 		},
 
 		// --- photo ---
@@ -271,8 +281,8 @@ const WajakaziProfiles: CollectionConfig = {
 		},
 
 		// --- profile completeness ---
+		// tracks whether profile meets minimum requirements for display
 		{
-			// computed server-side — never set directly by the user
 			name: "profileComplete",
 			type: "checkbox",
 			label: "Profile Complete",
