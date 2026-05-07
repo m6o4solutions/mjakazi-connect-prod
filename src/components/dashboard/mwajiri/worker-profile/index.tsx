@@ -1,4 +1,5 @@
 import {
+	ArrowLeftCircle,
 	BookOpen,
 	Briefcase,
 	Calendar,
@@ -62,8 +63,8 @@ const availabilityLabel: Record<string, { label: string; className: string }> = 
 	},
 };
 
+// profile display component for mwajiri dashboard
 const WorkerProfile = ({
-	profileId,
 	displayName,
 	photoUrl,
 	bio,
@@ -83,15 +84,16 @@ const WorkerProfile = ({
 
 	return (
 		<div className="mx-auto w-full max-w-3xl">
+			// navigation back to browse
 			<Link
 				href="/dashboard/mwajiri/browse"
 				className="text-muted-foreground hover:text-foreground mb-6 inline-flex items-center gap-1.5 text-sm transition-colors"
 			>
-				← Back to Browse
+				<ArrowLeftCircle className="size-4" /> Back to Browse
 			</Link>
 
 			<div className="bg-card border-border flex flex-col gap-8 rounded-2xl border p-6 sm:p-8">
-				{/* header */}
+				// worker identity and summary header
 				<div className="flex flex-col gap-6 sm:flex-row sm:items-start">
 					<div className="bg-muted relative aspect-square w-32 shrink-0 overflow-hidden rounded-2xl">
 						{photoUrl ? (
@@ -161,17 +163,14 @@ const WorkerProfile = ({
 							{phoneNumber && (
 								<div className="text-muted-foreground flex items-center gap-1.5 text-sm">
 									<Phone className="size-4 shrink-0" />
-
-									<a href={`tel:${phoneNumber}`} className="text-primary hover:underline">
-										{phoneNumber}
-									</a>
+									{phoneNumber}
 								</div>
 							)}
 						</div>
 					</div>
 				</div>
 
-				{/* about */}
+				// worker biography section
 				{bio && (
 					<div className="flex flex-col gap-2">
 						<p className="text-foreground text-sm font-semibold">About</p>
@@ -179,7 +178,7 @@ const WorkerProfile = ({
 					</div>
 				)}
 
-				{/* skills */}
+				// listed skill set
 				{jobLabels.length > 0 && (
 					<div className="flex flex-col gap-3">
 						<p className="text-foreground text-sm font-semibold">What I can help with</p>
@@ -197,7 +196,7 @@ const WorkerProfile = ({
 					</div>
 				)}
 
-				{/* languages */}
+				// spoken languages
 				{languages.length > 0 && (
 					<div className="flex flex-col gap-3">
 						<p className="text-foreground text-sm font-semibold">Languages</p>
@@ -215,7 +214,7 @@ const WorkerProfile = ({
 					</div>
 				)}
 
-				{/* EOI button — stubbed, wired in Task 5.6 */}
+				// stubbed call-to-action for expressing interest
 				<div className="border-border border-t pt-6">
 					<div className="flex flex-col gap-2">
 						<p className="text-foreground text-sm font-semibold">
