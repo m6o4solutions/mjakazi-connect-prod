@@ -41,18 +41,14 @@ const Registration: Block = {
 							label: "Button Link",
 							required: true,
 							defaultValue: "/sign-up?role=mjakazi",
-							admin: {
-								width: "50%",
-							},
+							admin: { width: "50%" },
 						},
 						{
 							name: "buttonText",
 							type: "text",
 							label: "Button Text",
 							required: true,
-							admin: {
-								width: "50%",
-							},
+							admin: { width: "50%" },
 						},
 					],
 				},
