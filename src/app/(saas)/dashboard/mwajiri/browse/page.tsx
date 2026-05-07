@@ -17,6 +17,7 @@ type Props = {
 
 const WORKERS_PER_PAGE = 12;
 
+// browse domestic worker profiles with filtering and pagination
 const Page = async ({ searchParams }: Props) => {
 	const { userId } = await auth();
 	if (!userId) redirect("/sign-in");

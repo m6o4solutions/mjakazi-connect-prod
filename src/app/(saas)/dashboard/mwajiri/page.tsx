@@ -10,6 +10,7 @@ import { getPayload } from "payload";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
+// main dashboard for mwajiri, displaying subscription status and quick navigation
 const Page = async () => {
 	const { userId } = await auth();
 

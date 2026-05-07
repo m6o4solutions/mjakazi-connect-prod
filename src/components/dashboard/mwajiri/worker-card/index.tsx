@@ -1,6 +1,22 @@
 import { JOB_OPTIONS, LANGUAGE_OPTIONS } from "@/lib/profile-constants";
 import { BookOpen, Briefcase, Calendar, Globe, MapPin, Wallet } from "lucide-react";
 
+// maps enum values to human-friendly display strings
+const workPreferenceLabel: Record<string, string> = {
+	live_in: "Live-in (stays with family)",
+	live_out: "Live-out (commutes daily)",
+	either: "Live-in or Live-out (flexible)",
+};
+
+const educationLevelLabel: Record<string, string> = {
+	primary: "Primary School",
+	secondary: "Secondary School",
+	certificate: "Post Secondary Certificate",
+	diploma: "Diploma",
+	degree: "Bachelor's Degree",
+	postgraduate: "Postgraduate",
+};
+
 interface JobLabel {
 	label: string;
 	icon: string;
@@ -20,21 +36,7 @@ interface WorkerCardProps {
 	educationLevel: string | null;
 }
 
-const workPreferenceLabel: Record<string, string> = {
-	live_in: "Live-in (stays with family)",
-	live_out: "Live-out (commutes daily)",
-	either: "Live-in or Live-out (flexible)",
-};
-
-const educationLevelLabel: Record<string, string> = {
-	primary: "Primary School",
-	secondary: "Secondary School",
-	certificate: "Post Secondary Certificate",
-	diploma: "Diploma",
-	degree: "Bachelor's Degree",
-	postgraduate: "Postgraduate",
-};
-
+// displays a summary card for a domestic worker in the dashboard browse view
 const WorkerCard = ({
 	displayName,
 	bio,
