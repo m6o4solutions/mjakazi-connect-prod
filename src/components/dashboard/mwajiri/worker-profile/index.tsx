@@ -1,5 +1,5 @@
 import {
-	ArrowLeftCircle,
+	ArrowLeft,
 	BookOpen,
 	Briefcase,
 	Calendar,
@@ -84,16 +84,16 @@ const WorkerProfile = ({
 
 	return (
 		<div className="mx-auto w-full max-w-3xl">
-			// navigation back to browse
+			{/* navigation back to browse */}
 			<Link
 				href="/dashboard/mwajiri/browse"
 				className="text-muted-foreground hover:text-foreground mb-6 inline-flex items-center gap-1.5 text-sm transition-colors"
 			>
-				<ArrowLeftCircle className="size-4" /> Back to Browse
+				<ArrowLeft className="size-4" /> Back to Browse
 			</Link>
 
 			<div className="bg-card border-border flex flex-col gap-8 rounded-2xl border p-6 sm:p-8">
-				// worker identity and summary header
+				{/* worker identity and summary header */}
 				<div className="flex flex-col gap-6 sm:flex-row sm:items-start">
 					<div className="bg-muted relative aspect-square w-32 shrink-0 overflow-hidden rounded-2xl">
 						{photoUrl ? (
@@ -169,16 +169,14 @@ const WorkerProfile = ({
 						</div>
 					</div>
 				</div>
-
-				// worker biography section
+				{/* worker biography section */}
 				{bio && (
 					<div className="flex flex-col gap-2">
 						<p className="text-foreground text-sm font-semibold">About</p>
 						<p className="text-muted-foreground text-sm leading-relaxed">{bio}</p>
 					</div>
 				)}
-
-				// listed skill set
+				{/* listed skill set */}
 				{jobLabels.length > 0 && (
 					<div className="flex flex-col gap-3">
 						<p className="text-foreground text-sm font-semibold">What I can help with</p>
@@ -195,8 +193,7 @@ const WorkerProfile = ({
 						</div>
 					</div>
 				)}
-
-				// spoken languages
+				{/* spoken languages */}
 				{languages.length > 0 && (
 					<div className="flex flex-col gap-3">
 						<p className="text-foreground text-sm font-semibold">Languages</p>
@@ -213,8 +210,7 @@ const WorkerProfile = ({
 						</div>
 					</div>
 				)}
-
-				// stubbed call-to-action for expressing interest
+				{/* stubbed call-to-action for expressing interest */}
 				<div className="border-border border-t pt-6">
 					<div className="flex flex-col gap-2">
 						<p className="text-foreground text-sm font-semibold">

@@ -11,7 +11,6 @@ interface WorkerCardProps {
 	id: string;
 	displayName: string;
 	photoUrl: string | null;
-	bio: string | null;
 	jobLabels: JobLabel[];
 	locationLabel: string | null;
 	experience: number | null;
@@ -41,7 +40,6 @@ const WorkerCard = ({
 	id,
 	displayName,
 	photoUrl,
-	bio,
 	jobLabels,
 	locationLabel,
 	experience,
@@ -99,13 +97,6 @@ const WorkerCard = ({
 			<div className="flex flex-1 flex-col gap-4 p-5">
 				{/* name */}
 				<h3 className="font-display text-foreground text-lg font-bold">{displayName}</h3>
-
-				{/* bio */}
-				{bio && (
-					<p className="text-muted-foreground line-clamp-3 text-sm leading-relaxed">
-						{bio}
-					</p>
-				)}
 
 				{/* key stats */}
 				<div className="flex flex-col gap-1.5">

@@ -186,7 +186,6 @@ const Page = async ({ searchParams }: Props) => {
 										id={profile.id}
 										displayName={profile.displayName ?? ""}
 										photoUrl={photoUrl}
-										bio={profile.bio ?? null}
 										jobLabels={jobLabels}
 										locationLabel={locationLabel}
 										experience={profile.experience ?? null}
