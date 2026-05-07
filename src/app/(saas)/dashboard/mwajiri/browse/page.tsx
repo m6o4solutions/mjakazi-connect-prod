@@ -28,7 +28,7 @@ const Page = async ({ searchParams }: Props) => {
 
 	if (!identity || identity.role !== "mwajiri") redirect("/sign-in");
 
-	// fetch mwajiri profile to determine subscription status
+	// fetch mwajiri profile to check live subscription status
 	const profileResult = await payload.find({
 		collection: "waajiriprofiles",
 		where: { account: { equals: identity.accountId } },
@@ -42,13 +42,13 @@ const Page = async ({ searchParams }: Props) => {
 	const { location, job, page: pageParam } = await searchParams;
 	const currentPage = Math.max(1, parseInt(pageParam ?? "1", 10));
 
-	// apply base filters required for all users
+	// base filters applied to all queries regardless of subscription status
 	const baseFilters: any[] = [
 		{ verificationStatus: { equals: "verified" } },
 		{ profileComplete: { equals: true } },
 	];
 
-	// restrict location and job filtering to subscribed users
+	// location and job filters only apply for subscribed users
 	const filters: any[] = isSubscribed
 		? [
 				...baseFilters,
@@ -71,7 +71,7 @@ const Page = async ({ searchParams }: Props) => {
 	const totalPages = result.totalPages;
 	const totalVerified = result.totalDocs;
 
-	// helper to construct paginated urls with existing search parameters
+	// build pagination urls preserving existing filters
 	const buildUrl = (p: number) => {
 		const params = new URLSearchParams();
 		if (location) params.set("location", location);
@@ -84,7 +84,7 @@ const Page = async ({ searchParams }: Props) => {
 		<>
 			<DashboardTopbar title="Browse Wajakazi" />
 			<main className="flex flex-1 flex-col gap-6 p-6">
-				{/* show filter form only if user is subscribed */}
+				{/* filters — only shown to subscribed users */}
 				{isSubscribed && (
 					<div className="flex flex-wrap gap-3">
 						<form
@@ -136,7 +136,8 @@ const Page = async ({ searchParams }: Props) => {
 						</form>
 					</div>
 				)}
-				{/* show search results count only if user is subscribed */}
+
+				{/* results count — only shown to subscribed users */}
 				{isSubscribed && (
 					<p className="text-muted-foreground text-sm">
 						{result.totalDocs === 0
@@ -144,7 +145,8 @@ const Page = async ({ searchParams }: Props) => {
 							: `${result.totalDocs} verified worker${result.totalDocs !== 1 ? "s" : ""} found`}
 					</p>
 				)}
-				{/* render worker list with blur effect if not subscribed */}
+
+				{/* worker grid */}
 				<div className="relative">
 					<div
 						className={[
@@ -181,6 +183,7 @@ const Page = async ({ searchParams }: Props) => {
 							return (
 								<div key={profile.id} className={!isSubscribed ? "blur-sm" : ""}>
 									<WorkerCard
+										id={profile.id}
 										displayName={profile.displayName ?? ""}
 										photoUrl={photoUrl}
 										bio={profile.bio ?? null}
@@ -197,10 +200,12 @@ const Page = async ({ searchParams }: Props) => {
 							);
 						})}
 					</div>
-					{/* display paywall if user is not subscribed */}
+
+					{/* paywall overlay — rendered over the blurred grid */}
 					{!isSubscribed && <PaywallOverlay verifiedCount={totalVerified} />}
 				</div>
-				{/* show pagination controls only for subscribed users */}
+
+				{/* pagination — subscribed users only */}
 				{isSubscribed && totalPages > 1 && (
 					<div className="flex items-center justify-center gap-3 pt-4">
 						{currentPage > 1 && (

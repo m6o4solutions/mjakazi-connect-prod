@@ -1,7 +1,27 @@
-import { JOB_OPTIONS, LANGUAGE_OPTIONS } from "@/lib/profile-constants";
 import { BookOpen, Briefcase, Calendar, Globe, MapPin, Wallet } from "lucide-react";
+import { LANGUAGE_OPTIONS } from "@/lib/profile-constants";
+import Link from "next/link";
 
-// maps enum values to human-friendly display strings
+interface JobLabel {
+	label: string;
+	icon: string;
+}
+
+interface WorkerCardProps {
+	id: string;
+	displayName: string;
+	photoUrl: string | null;
+	bio: string | null;
+	jobLabels: JobLabel[];
+	locationLabel: string | null;
+	experience: number | null;
+	workPreference: string | null;
+	languages: string[];
+	salaryMin: number | null;
+	salaryMax: number | null;
+	educationLevel: string | null;
+}
+
 const workPreferenceLabel: Record<string, string> = {
 	live_in: "Live-in (stays with family)",
 	live_out: "Live-out (commutes daily)",
@@ -17,30 +37,11 @@ const educationLevelLabel: Record<string, string> = {
 	postgraduate: "Postgraduate",
 };
 
-interface JobLabel {
-	label: string;
-	icon: string;
-}
-
-interface WorkerCardProps {
-	displayName: string;
-	bio: string | null;
-	photoUrl: string | null;
-	jobLabels: JobLabel[];
-	locationLabel: string | null;
-	experience: number | null;
-	workPreference: string | null;
-	languages: string[];
-	salaryMin: number | null;
-	salaryMax: number | null;
-	educationLevel: string | null;
-}
-
-// displays a summary card for a domestic worker in the dashboard browse view
 const WorkerCard = ({
+	id,
 	displayName,
-	bio,
 	photoUrl,
+	bio,
 	jobLabels,
 	locationLabel,
 	experience,
@@ -179,6 +180,14 @@ const WorkerCard = ({
 						</div>
 					</div>
 				)}
+
+				{/* view profile link */}
+				<Link
+					href={`/dashboard/mwajiri/browse/${id}`}
+					className="bg-primary text-primary-foreground hover:bg-primary/90 mt-auto flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors"
+				>
+					View Full Profile
+				</Link>
 			</div>
 		</div>
 	);
