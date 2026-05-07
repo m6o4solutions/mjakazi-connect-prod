@@ -1,3 +1,4 @@
+import { PaywallOverlay } from "@/components/dashboard/mwajiri/paywall-overlay";
 import { WorkerCard } from "@/components/dashboard/mwajiri/worker-card";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { JOB_OPTIONS, LOCATION_OPTIONS } from "@/lib/profile-constants";
@@ -16,8 +17,8 @@ type Props = {
 };
 
 const WORKERS_PER_PAGE = 12;
+const PAYWALL_PREVIEW_COUNT = 3;
 
-// browse domestic worker profiles with filtering and pagination
 const Page = async ({ searchParams }: Props) => {
 	const { userId } = await auth();
 	if (!userId) redirect("/sign-in");
@@ -27,32 +28,50 @@ const Page = async ({ searchParams }: Props) => {
 
 	if (!identity || identity.role !== "mwajiri") redirect("/sign-in");
 
+	// fetch mwajiri profile to determine subscription status
+	const profileResult = await payload.find({
+		collection: "waajiriprofiles",
+		where: { account: { equals: identity.accountId } },
+		overrideAccess: true,
+		limit: 1,
+	});
+
+	const mwajiriProfile = profileResult.docs[0] ?? null;
+	const isSubscribed = mwajiriProfile?.subscriptionStatus === "active";
+
 	const { location, job, page: pageParam } = await searchParams;
 	const currentPage = Math.max(1, parseInt(pageParam ?? "1", 10));
 
-	// build query filters from url search params
-	const filters: any[] = [
+	// apply base filters required for all users
+	const baseFilters: any[] = [
 		{ verificationStatus: { equals: "verified" } },
 		{ profileComplete: { equals: true } },
 	];
 
-	if (location) filters.push({ location: { equals: location } });
-	if (job) filters.push({ jobs: { contains: job } });
+	// restrict location and job filtering to subscribed users
+	const filters: any[] = isSubscribed
+		? [
+				...baseFilters,
+				...(location ? [{ location: { equals: location } }] : []),
+				...(job ? [{ jobs: { contains: job } }] : []),
+			]
+		: baseFilters;
 
 	const result = await payload.find({
 		collection: "wajakaziprofiles",
 		where: { and: filters },
 		overrideAccess: true,
 		depth: 1,
-		limit: WORKERS_PER_PAGE,
-		page: currentPage,
+		limit: isSubscribed ? WORKERS_PER_PAGE : PAYWALL_PREVIEW_COUNT,
+		page: isSubscribed ? currentPage : 1,
 		sort: "-updatedAt",
 	});
 
 	const profiles = result.docs;
 	const totalPages = result.totalPages;
+	const totalVerified = result.totalDocs;
 
-	// build pagination urls preserving existing filters
+	// helper to construct paginated urls with existing search parameters
 	const buildUrl = (p: number) => {
 		const params = new URLSearchParams();
 		if (location) params.set("location", location);
@@ -65,67 +84,74 @@ const Page = async ({ searchParams }: Props) => {
 		<>
 			<DashboardTopbar title="Browse Wajakazi" />
 			<main className="flex flex-1 flex-col gap-6 p-6">
-				{/* filters */}
-				<div className="flex flex-wrap gap-3">
-					<form
-						method="GET"
-						action="/dashboard/mwajiri/browse"
-						className="flex flex-wrap gap-3"
-					>
-						<select
-							name="location"
-							defaultValue={location ?? ""}
-							className="border-input bg-background text-foreground focus:ring-ring rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+				{/* show filter form only if user is subscribed */}
+				{isSubscribed && (
+					<div className="flex flex-wrap gap-3">
+						<form
+							method="GET"
+							action="/dashboard/mwajiri/browse"
+							className="flex flex-wrap gap-3"
 						>
-							<option value="">All Locations</option>
-							{LOCATION_OPTIONS.map((l) => (
-								<option key={l.value} value={l.value}>
-									{l.label}
-								</option>
-							))}
-						</select>
-
-						<select
-							name="job"
-							defaultValue={job ?? ""}
-							className="border-input bg-background text-foreground focus:ring-ring rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
-						>
-							<option value="">All Skills</option>
-							{JOB_OPTIONS.map((j) => (
-								<option key={j.value} value={j.value}>
-									{j.icon} {j.label}
-								</option>
-							))}
-						</select>
-
-						<button
-							type="submit"
-							className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg px-4 py-2 text-sm font-semibold transition-colors"
-						>
-							Filter
-						</button>
-
-						{(location || job) && (
-							<a
-								href="/dashboard/mwajiri/browse"
-								className="border-input text-muted-foreground hover:text-foreground rounded-lg border px-4 py-2 text-sm transition-colors"
+							<select
+								name="location"
+								defaultValue={location ?? ""}
+								className="border-input bg-background text-foreground focus:ring-ring rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
 							>
-								Clear
-							</a>
-						)}
-					</form>
-				</div>
+								<option value="">All Locations</option>
+								{LOCATION_OPTIONS.map((l) => (
+									<option key={l.value} value={l.value}>
+										{l.label}
+									</option>
+								))}
+							</select>
 
-				{/* results count */}
-				<p className="text-muted-foreground text-sm">
-					{result.totalDocs === 0
-						? "No workers found matching your filters."
-						: `${result.totalDocs} verified worker${result.totalDocs !== 1 ? "s" : ""} found`}
-				</p>
+							<select
+								name="job"
+								defaultValue={job ?? ""}
+								className="border-input bg-background text-foreground focus:ring-ring rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+							>
+								<option value="">All Skills</option>
+								{JOB_OPTIONS.map((j) => (
+									<option key={j.value} value={j.value}>
+										{j.icon} {j.label}
+									</option>
+								))}
+							</select>
 
-				{/* worker grid */}
-				{profiles.length > 0 && (
-					<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+							<button
+								type="submit"
+								className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg px-4 py-2 text-sm font-semibold transition-colors"
+							>
+								Filter
+							</button>
+
+							{(location || job) && (
+								<a
+									href="/dashboard/mwajiri/browse"
+									className="border-input text-muted-foreground hover:text-foreground rounded-lg border px-4 py-2 text-sm transition-colors"
+								>
+									Clear
+								</a>
+							)}
+						</form>
+					</div>
+				)}
+				{/* show search results count only if user is subscribed */}
+				{isSubscribed && (
+					<p className="text-muted-foreground text-sm">
+						{result.totalDocs === 0
+							? "No workers found matching your filters."
+							: `${result.totalDocs} verified worker${result.totalDocs !== 1 ? "s" : ""} found`}
+					</p>
+				)}
+				{/* render worker list with blur effect if not subscribed */}
+				<div className="relative">
+					<div
+						className={[
+							"grid gap-6 sm:grid-cols-2 lg:grid-cols-3",
+							!isSubscribed ? "pointer-events-none select-none" : "",
+						].join(" ")}
+					>
 						{profiles.map((profile) => {
 							const photoUrl =
 								profile.photo &&
@@ -153,27 +179,29 @@ const Page = async ({ searchParams }: Props) => {
 								: [];
 
 							return (
-								<WorkerCard
-									key={profile.id}
-									displayName={profile.displayName ?? ""}
-									photoUrl={photoUrl}
-									bio={profile.bio ?? null}
-									jobLabels={jobLabels}
-									locationLabel={locationLabel}
-									experience={profile.experience ?? null}
-									workPreference={profile.workPreference ?? null}
-									languages={languageLabels}
-									salaryMin={profile.salaryMin ?? null}
-									salaryMax={profile.salaryMax ?? null}
-									educationLevel={profile.educationLevel ?? null}
-								/>
+								<div key={profile.id} className={!isSubscribed ? "blur-sm" : ""}>
+									<WorkerCard
+										displayName={profile.displayName ?? ""}
+										photoUrl={photoUrl}
+										bio={profile.bio ?? null}
+										jobLabels={jobLabels}
+										locationLabel={locationLabel}
+										experience={profile.experience ?? null}
+										workPreference={profile.workPreference ?? null}
+										languages={languageLabels}
+										salaryMin={profile.salaryMin ?? null}
+										salaryMax={profile.salaryMax ?? null}
+										educationLevel={profile.educationLevel ?? null}
+									/>
+								</div>
 							);
 						})}
 					</div>
-				)}
-
-				{/* pagination */}
-				{totalPages > 1 && (
+					{/* display paywall if user is not subscribed */}
+					{!isSubscribed && <PaywallOverlay verifiedCount={totalVerified} />}
+				</div>
+				{/* show pagination controls only for subscribed users */}
+				{isSubscribed && totalPages > 1 && (
 					<div className="flex items-center justify-center gap-3 pt-4">
 						{currentPage > 1 && (
 							<a
