@@ -36,18 +36,18 @@ export const LANGUAGE_OPTIONS = [
 ] as const;
 
 export const COUNTRY_OPTIONS = [
-	{ label: "Kenya", value: "kenya" },
-	{ label: "Uganda", value: "uganda" },
-	{ label: "Tanzania", value: "tanzania" },
-	{ label: "Rwanda", value: "rwanda" },
-	{ label: "Burundi", value: "burundi" },
-	{ label: "DR Congo", value: "drc" },
-	{ label: "Ethiopia", value: "ethiopia" },
-	{ label: "Somalia", value: "somalia" },
-	{ label: "South Sudan", value: "south_sudan" },
-	{ label: "Sudan", value: "sudan" },
-	{ label: "Eritrea", value: "eritrea" },
-	{ label: "Djibouti", value: "djibouti" },
+	{ label: "Kenyan", value: "kenya" },
+	{ label: "Ugandan", value: "uganda" },
+	{ label: "Tanzanian", value: "tanzania" },
+	{ label: "Rwandese", value: "rwanda" },
+	{ label: "Burundian", value: "burundi" },
+	{ label: "DR Congolese", value: "drc" },
+	{ label: "Ethiopian", value: "ethiopia" },
+	{ label: "Somali", value: "somalia" },
+	{ label: "South Sudanese", value: "south_sudan" },
+	{ label: "Sudanese", value: "sudan" },
+	{ label: "Eritrean", value: "eritrea" },
+	{ label: "Djiboutian", value: "djibouti" },
 	{ label: "Other", value: "other" },
 ] as const;
 

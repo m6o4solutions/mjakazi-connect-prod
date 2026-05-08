@@ -21,7 +21,7 @@ import { useRef, useState } from "react";
 interface ProfileFormProps {
 	currentDisplayName: string;
 	currentPhotoUrl: string | null;
-	currentPhotoId: string | null; // media document id needed for deletion on replacement
+	currentPhotoId: string | null;
 	currentBio: string;
 	currentJobs: string[];
 	currentExperience: number | null;
@@ -36,13 +36,12 @@ interface ProfileFormProps {
 	currentDateOfBirth: string;
 	currentMaritalStatus: string;
 	currentReligion: string;
+	currentPhoneNumber: string;
 }
 
-// toggles a value in a string array — adds if absent, removes if present
 const toggleMultiSelect = (current: string[], value: string): string[] =>
 	current.includes(value) ? current.filter((v) => v !== value) : [...current, value];
 
-// extracts YYYY-MM-DD from an ISO 8601 date string for use in date inputs
 const toDateInputValue = (isoString: string | null | undefined): string => {
 	if (!isoString) return "";
 	return isoString.slice(0, 10);
@@ -66,22 +65,16 @@ const ProfileForm = ({
 	currentDateOfBirth,
 	currentMaritalStatus,
 	currentReligion,
+	currentPhoneNumber,
 }: ProfileFormProps) => {
 	const router = useRouter();
-
-	// hidden file input triggered by the visible photo button
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
-	// seed state from server-fetched props; strip the placeholder display name
-	// added on account creation so the field starts blank for real input
 	const [displayName, setDisplayName] = useState(
 		currentDisplayName === "New Worker" ? "" : currentDisplayName,
 	);
 	const [bio, setBio] = useState(currentBio ?? "");
 	const [jobs, setJobs] = useState<string[]>(currentJobs ?? []);
-
-	// numeric fields are kept as strings in state to avoid issues with
-	// controlled number inputs rendering "0" when the user clears the field
 	const [experience, setExperience] = useState<string>(
 		currentExperience !== null ? String(currentExperience) : "",
 	);
@@ -104,9 +97,8 @@ const ProfileForm = ({
 	);
 	const [maritalStatus, setMaritalStatus] = useState(currentMaritalStatus ?? "");
 	const [religion, setReligion] = useState(currentReligion ?? "");
+	const [phoneNumber, setPhoneNumber] = useState(currentPhoneNumber ?? "");
 
-	// photoFile holds the pending local file; photoPreview is the object url
-	// shown immediately so the user sees their selection before saving
 	const [photoFile, setPhotoFile] = useState<File | null>(null);
 	const [photoPreview, setPhotoPreview] = useState<string | null>(currentPhotoUrl);
 
@@ -114,7 +106,6 @@ const ProfileForm = ({
 	const [success, setSuccess] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
-	// validate the selected file on the client before staging it for upload
 	const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0] ?? null;
 		if (!file) return;
@@ -128,21 +119,15 @@ const ProfileForm = ({
 		}
 		setError(null);
 		setPhotoFile(file);
-		// create a local object url for instant preview without a round-trip
 		setPhotoPreview(URL.createObjectURL(file));
 	};
 
-	// upload the staged photo to the dedicated endpoint and return the new media id;
-	// the id is then included in the profile update payload so the two operations
-	// share a single save action from the user's perspective
 	const uploadPhoto = async (): Promise<string | null> => {
 		if (!photoFile) return null;
 
 		const formData = new FormData();
 		formData.append("file", photoFile);
 
-		// pass the existing photo id so the server deletes the old file
-		// from s3 and mongodb before uploading the new one
 		if (currentPhotoId) {
 			formData.append("existingPhotoId", currentPhotoId);
 		}
@@ -162,19 +147,15 @@ const ProfileForm = ({
 	};
 
 	const handleSave = async () => {
-		// display name is the only required field before attempting a save
 		if (!displayName.trim()) {
 			setError("Display name is required.");
 			return;
 		}
 		setLoading(true);
 		setError(null);
-		// clear success state after delay
 		setTimeout(() => setSuccess(false), 3000);
 
 		try {
-			// upload photo first if a new file was staged; the returned id
-			// is appended to the profile payload so both changes persist together
 			let photoId: string | null = null;
 			if (photoFile) photoId = await uploadPhoto();
 
@@ -197,15 +178,14 @@ const ProfileForm = ({
 					dateOfBirth: dateOfBirth || undefined,
 					maritalStatus: maritalStatus || undefined,
 					religion: religion || undefined,
-					// only include photoId when a new photo was actually uploaded
+					phoneNumber: phoneNumber.trim() || undefined,
 					...(photoId ? { photoId } : {}),
 				}),
 			});
 
 			if (res.ok) {
 				setSuccess(true);
-				setPhotoFile(null); // clear pending file after successful save
-				// refresh server components so the page reflects the saved data
+				setPhotoFile(null);
 				router.refresh();
 			} else {
 				const data = await res.json();
@@ -233,8 +213,6 @@ const ProfileForm = ({
 			<div className="bg-card border-border flex flex-col gap-5 rounded-xl border p-6">
 				<p className="text-foreground text-sm font-semibold">Public Presentation</p>
 
-				{/* photo upload — clicking the preview or the button both trigger
-				    the hidden file input; the overlay on hover signals replaceability */}
 				<div className="flex flex-col gap-3">
 					<Label className="text-xs">Profile Photo</Label>
 					<div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start">
@@ -284,7 +262,6 @@ const ProfileForm = ({
 							</Button>
 						</div>
 					</div>
-					{/* visually hidden; controlled via ref from the buttons above */}
 					<input
 						ref={fileInputRef}
 						type="file"
@@ -404,7 +381,25 @@ const ProfileForm = ({
 					</div>
 				</div>
 
-				{/* pill-style multi-select for languages */}
+				{/* phone number */}
+				<div className="flex flex-col gap-1.5">
+					<Label htmlFor="phoneNumber" className="text-xs">
+						Mobile Phone Number
+					</Label>
+					<Input
+						id="phoneNumber"
+						type="tel"
+						placeholder="e.g. 0712 345 678"
+						value={phoneNumber}
+						onChange={(e) => setPhoneNumber(e.target.value)}
+						className="text-sm"
+					/>
+					<p className="text-muted-foreground text-xs">
+						Visible only to subscribed employers. Used for direct contact.
+					</p>
+				</div>
+
+				{/* languages */}
 				<div className="flex flex-col gap-2">
 					<Label className="text-xs">
 						Languages Spoken
@@ -436,7 +431,6 @@ const ProfileForm = ({
 			<div className="bg-card border-border flex flex-col gap-5 rounded-xl border p-6">
 				<p className="text-foreground text-sm font-semibold">Work Preferences</p>
 
-				{/* pill-style multi-select for job types / skills offered */}
 				<div className="flex flex-col gap-2">
 					<Label className="text-xs">
 						What I Can Help With
@@ -587,7 +581,6 @@ const ProfileForm = ({
 				</div>
 			</div>
 
-			{/* save button */}
 			<Button onClick={handleSave} disabled={loading} className="w-full gap-2">
 				<UserCheck className="size-4" />
 				{loading ? "Saving..." : "Save Profile"}

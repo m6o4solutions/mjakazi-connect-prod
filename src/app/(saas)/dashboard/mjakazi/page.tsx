@@ -98,6 +98,11 @@ const Page = async () => {
 			complete: Array.isArray(profile?.languages) && profile.languages.length > 0,
 			href: "/dashboard/mjakazi/profile",
 		},
+		{
+			label: "Add mobile phone number",
+			complete: !!profile?.phoneNumber?.trim(),
+			href: "/dashboard/mjakazi/profile",
+		},
 	];
 
 	return (

@@ -418,6 +418,10 @@ export interface HowItWorks {
 export interface WajakaziArchive {
   headline?: string | null;
   headlineDescription?: string | null;
+  limit?: number | null;
+  showViewAllLink?: boolean | null;
+  buttonLink: string;
+  buttonText: string;
   backgroundVariant: 'subtle' | 'white';
   id?: string | null;
   blockName?: string | null;
@@ -709,6 +713,7 @@ export interface Wajakaziprofile {
     | null;
   maritalStatus?: ('single' | 'married' | 'divorced' | 'widowed' | 'prefer_not_to_say') | null;
   religion?: ('christian' | 'muslim' | 'hindu' | 'other' | 'prefer_not_to_say') | null;
+  phoneNumber?: string | null;
   photo?: (string | null) | Media;
   jobs?:
     | (
@@ -1505,6 +1510,10 @@ export interface HowItWorksSelect<T extends boolean = true> {
 export interface WajakaziArchiveSelect<T extends boolean = true> {
   headline?: T;
   headlineDescription?: T;
+  limit?: T;
+  showViewAllLink?: T;
+  buttonLink?: T;
+  buttonText?: T;
   backgroundVariant?: T;
   id?: T;
   blockName?: T;
@@ -1804,6 +1813,7 @@ export interface WajakaziprofilesSelect<T extends boolean = true> {
   nationality?: T;
   maritalStatus?: T;
   religion?: T;
+  phoneNumber?: T;
   photo?: T;
   jobs?: T;
   bio?: T;
