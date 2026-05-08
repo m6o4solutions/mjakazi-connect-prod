@@ -1,21 +1,26 @@
 # [1.25.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.24.0...v1.25.0) (2026-05-08)
 
-
 ### Features
 
-* **config:** add pnpm-workspace.yaml for monorepo support ([52d3c72](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/52d3c72d5963bc1815315015d7862a81626ebacb))
+- **config:** add pnpm-workspace.yaml for monorepo support
+  ([52d3c72](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/52d3c72d5963bc1815315015d7862a81626ebacb))
 
 # [1.24.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.23.0...v1.24.0) (2026-05-08)
 
-
 ### Features
 
-* **blocks:** implement dynamic profile fetching in wajakazi-archive ([02f2b4b](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/02f2b4b011a95c6a62ae986a2ed8ee25e9e0856b))
-* **dashboard:** add phone number field to worker profiles ([6180801](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/6180801757b06f3fb6dc56c6007a910bd5f765be))
-* **dashboard:** enable worker directory access for employers ([3c4be9f](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/3c4be9ffa6008e20400f1fa6807aeed89c68f1b2))
-* **dashboard:** implement admin and super admin overview metrics ([c483835](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/c483835c2dc93d5a5ac9d9e947a1bd0af73f473f))
-* **dashboard:** implement paywall for worker browsing ([b672527](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/b67252743a1122144e5a7de2bf13a6bedb773a43))
-* **dashboard:** implement worker profile detail view ([7427b51](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/7427b5187cc114bfde064a343ee1dedf173a3a3a))
+- **blocks:** implement dynamic profile fetching in wajakazi-archive
+  ([02f2b4b](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/02f2b4b011a95c6a62ae986a2ed8ee25e9e0856b))
+- **dashboard:** add phone number field to worker profiles
+  ([6180801](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/6180801757b06f3fb6dc56c6007a910bd5f765be))
+- **dashboard:** enable worker directory access for employers
+  ([3c4be9f](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/3c4be9ffa6008e20400f1fa6807aeed89c68f1b2))
+- **dashboard:** implement admin and super admin overview metrics
+  ([c483835](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/c483835c2dc93d5a5ac9d9e947a1bd0af73f473f))
+- **dashboard:** implement paywall for worker browsing
+  ([b672527](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/b67252743a1122144e5a7de2bf13a6bedb773a43))
+- **dashboard:** implement worker profile detail view
+  ([7427b51](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/7427b5187cc114bfde064a343ee1dedf173a3a3a))
 
 # [1.23.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.22.1...v1.23.0) (2026-05-06)
 
