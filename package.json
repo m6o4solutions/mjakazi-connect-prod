@@ -9,6 +9,7 @@
 		"dev": "cross-env NODE_OPTIONS=--no-deprecation next dev -H 0.0.0.0",
 		"generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
 		"generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
+		"generate:it": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap && payload generate:types",
 		"lint": "cross-env NODE_OPTIONS=--no-deprecation next lint",
 		"payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
 		"start": "cross-env NODE_OPTIONS=--no-deprecation next start"
