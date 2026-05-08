@@ -15,7 +15,8 @@ COPY package.json pnpm-lock.yaml ./
 
 # cache mount for faster dependency install
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
-    corepack enable pnpm && pnpm i --frozen-lockfile
+    corepack enable pnpm && \
+    pnpm i --frozen-lockfile
 
 # rebuild the source code only when needed
 FROM base AS builder
