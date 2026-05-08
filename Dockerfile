@@ -11,7 +11,7 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # install dependencies based on pnpm
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 # cache mount for faster dependency install
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
