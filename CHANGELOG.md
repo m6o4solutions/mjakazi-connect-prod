@@ -1,3 +1,10 @@
+# [1.25.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.24.0...v1.25.0) (2026-05-08)
+
+
+### Features
+
+* **config:** add pnpm-workspace.yaml for monorepo support ([52d3c72](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/52d3c72d5963bc1815315015d7862a81626ebacb))
+
 # [1.24.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.23.0...v1.24.0) (2026-05-08)
 
 
