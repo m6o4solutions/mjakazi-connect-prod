@@ -2,6 +2,7 @@ import { Accounts } from "@/payload/collections/accounts/schema";
 import { AuditLogs } from "@/payload/collections/audit-logs/schema";
 import { CallsToAction } from "@/payload/collections/calls-to-action/schema";
 import { Categories } from "@/payload/collections/categories/schema";
+import { ExpressionsOfInterest } from "@/payload/collections/expressions-of-interest/schema";
 import { Media } from "@/payload/collections/media/schema";
 import { Pages } from "@/payload/collections/pages/schema";
 import { Payments } from "@/payload/collections/payments/schema";
@@ -26,6 +27,7 @@ const collections = [
 	Vault,
 	Payments,
 	Subscriptions,
+	ExpressionsOfInterest,
 	AuditLogs,
 ];
 

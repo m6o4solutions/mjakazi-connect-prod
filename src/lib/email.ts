@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 
-// instantiate per-call to avoid build-time errors when env vars are missing
+// instantiate per-call to ensure resend client safely handles missing env vars during build
 const getResend = () => {
 	const apiKey = process.env.RESEND_API_KEY;
 
@@ -11,12 +11,11 @@ const getResend = () => {
 	return new Resend(apiKey);
 };
 
-// emails are sent from the verified m6o4 domain but replies route to
-// the mjakazi connect support address for a clean user experience
+// standardize sender and reply-to configuration for consistent brand experience
 const FROM_ADDRESS = "Mjakazi Connect <noreply@updates.m6o4solutions.com>";
 const REPLY_TO = "hello@mjakaziconnect.co.ke";
 
-// base container with inline styles for cross-client compatibility
+// construct wrapper with shared styles for cross-client email rendering
 const baseTemplate = (content: string) => `
 <!DOCTYPE html>
 <html lang="en">
@@ -66,7 +65,7 @@ const baseTemplate = (content: string) => `
 </html>
 `;
 
-// modular helpers to maintain template readability
+// create modular helpers for consistent template styling
 const h1 = (text: string) =>
 	`<h1 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b;letter-spacing:-0.3px;">${text}</h1>`;
 
@@ -82,7 +81,7 @@ const divider = () =>
 const infoBox = (content: string) =>
 	`<div style="background-color:#f4f4f5;border-radius:8px;padding:16px 20px;margin-bottom:16px;">${content}</div>`;
 
-// transaction email handlers
+// define email handlers for transactional communications
 interface SendPaymentConfirmedParams {
 	to: string;
 	firstName: string;
@@ -90,7 +89,6 @@ interface SendPaymentConfirmedParams {
 	amount: number;
 }
 
-// confirm payment and inform about review process
 const sendPaymentConfirmedEmail = async ({
 	to,
 	firstName,
@@ -126,7 +124,6 @@ interface SendVerificationRejectedParams {
 	attemptsRemaining: number;
 }
 
-// communicate verification rejection and next steps
 const sendVerificationRejectedEmail = async ({
 	to,
 	firstName,
@@ -169,7 +166,6 @@ interface SendSubscriptionActivatedParams {
 	amount: number;
 }
 
-// confirm subscription activation and access details
 const sendSubscriptionActivatedEmail = async ({
 	to,
 	firstName,
@@ -208,7 +204,82 @@ const sendSubscriptionActivatedEmail = async ({
 	});
 };
 
+interface SendEoiMjakaziEmailParams {
+	to: string;
+	firstName: string;
+	mwajiriDisplayName: string;
+	mwajiriOrganization: string | null;
+}
+
+const sendEoiMjakaziEmail = async ({
+	to,
+	firstName,
+	mwajiriDisplayName,
+	mwajiriOrganization,
+}: SendEoiMjakaziEmailParams): Promise<void> => {
+	const senderLine = mwajiriOrganization
+		? `${mwajiriDisplayName} from ${mwajiriOrganization}`
+		: mwajiriDisplayName;
+
+	const content = `
+    ${h1("Someone is Interested in Hiring You")}
+    ${p(`Hi ${firstName}, great news — <strong>${senderLine}</strong> has expressed interest in hiring you through Mjakazi Connect.`)}
+    ${divider()}
+    ${infoBox(`
+      <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:0.5px;">What This Means</p>
+      <p style="margin:0;font-size:14px;color:#18181b;line-height:1.6;">This employer has viewed your full profile and would like to get in touch. They may contact you directly on your registered phone number — please be prepared to receive their call.</p>
+    `)}
+    ${p(`If you are interested in this opportunity, ensure your phone is reachable. If you are not interested, you can update your response from your dashboard.`)}
+    ${muted("Log in to your dashboard to view and manage all your expressions of interest.")}
+  `;
+
+	await getResend().emails.send({
+		from: FROM_ADDRESS,
+		replyTo: REPLY_TO,
+		to,
+		subject: `${mwajiriDisplayName} is interested in hiring you`,
+		html: baseTemplate(content),
+	});
+};
+
+interface SendEoiMwajiriEmailParams {
+	to: string;
+	wajakaziFirstName: string;
+	wajakaziPhoneNumber: string | null;
+	mwajiriDisplayName: string;
+}
+
+const sendEoiMwajiriEmail = async ({
+	to,
+	wajakaziFirstName,
+	wajakaziPhoneNumber,
+	mwajiriDisplayName,
+}: SendEoiMwajiriEmailParams): Promise<void> => {
+	const content = `
+    ${h1("Expression of Interest Sent")}
+    ${p(`Hi ${mwajiriDisplayName}, your expression of interest has been sent to <strong>${wajakaziFirstName}</strong>. They have been notified and are expecting your call.`)}
+    ${divider()}
+    ${infoBox(`
+      <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:0.5px;">Contact Details</p>
+      <p style="margin:0 0 4px;font-size:14px;color:#18181b;"><strong>Name:</strong> ${wajakaziFirstName}</p>
+      ${wajakaziPhoneNumber ? `<p style="margin:0;font-size:14px;color:#18181b;"><strong>Phone:</strong> ${wajakaziPhoneNumber}</p>` : ""}
+    `)}
+    ${p(`You can contact ${wajakaziFirstName} directly using the phone number above. Please be respectful of their time and confirm your interest clearly.`)}
+    ${muted("This expression of interest has been recorded on your account.")}
+  `;
+
+	await getResend().emails.send({
+		from: FROM_ADDRESS,
+		replyTo: REPLY_TO,
+		to,
+		subject: `Your expression of interest has been sent to ${wajakaziFirstName}`,
+		html: baseTemplate(content),
+	});
+};
+
 export {
+	sendEoiMjakaziEmail,
+	sendEoiMwajiriEmail,
 	sendPaymentConfirmedEmail,
 	sendSubscriptionActivatedEmail,
 	sendVerificationRejectedEmail,

@@ -11,6 +11,7 @@ import {
 	Wallet,
 } from "lucide-react";
 import Link from "next/link";
+import { EoiButton } from "@/components/dashboard/mwajiri/eoi-button";
 
 interface JobLabel {
 	label: string;
@@ -65,6 +66,7 @@ const availabilityLabel: Record<string, { label: string; className: string }> = 
 
 // profile display component for mwajiri dashboard
 const WorkerProfile = ({
+	profileId,
 	displayName,
 	photoUrl,
 	bio,
@@ -217,14 +219,10 @@ const WorkerProfile = ({
 							Interested in {firstName}?
 						</p>
 						<p className="text-muted-foreground text-sm">
-							Send an expression of interest and {firstName} will be notified by email.
+							Send an expression of interest and {firstName} will be notified by email to
+							expect your call.
 						</p>
-						<button
-							disabled
-							className="bg-primary text-primary-foreground mt-2 w-full cursor-not-allowed rounded-lg px-4 py-3 text-sm font-semibold opacity-50 sm:w-auto"
-						>
-							Send Expression of Interest — Coming Soon
-						</button>
+						<EoiButton wajakaziProfileId={profileId} wajakaziFirstName={firstName} />
 					</div>
 				</div>
 			</div>
