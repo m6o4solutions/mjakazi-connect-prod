@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import config from "@payload-config";
 import { NextResponse } from "next/server";
 import { getPayload } from "payload";
+import { writeAuditLog } from "@/lib/audit";
 
 const POST = async (req: Request) => {
 	const { userId } = await auth();
@@ -158,6 +159,20 @@ const POST = async (req: Request) => {
 		id: eoi.id,
 		overrideAccess: true,
 		data: { notificationSent: true },
+	});
+
+	await writeAuditLog({
+		action: "eoi_sent",
+		actorId: identity.accountId,
+		actorLabel: mwajiriDisplayName,
+		targetId: wajakaziAccountId,
+		targetLabel: wajakaziFirstName,
+		metadata: {
+			eoiId: eoi.id,
+			wajakaziProfileId,
+			mwajiriOrganization: mwajiriOrganization ?? null,
+		},
+		source: "user",
 	});
 
 	return NextResponse.json({ success: true });

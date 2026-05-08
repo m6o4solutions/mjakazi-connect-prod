@@ -904,7 +904,8 @@ export interface AuditLog {
     | 'payment_initiated'
     | 'payment_confirmed'
     | 'payment_failed'
-    | 'payment_expired';
+    | 'payment_expired'
+    | 'eoi_sent';
   actor?: (string | null) | Account;
   actorLabel?: string | null;
   target?: (string | null) | Account;
