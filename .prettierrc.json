@@ -4,7 +4,7 @@
 	"importOrderParserPlugins": ["typescript", "jsx", "decorators-legacy"],
 	"arrowParens": "always",
 	"bracketSpacing": true,
-	"printWidth": 90,
+	"printWidth": 120,
 	"proseWrap": "always",
 	"semi": true,
 	"singleQuote": false,
