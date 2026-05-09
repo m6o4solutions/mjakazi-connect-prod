@@ -1,6 +1,43 @@
 import { Resend } from "resend";
 
-// instantiate per-call to ensure resend client safely handles missing env vars during build
+interface SendPaymentConfirmedParams {
+	to: string;
+	firstName: string;
+	mpesaReceiptNumber: string;
+	amount: number;
+}
+
+interface SendVerificationRejectedParams {
+	to: string;
+	firstName: string;
+	rejectionReason: string;
+	attemptsRemaining: number;
+}
+
+interface SendSubscriptionActivatedParams {
+	to: string;
+	firstName: string;
+	tierName: string;
+	endDate: string;
+	mpesaReceiptNumber: string;
+	amount: number;
+}
+
+interface SendEoiMjakaziEmailParams {
+	to: string;
+	firstName: string;
+	mwajiriDisplayName: string;
+	mwajiriOrganization: string | null;
+}
+
+interface SendEoiMwajiriEmailParams {
+	to: string;
+	wajakaziFirstName: string;
+	wajakaziPhoneNumber: string | null;
+	mwajiriDisplayName: string;
+}
+
+// initialize resend client; ensure api key presence
 const getResend = () => {
 	const apiKey = process.env.RESEND_API_KEY;
 
@@ -11,11 +48,11 @@ const getResend = () => {
 	return new Resend(apiKey);
 };
 
-// standardize sender and reply-to configuration for consistent brand experience
+// define sender and reply-to brand configuration
 const FROM_ADDRESS = "Mjakazi Connect <noreply@updates.m6o4solutions.com>";
 const REPLY_TO = "hello@mjakaziconnect.co.ke";
 
-// construct wrapper with shared styles for cross-client email rendering
+// create layout wrapper for email templates
 const baseTemplate = (content: string) => `
 <!DOCTYPE html>
 <html lang="en">
@@ -65,7 +102,7 @@ const baseTemplate = (content: string) => `
 </html>
 `;
 
-// create modular helpers for consistent template styling
+// define template styling helpers
 const h1 = (text: string) =>
 	`<h1 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b;letter-spacing:-0.3px;">${text}</h1>`;
 
@@ -80,14 +117,6 @@ const divider = () =>
 
 const infoBox = (content: string) =>
 	`<div style="background-color:#f4f4f5;border-radius:8px;padding:16px 20px;margin-bottom:16px;">${content}</div>`;
-
-// define email handlers for transactional communications
-interface SendPaymentConfirmedParams {
-	to: string;
-	firstName: string;
-	mpesaReceiptNumber: string;
-	amount: number;
-}
 
 const sendPaymentConfirmedEmail = async ({
 	to,
@@ -116,13 +145,6 @@ const sendPaymentConfirmedEmail = async ({
 		html: baseTemplate(content),
 	});
 };
-
-interface SendVerificationRejectedParams {
-	to: string;
-	firstName: string;
-	rejectionReason: string;
-	attemptsRemaining: number;
-}
 
 const sendVerificationRejectedEmail = async ({
 	to,
@@ -156,15 +178,6 @@ const sendVerificationRejectedEmail = async ({
 		html: baseTemplate(content),
 	});
 };
-
-interface SendSubscriptionActivatedParams {
-	to: string;
-	firstName: string;
-	tierName: string;
-	endDate: string;
-	mpesaReceiptNumber: string;
-	amount: number;
-}
 
 const sendSubscriptionActivatedEmail = async ({
 	to,
@@ -204,13 +217,6 @@ const sendSubscriptionActivatedEmail = async ({
 	});
 };
 
-interface SendEoiMjakaziEmailParams {
-	to: string;
-	firstName: string;
-	mwajiriDisplayName: string;
-	mwajiriOrganization: string | null;
-}
-
 const sendEoiMjakaziEmail = async ({
 	to,
 	firstName,
@@ -241,13 +247,6 @@ const sendEoiMjakaziEmail = async ({
 		html: baseTemplate(content),
 	});
 };
-
-interface SendEoiMwajiriEmailParams {
-	to: string;
-	wajakaziFirstName: string;
-	wajakaziPhoneNumber: string | null;
-	mwajiriDisplayName: string;
-}
 
 const sendEoiMwajiriEmail = async ({
 	to,
