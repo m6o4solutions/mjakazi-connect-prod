@@ -61,6 +61,21 @@ const Page = async ({ params }: Props) => {
 		notFound();
 	}
 
+	// check if this mwajiri has already sent an eoi to this worker
+	const existingEoi = await payload.find({
+		collection: "expressions-of-interest",
+		where: {
+			and: [
+				{ mwajiriAccount: { equals: identity.accountId } },
+				{ wajakaziProfile: { equals: id } },
+			],
+		},
+		overrideAccess: true,
+		limit: 1,
+	});
+
+	const hasExistingEoi = existingEoi.totalDocs > 0;
+
 	// map raw data to display-ready formats and labels
 	const photoUrl =
 		profile.photo && typeof profile.photo === "object" && "url" in profile.photo
@@ -98,7 +113,6 @@ const Page = async ({ params }: Props) => {
 		<>
 			<DashboardTopbar title="Worker Profile" />
 			<main className="flex flex-1 flex-col gap-6 p-6">
-				{/* render the worker profile details component */}
 				<WorkerProfile
 					profileId={id}
 					displayName={profile.displayName ?? ""}
@@ -112,7 +126,7 @@ const Page = async ({ params }: Props) => {
 					salaryDisplay={salaryDisplay}
 					educationLevel={profile.educationLevel ?? null}
 					availabilityStatus={profile.availabilityStatus ?? "available"}
-					phoneNumber={profile.phoneNumber ?? null}
+					hasExistingEoi={hasExistingEoi}
 				/>
 			</main>
 		</>

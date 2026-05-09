@@ -7,7 +7,6 @@ import {
 	Clock,
 	Globe,
 	MapPin,
-	Phone,
 	Wallet,
 } from "lucide-react";
 import Link from "next/link";
@@ -31,7 +30,7 @@ interface WorkerProfileProps {
 	salaryDisplay: string | null;
 	educationLevel: string | null;
 	availabilityStatus: string;
-	phoneNumber: string | null;
+	hasExistingEoi: boolean;
 }
 
 const workPreferenceLabel: Record<string, string> = {
@@ -78,7 +77,7 @@ const WorkerProfile = ({
 	salaryDisplay,
 	educationLevel,
 	availabilityStatus,
-	phoneNumber,
+	hasExistingEoi,
 }: WorkerProfileProps) => {
 	const firstName = displayName.split(" ")[0];
 	const availability =
@@ -162,12 +161,6 @@ const WorkerProfile = ({
 									{salaryDisplay}
 								</div>
 							)}
-							{phoneNumber && (
-								<div className="text-muted-foreground flex items-center gap-1.5 text-sm">
-									<Phone className="size-4 shrink-0" />
-									{phoneNumber}
-								</div>
-							)}
 						</div>
 					</div>
 				</div>
@@ -218,11 +211,20 @@ const WorkerProfile = ({
 						<p className="text-foreground text-sm font-semibold">
 							Interested in {firstName}?
 						</p>
-						<p className="text-muted-foreground text-sm">
-							Send an expression of interest and {firstName} will be notified by email to
-							expect your call.
-						</p>
-						<EoiButton wajakaziProfileId={profileId} wajakaziFirstName={firstName} />
+						{hasExistingEoi ? (
+							<p className="text-muted-foreground text-sm">
+								You have already sent an expression of interest to {firstName}. They have
+								been notified about your interest.
+							</p>
+						) : (
+							<>
+								<p className="text-muted-foreground text-sm">
+									Send an expression of interest and {firstName} will be notified by email
+									to expect your call.
+								</p>
+								<EoiButton wajakaziProfileId={profileId} wajakaziFirstName={firstName} />
+							</>
+						)}
 					</div>
 				</div>
 			</div>
