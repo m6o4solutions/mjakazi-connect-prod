@@ -124,7 +124,7 @@ const Page = async () => {
 
 	return (
 		<>
-			<DashboardTopbar title="My Dashboard" />
+			<DashboardTopbar title="My Dashboard" notificationCount={pendingEoiCount} />
 			<main className="flex flex-1 flex-col gap-6 p-6">
 				{/* render status overview grid */}
 				<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
