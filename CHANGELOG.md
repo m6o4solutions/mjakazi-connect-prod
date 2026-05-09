@@ -1,3 +1,17 @@
+# [1.26.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.25.0...v1.26.0) (2026-05-09)
+
+
+### Features
+
+* **audit:** add eoi_sent action to audit logging ([79a0e34](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/79a0e347f77b903c436b72a46d2338f1209ea166))
+* **email:** define explicit interfaces for transactional templates ([8e1d9eb](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/8e1d9eb8c96c1718473e332f93ac7ed47fc27bd2))
+* **eoi:** implement expression of interest workflow ([6658efb](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/6658efbf768657aa870634a4d6212bbb0bab576a))
+* **mjakazi:** implement opportunities inbox and availability management ([7e5081d](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/7e5081d283bda9a042fb4ec1d479dbd5dad7015e))
+* **sa:** integrate revenue tracking and metrics dashboard ([1285ba2](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/1285ba2624fbf7a1618c34e70ae758cd15b6b922))
+* **scripts:** add generate:it command ([521398b](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/521398b9a1c25f817ea1911a9134a868494b148c))
+* **ui:** add dynamic notification badge to dashboard topbar ([99fd881](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/99fd881ef9e9534f397ea0f4469caa6a4f8d7d3e))
+* **ui:** restrict duplicate expressions of interest ([ead0d65](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/ead0d65c63efa6142ee9e7f6e871b9ac388aac6d))
+
 # [1.25.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.24.0...v1.25.0) (2026-05-08)
 
 ### Features
