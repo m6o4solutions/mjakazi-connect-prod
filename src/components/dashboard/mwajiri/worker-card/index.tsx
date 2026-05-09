@@ -11,7 +11,6 @@ interface WorkerCardProps {
 	id: string;
 	displayName: string;
 	photoUrl: string | null;
-	bio: string | null;
 	jobLabels: JobLabel[];
 	locationLabel: string | null;
 	experience: number | null;
@@ -41,7 +40,6 @@ const WorkerCard = ({
 	id,
 	displayName,
 	photoUrl,
-	bio,
 	jobLabels,
 	locationLabel,
 	experience,
@@ -137,13 +135,6 @@ const WorkerCard = ({
 					)}
 				</div>
 			</div>
-
-			{/* display worker bio */}
-			{bio && (
-				<p className="text-muted-foreground line-clamp-2 px-4 pb-2 text-xs leading-relaxed">
-					{bio}
-				</p>
-			)}
 
 			{/* render job category tags */}
 			{jobLabels.length > 0 && (
