@@ -213,7 +213,7 @@ const WorkerProfile = ({
 						</p>
 						{hasExistingEoi ? (
 							<p className="text-muted-foreground text-sm">
-								You have already sent an expression of interest to {firstName}. They have
+								You have already sent an expression of interest to {firstName}, who has
 								been notified about your interest.
 							</p>
 						) : (
