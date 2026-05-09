@@ -79,6 +79,7 @@ export interface Config {
     vault: Vault;
     payments: Payment;
     subscriptions: Subscription;
+    'expressions-of-interest': ExpressionsOfInterest;
     'audit-logs': AuditLog;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -104,6 +105,7 @@ export interface Config {
     vault: VaultSelect<false> | VaultSelect<true>;
     payments: PaymentsSelect<false> | PaymentsSelect<true>;
     subscriptions: SubscriptionsSelect<false> | SubscriptionsSelect<true>;
+    'expressions-of-interest': ExpressionsOfInterestSelect<false> | ExpressionsOfInterestSelect<true>;
     'audit-logs': AuditLogsSelect<false> | AuditLogsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -872,6 +874,22 @@ export interface Payment {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "expressions-of-interest".
+ */
+export interface ExpressionsOfInterest {
+  id: string;
+  mwajiriAccount: string | Account;
+  wajakaziProfile: string | Wajakaziprofile;
+  mwajiriDisplayName?: string | null;
+  mwajiriOrganization?: string | null;
+  mwajiriEmail?: string | null;
+  status: 'pending' | 'interested' | 'not_interested';
+  notificationSent?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "audit-logs".
  */
 export interface AuditLog {
@@ -886,7 +904,8 @@ export interface AuditLog {
     | 'payment_initiated'
     | 'payment_confirmed'
     | 'payment_failed'
-    | 'payment_expired';
+    | 'payment_expired'
+    | 'eoi_sent';
   actor?: (string | null) | Account;
   actorLabel?: string | null;
   target?: (string | null) | Account;
@@ -1304,6 +1323,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'subscriptions';
         value: string | Subscription;
+      } | null)
+    | ({
+        relationTo: 'expressions-of-interest';
+        value: string | ExpressionsOfInterest;
       } | null)
     | ({
         relationTo: 'audit-logs';
@@ -1901,6 +1924,21 @@ export interface SubscriptionsSelect<T extends boolean = true> {
   startDate?: T;
   endDate?: T;
   durationDays?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "expressions-of-interest_select".
+ */
+export interface ExpressionsOfInterestSelect<T extends boolean = true> {
+  mwajiriAccount?: T;
+  wajakaziProfile?: T;
+  mwajiriDisplayName?: T;
+  mwajiriOrganization?: T;
+  mwajiriEmail?: T;
+  status?: T;
+  notificationSent?: T;
   updatedAt?: T;
   createdAt?: T;
 }

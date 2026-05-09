@@ -42,6 +42,8 @@ const AuditLogs: CollectionConfig = {
 				{ label: "Payment Confirmed", value: "payment_confirmed" },
 				{ label: "Payment Failed", value: "payment_failed" },
 				{ label: "Payment Expired", value: "payment_expired" },
+				// expression of interest lifecycle
+				{ label: "Expression of Interest Sent", value: "eoi_sent" },
 			],
 		},
 		{

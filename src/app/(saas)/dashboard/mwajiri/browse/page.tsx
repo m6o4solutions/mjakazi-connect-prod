@@ -46,6 +46,7 @@ const Page = async ({ searchParams }: Props) => {
 	const baseFilters: any[] = [
 		{ verificationStatus: { equals: "verified" } },
 		{ profileComplete: { equals: true } },
+		{ availabilityStatus: { equals: "available" } },
 	];
 
 	// location and job filters only apply for subscribed users

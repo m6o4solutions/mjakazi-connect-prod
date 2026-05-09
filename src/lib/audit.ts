@@ -11,7 +11,8 @@ type AuditAction =
 	| "payment_initiated"
 	| "payment_confirmed"
 	| "payment_failed"
-	| "payment_expired";
+	| "payment_expired"
+	| "eoi_sent";
 
 type AuditSource = "user" | "system";
 

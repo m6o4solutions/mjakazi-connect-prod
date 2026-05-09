@@ -1,14 +1,13 @@
 {
 	"name": "mjakazi-connect-prod",
-	"version": "1.23.0",
+	"version": "1.25.0",
 	"description": "Mjakazi Connect SaaS web application.",
 	"license": "MIT",
 	"type": "module",
 	"scripts": {
 		"build": "cross-env NODE_OPTIONS=--no-deprecation next build",
 		"dev": "cross-env NODE_OPTIONS=--no-deprecation next dev -H 0.0.0.0",
-		"generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
-		"generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
+		"generate": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types && payload generate:importmap",
 		"lint": "cross-env NODE_OPTIONS=--no-deprecation next lint",
 		"payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
 		"start": "cross-env NODE_OPTIONS=--no-deprecation next start"
@@ -97,14 +96,5 @@
 	"engines": {
 		"node": "^18.20.2 || >=20.9.0",
 		"pnpm": "^9 || ^10 || ^11"
-	},
-	"pnpm": {
-		"onlyBuiltDependencies": [
-			"@clerk/shared",
-			"esbuild",
-			"protobufjs",
-			"sharp",
-			"unrs-resolver"
-		]
 	}
 }

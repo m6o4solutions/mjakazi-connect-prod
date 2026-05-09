@@ -29,8 +29,10 @@ const Page = async () => {
 	const payload = await getPayload({ config });
 	const identity = await resolveIdentity(payload, userId);
 
+	// authorize worker role
 	if (!identity || identity.role !== "mjakazi") redirect("/sign-in");
 
+	// define incomplete verification status threshold
 	const verificationStatus = identity.verificationStatus ?? "draft";
 	const showVerificationCta = INCOMPLETE_STATUSES.includes(verificationStatus);
 
@@ -46,7 +48,22 @@ const Page = async () => {
 	const profile = profileQuery.docs[0] ?? null;
 	const profileComplete = profile?.profileComplete ?? false;
 
-	// build completeness checklist — each item links to the page where it can be filled
+	// count pending expressions of interest
+	const eoiCountQuery = await payload.find({
+		collection: "expressions-of-interest",
+		where: {
+			and: [
+				{ wajakaziProfile: { equals: profile?.id } },
+				{ status: { equals: "pending" } },
+			],
+		},
+		overrideAccess: true,
+		limit: 0,
+	});
+
+	const pendingEoiCount = eoiCountQuery.totalDocs;
+
+	// build completeness checklist
 	const completenessItems = [
 		{
 			label: "Upload profile photo",
@@ -107,29 +124,34 @@ const Page = async () => {
 
 	return (
 		<>
-			<DashboardTopbar title="My Dashboard" />
+			<DashboardTopbar title="My Dashboard" notificationCount={pendingEoiCount} />
 			<main className="flex flex-1 flex-col gap-6 p-6">
-				{/* status overview row */}
+				{/* render status overview grid */}
 				<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
 					<VerificationStatusCard verificationState={verificationStatus} />
 					<VerificationProgressCard status={verificationStatus} />
-					<div className="bg-card border-border flex flex-col gap-4 rounded-xl border p-6">
-						<p className="text-muted-foreground text-sm font-semibold">Activity</p>
+					<Link
+						href="/dashboard/mjakazi/opportunities"
+						className="bg-card border-border hover:border-primary/40 flex flex-col gap-4 rounded-xl border p-6 transition-colors"
+					>
+						<p className="text-muted-foreground text-sm font-semibold">Opportunities</p>
 						<p className="font-display text-foreground mt-2 text-2xl font-bold">
-							Coming Soon
+							{pendingEoiCount}
 						</p>
 						<p className="text-muted-foreground mt-1 text-sm">
-							Your recent activity and updates will appear here.
+							{pendingEoiCount === 1
+								? "Employer is waiting for your response."
+								: pendingEoiCount === 0
+									? "No pending expressions of interest."
+									: "Employers are waiting for your response."}
 						</p>
-					</div>
+					</Link>
 				</div>
 
-				{/* second row — verification CTA and profile completeness side by side
-				    items-start prevents the CTA card from stretching to match
-				    the taller profile completeness card */}
+				{/* render onboarding and completeness alerts */}
 				{(showVerificationCta || !profileComplete) && (
 					<div className="grid items-start gap-6 md:grid-cols-2 xl:grid-cols-3">
-						{/* verification CTA — natural height, does not stretch */}
+						{/* render verification call to action */}
 						{showVerificationCta && (
 							<div className="bg-card border-border flex flex-col gap-4 self-start rounded-xl border p-6">
 								<div>
@@ -151,7 +173,7 @@ const Page = async () => {
 							</div>
 						)}
 
-						{/* profile completeness checklist — hidden once complete */}
+						{/* render profile completeness checklist */}
 						{!profileComplete && (
 							<ProfileCompletenessCard
 								items={completenessItems}
