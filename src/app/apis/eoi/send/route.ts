@@ -1,4 +1,4 @@
-import { inngest } from "@/inngest/client";
+import { sendEoiMjakaziEmail, sendEoiMwajiriEmail } from "@/lib/email";
 import { resolveIdentity } from "@/services/identity.service";
 import { auth } from "@clerk/nextjs/server";
 import config from "@payload-config";
@@ -9,7 +9,7 @@ import { writeAuditLog } from "@/lib/audit";
 const POST = async (req: Request) => {
 	const { userId } = await auth();
 
-	// ensure request is from authenticated user
+	// authenticate request
 	if (!userId) {
 		return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
 	}
@@ -17,12 +17,12 @@ const POST = async (req: Request) => {
 	const payload = await getPayload({ config });
 	const identity = await resolveIdentity(payload, userId);
 
-	// only employers can initiate expressions of interest
+	// authorize employer role
 	if (!identity || identity.role !== "mwajiri") {
 		return NextResponse.json({ error: "Forbidden." }, { status: 403 });
 	}
 
-	// verify active subscription status before proceeding
+	// check active subscription
 	const mwajiriProfileResult = await payload.find({
 		collection: "waajiriprofiles",
 		where: { account: { equals: identity.accountId } },
@@ -48,7 +48,7 @@ const POST = async (req: Request) => {
 		);
 	}
 
-	// validate target profile availability and verification
+	// validate target profile criteria
 	let wajakaziProfile: any = null;
 
 	try {
@@ -73,7 +73,7 @@ const POST = async (req: Request) => {
 		);
 	}
 
-	// ensure no duplicate eoi for this relationship
+	// prevent duplicate eoi
 	const existing = await payload.find({
 		collection: "expressions-of-interest",
 		where: {
@@ -93,7 +93,7 @@ const POST = async (req: Request) => {
 		);
 	}
 
-	// prepare employer details for notification
+	// prepare employer notification data
 	const mwajiriAccountResult = await payload.find({
 		collection: "accounts",
 		where: { clerkId: { equals: userId } },
@@ -109,7 +109,7 @@ const POST = async (req: Request) => {
 		"A potential employer";
 	const mwajiriOrganization = mwajiriProfile?.organization ?? null;
 
-	// fetch worker details for delivery
+	// resolve worker account data
 	const wajakaziAccountId =
 		typeof wajakaziProfile.account === "string"
 			? wajakaziProfile.account
@@ -124,7 +124,7 @@ const POST = async (req: Request) => {
 	const wajakaziEmail = (wajakaziAccountResult as any)?.email ?? null;
 	const wajakaziFirstName = (wajakaziProfile.displayName ?? "").split(" ")[0] || "there";
 
-	// persist eoi to database
+	// create eoi record
 	const eoi = await payload.create({
 		collection: "expressions-of-interest",
 		overrideAccess: true,
@@ -139,27 +139,34 @@ const POST = async (req: Request) => {
 		},
 	});
 
-	// trigger async notification workflow
-	await inngest.send({
-		name: "eoi/sent",
-		data: {
-			eoiId: eoi.id,
-			wajakaziEmail,
-			wajakaziFirstName,
-			wajakaziPhoneNumber: wajakaziProfile.phoneNumber ?? null,
-			mwajiriEmail,
-			mwajiriDisplayName,
-			mwajiriOrganization,
-		},
-	});
+	try {
+		await Promise.all([
+			wajakaziEmail
+				? sendEoiMjakaziEmail({
+						to: wajakaziEmail,
+						firstName: wajakaziFirstName,
+						mwajiriDisplayName,
+						mwajiriOrganization,
+					})
+				: Promise.resolve(),
+			sendEoiMwajiriEmail({
+				to: mwajiriEmail,
+				wajakaziFirstName,
+				wajakaziPhoneNumber: wajakaziProfile.phoneNumber ?? null,
+				mwajiriDisplayName,
+			}),
+		]);
 
-	// finalize notification state
-	await payload.update({
-		collection: "expressions-of-interest",
-		id: eoi.id,
-		overrideAccess: true,
-		data: { notificationSent: true },
-	});
+		await payload.update({
+			collection: "expressions-of-interest",
+			id: eoi.id,
+			overrideAccess: true,
+			data: { notificationSent: true },
+		});
+	} catch (emailError) {
+		// notify parties via email; ignore failure
+		console.error("[EOI] Failed to send notification emails:", emailError);
+	}
 
 	await writeAuditLog({
 		action: "eoi_sent",
