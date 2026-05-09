@@ -7,7 +7,7 @@
 	"scripts": {
 		"build": "cross-env NODE_OPTIONS=--no-deprecation next build",
 		"dev": "cross-env NODE_OPTIONS=--no-deprecation next dev -H 0.0.0.0",
-		"generate:tips": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types && payload generate:importmap",
+		"generate": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types && payload generate:importmap",
 		"lint": "cross-env NODE_OPTIONS=--no-deprecation next lint",
 		"payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
 		"start": "cross-env NODE_OPTIONS=--no-deprecation next start"
