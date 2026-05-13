@@ -1,3 +1,10 @@
+# [1.27.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.26.0...v1.27.0) (2026-05-13)
+
+
+### Features
+
+* **wajakazi:** add revalidation hook and improve code documentation ([f786a9e](https://github.com/m6o4solutions/mjakazi-connect-prod/commit/f786a9e8a5106a44ba6a3fb8dc52355f46702a4a))
+
 # [1.26.0](https://github.com/m6o4solutions/mjakazi-connect-prod/compare/v1.25.0...v1.26.0) (2026-05-09)
 
 ### Features
