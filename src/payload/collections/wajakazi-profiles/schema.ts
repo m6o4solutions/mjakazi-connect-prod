@@ -9,6 +9,7 @@ import {
 	WORK_PREFERENCE_OPTIONS,
 } from "@/lib/profile-constants";
 import { isAdminOrProfileOwner, isRestricted } from "@/payload/access/access-control";
+import { revalidateMjakazi } from "@/payload/collections/wajakazi-profiles/hooks/revalidate-mjakazi";
 import type { CollectionConfig } from "payload";
 
 // payload collection definition for worker profiles
@@ -293,6 +294,8 @@ const WajakaziProfiles: CollectionConfig = {
 			},
 		},
 	],
+
+	hooks: { afterChange: [revalidateMjakazi] },
 };
 
 export { WajakaziProfiles };

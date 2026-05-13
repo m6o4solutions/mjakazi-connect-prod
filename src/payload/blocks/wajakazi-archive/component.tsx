@@ -8,10 +8,8 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { getPayload } from "payload";
 
-const bgMap: Record<string, string> = {
-	subtle: "bg-bg-subtle",
-	white: "bg-bg-white",
-};
+// map background variants to class names
+const bgMap: Record<string, string> = { subtle: "bg-bg-subtle", white: "bg-bg-white" };
 
 const WajakaziArchiveBlock = async ({
 	backgroundVariant = "subtle",
@@ -26,6 +24,7 @@ const WajakaziArchiveBlock = async ({
 
 	const payload = await getPayload({ config });
 
+	// fetch only verified and complete profiles
 	const result = await payload.find({
 		collection: "wajakaziprofiles",
 		where: {
@@ -49,10 +48,12 @@ const WajakaziArchiveBlock = async ({
 
 	const profiles = result.docs;
 
+	// render archive layout with responsive grid
 	return (
 		<div className={cn("px-4 py-20", backgroundClass)}>
 			<Container className="px-4 sm:px-6 lg:px-8">
 				<div className="px-3" id={`block-${id}`}>
+					{/* render header if content is provided */}
 					{(headline || headlineDescription) && (
 						<div className="mb-12 flex flex-col items-end justify-between md:flex-row">
 							<div>
@@ -75,7 +76,7 @@ const WajakaziArchiveBlock = async ({
 							)}
 						</div>
 					)}
-
+					{/* render fallback if no profiles found */}
 					{profiles.length === 0 ? (
 						<div className="flex flex-col items-center justify-center py-16 text-center">
 							<p className="text-muted-foreground text-sm">
@@ -83,6 +84,7 @@ const WajakaziArchiveBlock = async ({
 							</p>
 						</div>
 					) : (
+						// map profiles to teaser cards
 						<div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 							{profiles.map((profile) => {
 								const firstName = (profile.displayName ?? "").split(" ")[0];
@@ -121,7 +123,7 @@ const WajakaziArchiveBlock = async ({
 							})}
 						</div>
 					)}
-
+					{/* // render call to action link */}
 					{showViewAllLink && profiles.length > 0 && (
 						<div className="mt-10 flex justify-center md:hidden">
 							<Link

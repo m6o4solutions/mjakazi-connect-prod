@@ -1,6 +1,6 @@
 {
 	"plugins": ["@ianvs/prettier-plugin-sort-imports", "prettier-plugin-tailwindcss"],
-	"importOrder": ["^@core/(.*)$", "", "^@server/(.*)$", "", "^@ui/(.*)$", "", "^[./]"],
+	"importOrder": ["<THIRD_PARTY_MODULES>", "", "^@/(.*)$", "", "^[./]"],
 	"importOrderParserPlugins": ["typescript", "jsx", "decorators-legacy"],
 	"arrowParens": "always",
 	"bracketSpacing": true,
